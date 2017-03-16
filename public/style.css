@@ -1,0 +1,31 @@
+body {
+  margin: 0 0;
+  font-family: 'futura'; }
+
+h1, h2 {
+  margin: 0 0;
+  padding: 0 0; }
+
+.right {
+  float: right; }
+
+.left {
+  float: left; }
+
+.header {
+  border: 1px solid red;
+  padding: .5em; }
+  .header h2 {
+    display: inline-block; }
+
+.ic_live {
+  border: 1px solid red;
+  width: 1.3rem;
+  font-size: 10px; }
+  .ic_live_image {
+    display: block;
+    background: grey;
+    width: 8px;
+    height: 8px;
+    border-radius: 100%;
+    margin: 0 auto 3px; }
