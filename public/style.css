@@ -1,6 +1,7 @@
 body {
   margin: 0 0;
-  font-family: 'futura'; }
+  font-family: 'futura';
+  background: grey; }
 
 h1, h2 {
   margin: 0 0;
@@ -13,8 +14,7 @@ h1, h2 {
   float: left; }
 
 .header {
-  border: 1px solid red;
-  padding: .5em; }
+  border: 1px solid red; }
   .header h2 {
     display: inline-block; }
 
