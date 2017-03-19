@@ -1,0 +1,14 @@
+{"roomNumber":1234,"username":"Roos","activeModules":[{
+					"row":0,
+					"col":3,
+					"id":0,
+					"title":"VCO",
+					"active":true
+				},
+				{
+					"row":3,
+					"col":1,
+					"id":1,
+					"title":"Delay",
+					"active":true
+				}]}

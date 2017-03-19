@@ -18,36 +18,35 @@
 
  --}}
 
- <header class='header'>
- 	<h2 class='center'>Room: <span>{{roomNumber}}</span></h2>
+ <header class='header header_modoverview'>
+ 	<h2 class='header_title center'>Room: <span>{{user.roomNumber}}</span></h2>
 	<div class="right ic_live ic_inactive">
 		<span class='ic_live_image'></span>
 		<span class='ic_title ic_live_title'>LIVE</span>
 	</div>
  </header>
-<ul class='grid grid_modules'>
-	{{#each rows}}
-		<li class='grid_row grid_modules_row'>
-			<ul>
-				{{#each items}}
-				<li class='grid_modules_item'></li>
-				{{/each}}
-			</ul>
-		</li>
-	{{/each}}
-</ul>
-{{!-- 
-<p>available</p>
- <ul class='list list_modules'>
- 	{{#each categories}}
-		<li class='list_modules_row'>
-			{{category}}
-			<ul>
-				{{#each modules}}
-					<li class='list_module_item'>{{title}}</li>
-				{{/each}}
-			</ul>
-		</li>
- 	{{/each}}
- 		
- </ul> --}}
+<form action="/play/remove" method='POST' class='form_modules fn-form-module'>
+	<ul class='grid grid_modules'>
+		{{#each grid.rows}}
+			
+				<ul class='grid_row grid_modules_row'>
+					{{#each items}}
+					
+					{{#if active}}
+					<li class='grid_modules_item draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{id}}>{{title}}</li>
+
+					{{else}}
+					<li class='grid_modules_item ' >x</li>
+					{{/if}}
+
+					
+					{{/each}}
+				</ul>
+			
+		{{/each}}
+		</ul>
+		<input type="text" class='fn-test hide' name='moduleId'>
+		<input type="submit" class='buttons_area buttons_delete droparea fn-delete-box'>
+		
+
+</form>

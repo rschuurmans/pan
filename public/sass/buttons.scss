@@ -1,0 +1,23 @@
+$size: 80px;
+
+.buttons {
+	&_area {
+		position:fixed;
+		bottom:0;
+		left:0;
+		background:black;
+		border:none;
+		transition:.2s ease-in-out;
+		opacity:0;
+		width:35vw;
+		height:35vw;
+		border-top-left-radius:0;
+		border-top-right-radius:100%;
+		border-bottom-left-radius:0;
+		border-bottom-right-radius:0;
+
+		&.active {
+			opacity:1;
+		}
+	}	
+}

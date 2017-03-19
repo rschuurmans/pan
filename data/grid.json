@@ -5,16 +5,20 @@
 			"type":"source",
 			"items":[
 				{
-					"id":0
+					"col":0,
+					"active": false
 				},
 				{
-					"id":1
+					"col":1,
+					"active": false
 				},
 				{
-					"id":2
+					"col":2,
+					"active": false
 				},
 				{
-					"id":3
+					"col":3,
+					"active": false
 				}
 			]	
 		},
@@ -23,16 +27,20 @@
 			"type":"Filter",
 			"items":[
 				{
-					"id":0
+					"col":0,
+					"active": false
 				},
 				{
-					"id":1
+					"col":1,
+					"active": false
 				},
 				{
-					"id":2
+					"col":2,
+					"active": false
 				},
 				{
-					"id":3
+					"col":3,
+					"active": false
 				}
 			]	
 		},
@@ -41,16 +49,20 @@
 			"type":"Modulate",
 			"items":[
 				{
-					"id":0
+					"col":0,
+					"active": false
 				},
 				{
-					"id":1
+					"col":1,
+					"active": false
 				},
 				{
-					"id":2
+					"col":2,
+					"active": false
 				},
 				{
-					"id":3
+					"col":3,
+					"active": false
 				}
 			]	
 		},
@@ -59,16 +71,20 @@
 			"type":"rythm",
 			"items":[
 				{
-					"id":0
+					"col":0,
+					"active": false
 				},
 				{
-					"id":1
+					"col":1,
+					"active": false
 				},
 				{
-					"id":2
+					"col":2,
+					"active": false
 				},
 				{
-					"id":3
+					"col":3,
+					"active": false
 				}
 			]	
 		}

@@ -1,6 +1,5 @@
 .ic {
 	&_live {
-		border:1px solid $color-accent;
 		width:$icon-width;
 		font-size:$font-small;
 		&_image {
@@ -16,8 +15,3 @@
 		}
 	}
 }
-
-// <div class="right ic_live ic_inactive">
-// 		<span class='ic_live_image'></span>
-// 		<span class='ic_title ic_live_title'>LIVE</span>
-// 	</div>

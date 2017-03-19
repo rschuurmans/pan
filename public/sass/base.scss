@@ -1,9 +1,18 @@
 body {
 	margin: 0 0;
 	font-family:'futura';
+	height:100%;
 	
+
 }
-h1,h2 {
+html {
+	height:100%;
+}
+h1,h2, h3, h4 {
 	margin: 0 0;
 	padding:0 0;
+}
+
+.hide {
+	display:none;
 }
