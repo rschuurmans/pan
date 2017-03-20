@@ -1,0 +1,23 @@
+<header class='header header_modoverview'>
+	<a href="/play" class='left'>
+		<div class="ic ic_back"></div>
+	</a>
+	<h2 class="header_title center">Modules</h2>
+	<div>
+			
+		</div>
+</header>
+<h1>{{error}}</h1>
+
+	<ul class='grid grid_modules'>
+		{{#each categories}}
+			
+				<ul class='grid_row grid_modules_row'>
+					{{#each modules}}
+						<li class='grid_modules_item fn-select-module' style='background-color:{{../color}}' module-id={{id}}><p class='grid_modules_title'>{{title}}</li>
+					{{/each}}
+				</ul>
+			
+		{{/each}}
+	</ul>
+

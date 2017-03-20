@@ -21,7 +21,10 @@ h1, h2, h3, h4 {
 
 .header {
   padding: 1.875em .7em .7em;
-  text-align: center; }
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; }
   .header .header_title {
     display: inline-block; }
 
@@ -29,28 +32,37 @@ h1, h2, h3, h4 {
   padding: 0 0;
   list-style: none; }
   .grid .grid_row {
-    list-style-type: none;
-    padding: 0 0;
-    position: relative;
-    display: flex;
-    justify-content: stretch;
-    padding: .25rem .5rem; }
+    margin: 0 0;
+    list-style: none;
+    padding: 0 .5rem; }
+    .grid .grid_row:after {
+      content: "";
+      display: table;
+      clear: both; }
     .grid .grid_row .grid_modules_item {
+      width: calc(25% - .4rem);
+      float: left;
+      font-size: 0;
+      position: relative;
+      touch-action: none;
       background: #e5e5e5;
-      border-radius: 5px;
-      border: #cccccc 2px dashed;
-      flex: 25%;
-      text-align: center;
-      display: inline-block;
-      margin-right: .5rem;
-      max-width: 5em;
-      touch-action: none; }
-      .grid .grid_row .grid_modules_item:last-of-type {
-        margin-right: 0; }
-      .grid .grid_row .grid_modules_item:before, .grid .grid_row .grid_modules_item:after {
-        content: "";
-        display: block;
-        padding-top: 35%; }
+      margin-left: .5rem;
+      overflow: hidden;
+      margin-bottom: .5rem; }
+      .grid .grid_row .grid_modules_item:first-of-type, .grid .grid_row .grid_modules_item:nth-of-type(5) {
+        margin-left: 0; }
+      .grid .grid_row .grid_modules_item:before {
+        content: '';
+        padding: 50% 0;
+        /* vertical value as  100% equals width */
+        display: inline-block; }
+      .grid .grid_row .grid_modules_item .grid_modules_title {
+        font-size: 18px;
+        position: absolute;
+        top: 0;
+        width: 100%;
+        left: 0;
+        text-align: center; }
 
 .buttons_area {
   position: fixed;
@@ -69,9 +81,19 @@ h1, h2, h3, h4 {
   .buttons_area.active {
     opacity: 1; }
 
-.ic_live {
+.ic {
   width: 1.3rem;
-  font-size: 10px; }
+  height: 100%;
+  min-height: 1.3rem; }
+  .ic_add {
+    background: url(./images/ic_add.svg);
+    background-size: contain; }
+  .ic_back {
+    background: url(./images/ic_back.svg);
+    background-size: contain; }
+  .ic_live_container {
+    width: 1.3rem;
+    font-size: 10px; }
   .ic_live_image {
     display: block;
     background: grey;

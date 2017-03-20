@@ -1,8 +1,11 @@
 .header {
 	padding:1.875em .7em .7em;
 	text-align:center;
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+
 	.header_title {
 		display:inline-block;
 	}
-	
 }

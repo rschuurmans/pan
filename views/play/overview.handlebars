@@ -1,0 +1,53 @@
+{{!-- this file contains the html for the module overview page
+	functions:
+		- go live
+		- add modules by pressing an empty module
+		- get active modules from localstorage
+		- get all possible modules from a json file
+		- modules are diveded in 4 categories, source, rythm, modulate and filter
+		- still play music in this screen
+
+	go to page:
+	- module detail
+	- room overview
+
+	current state:
+	- html grid is included, 
+	- no css, scss files are created
+	- no behaviour
+
+ --}}
+
+ <header class='header header_modoverview'>
+		<a href="/play/list" class='left'>
+			
+		</a>
+	 	
+	 	<h2 class='header_title center'>Room: <span>{{user.roomNumber}}</span></h2>
+		<div class="right ic_live_container ic_inactive">
+			<span class='ic_live_image'></span>
+			<span class='ic_title ic_live_title'>LIVE</span>
+		</div>
+ </header>
+	<ul class='grid grid_modules'>
+		{{#each grid.rows}}
+			
+			<ul class='grid_row grid_modules_row'>
+				{{#each items}}
+				
+				{{#if active}}
+				<li class='grid_modules_item draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{id}}><a href='/play/module/{{id}}' class="grid_modules_title">{{title}}</a></li>
+
+				{{else}}
+				
+				<li class='grid_modules_item' ><a href="/play/list/{{../row}}{{col}}"><p class="grid_modules_title">x</p></a> </li>
+				{{/if}}
+
+				
+				{{/each}}
+			</ul>
+		
+	{{/each}}
+	</ul>
+
+	<div class="fn-delete-box buttons_area"></div>

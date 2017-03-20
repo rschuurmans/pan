@@ -1,0 +1,30 @@
+.ic {
+	width:$icon-width;
+	height:100%;
+	min-height:$icon-width;
+	&_add {
+		background:url(./images/ic_add.svg);
+		background-size:contain;
+	}
+	&_back {
+		background:url(./images/ic_back.svg);
+		background-size:contain;
+	}
+	&_live {
+		&_container {
+			width:$icon-width;
+			font-size:$font-size-small;
+		}
+		&_image {
+			display: block;
+			background:$color-grey;
+			width:8px;
+			height:8px;
+			border-radius:100%;
+			margin:0 auto 3px;
+		}
+		&_title {
+
+		}
+	}
+}
