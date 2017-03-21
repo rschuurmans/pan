@@ -1,5 +1,24 @@
-<h1>{{title}}</h1>
+{{> header header}}
 
 {{#each parameters}}
-<p>e</p>
+
+{{#ifCond type "===" 'waveType'}}
+<h2>Wavetype</h2>
+    <ul class='list list_radio clear-list grid_row'>
+
+    	{{#each waveTypes}}
+
+			<li class='grid_row_item'>
+				{{!-- <input type="radio" class='input input_radio' name='waveTypes' value='{{type}}' id='{{type}}'>
+				<div class="ic ic_wave input_img" style="background-image:url('/images/{{img}}')"></div>
+				 --}}
+			</li>
+	    {{/each}}
+    </ul>
+{{/ifCond}}
+
+{{#ifCond type "===" 'frequency' }}
+<p>frequency</p>
+{{/ifCond}}
 {{/each}}
+

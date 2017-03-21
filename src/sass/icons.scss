@@ -6,6 +6,11 @@
 		background:url(./images/ic_add.svg);
 		background-size:contain;
 	}
+	&_wave {
+		border:1px solid red;
+		background-size:contain;
+		background-repeat:no-repeat;
+	}
 	&_back {
 		background:url(./images/ic_back.svg);
 		background-size:contain;
@@ -14,6 +19,9 @@
 		&_container {
 			width:$icon-width;
 			font-size:$font-size-small;
+			&.ic_active {
+				border:1px solid red;
+			}
 		}
 		&_image {
 			display: block;

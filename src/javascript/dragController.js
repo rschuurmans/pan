@@ -16,7 +16,6 @@ var drag = {
 			},
 			autoScroll: false,
 			onmove: function (event) {
-				console.log('hap');
 				var target = event.target;
 				
 				x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
@@ -59,7 +58,6 @@ var drag = {
 		interact(element).dropzone({
 			accept: accept,
 			ondropactivate: function (event) {
-				
 				event.target.classList.add('active');
 			},
 
@@ -68,8 +66,8 @@ var drag = {
 			},
 			
 			ondrop: function (event) {
-			module.deleteFromUser(event.relatedTarget.getAttribute('module-id'));
-			event.target.classList.remove('active');
+				module.deleteFromUser(event.relatedTarget.getAttribute('data-col'), event.relatedTarget.getAttribute('data-category'));
+				event.target.classList.remove('active');
 			},
 
 			ondropdeactivate: function (event) {

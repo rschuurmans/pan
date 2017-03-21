@@ -1,3 +1,91 @@
-{"roomNumber":1234,"username":"Roos","activeModules":
-		[
-		]}
+{
+  "roomNumber": 1234,
+  "username": "Roos",
+  "live": true,
+  "modules": [
+    {
+      "category": "source",
+      "module": [
+        {
+          "active": false,
+          "col": 0
+        },
+        {
+          "active": false,
+          "col": 1
+        },
+        {
+          "active": false,
+          "col": 2
+        },
+        {
+          "active": false,
+          "col": 3
+        }
+      ]
+    },
+    {
+      "category": "modulate",
+      "module": [
+        {
+          "active": false,
+          "col": 0
+        },
+        {
+          "active": false,
+          "col": 1
+        },
+        {
+          "active": false,
+          "col": 2
+        },
+        {
+          "active": false,
+          "col": 3
+        }
+      ]
+    },
+    {
+      "category": "filter",
+      "module": [
+        {
+          "active": false,
+          "col": 0
+        },
+        {
+          "active": false,
+          "col": 1
+        },
+        {
+          "active": false,
+          "col": 2
+        },
+        {
+          "active": false,
+          "col": 3
+        }
+      ]
+    },
+    {
+      "category": "rythm",
+      "module": [
+        {
+          "active": false,
+          "col": 0
+        },
+        {
+          "active": false,
+          "col": 1
+        },
+        {
+          "active": false,
+          "col": 2
+        },
+        {
+          "active": false,
+          "col": 3
+        }
+      ]
+    }
+  ]
+}

@@ -17,31 +17,22 @@
 	- no behaviour
 
  --}}
+{{> header header}}
 
- <header class='header header_modoverview'>
-		<a href="/play/list" class='left'>
-			
-		</a>
-	 	
-	 	<h2 class='header_title center'>Room: <span>{{user.roomNumber}}</span></h2>
-		<div class="right ic_live_container ic_inactive">
-			<span class='ic_live_image'></span>
-			<span class='ic_title ic_live_title'>LIVE</span>
-		</div>
- </header>
-	<ul class='grid grid_modules'>
-		{{#each grid.rows}}
-			
-			<ul class='grid_row grid_modules_row'>
-				{{#each items}}
-				
-				{{#if active}}
-				<li class='grid_modules_item draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{id}}><a href='/play/module/{{id}}' class="grid_modules_title">{{title}}</a></li>
 
-				{{else}}
+	<ul class='clear-list'>
+		{{#each user.modules}}
+			
+			<ul class='grid_row clear-list'>
+				{{#each module}}
 				
-				<li class='grid_modules_item' ><a href="/play/list/{{../row}}{{col}}"><p class="grid_modules_title">x</p></a> </li>
-				{{/if}}
+					{{#if active}}
+					<li class='grid_row_item module_box draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{id}} data-col={{col}} data-category={{category}}>  <a href='/play/module/{{id}}' style='background-color:{{color}}'  class="grid_title_center">{{title}}</a></li>
+
+					{{else}}
+					
+					<li class='grid_row_item module_box' ><a href="/play/add?category={{../category}}&col={{col}}" ><p class="grid_title_center">x</p></li>
+					{{/if}}
 
 				
 				{{/each}}

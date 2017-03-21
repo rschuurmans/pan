@@ -1,14 +1,93 @@
-{"roomNumber":1234,"username":"Roos","activeModules":[{
-					"row":0,
-					"col":3,
-					"id":0,
-					"title":"VCO",
-					"active":true
-				},
-				{
-					"row":3,
-					"col":1,
-					"id":1,
-					"title":"Delay",
-					"active":true
-				}]}
+{"roomNumber":1234,"username":"Roos","modules":
+		[
+			{
+				"category":"source",
+				"module": [
+					{
+						"active":false,
+						"col":0
+					},
+					{
+
+						"active":false,
+						"col":1
+					},
+					{
+						"active":false,
+						"col":2
+					},
+					{
+						"active":false,
+						"col":3
+					}
+				]
+			},
+			{
+				"category":"modulate",
+				"module": [
+					{
+						"active":false,
+						"col":0
+					},
+					{
+
+						"active":false,
+						"col":1
+					},
+					{
+						"active":false,
+						"col":2
+					},
+					{
+						"active":false,
+						"col":3
+					}
+				]
+			},
+			{
+				"category":"filter",
+				"module": [
+					{
+						"active":false,
+						"col":0
+					},
+					{
+
+						"active":false,
+						"col":1
+					},
+					{
+						"active":false,
+						"col":2
+					},
+					{
+						"active":false,
+						"col":3
+					}
+				]
+			},
+			{
+				"category":"rythm",
+				"module": [
+					{
+						"active":false,
+						"col":0
+					},
+					{
+
+						"active":false,
+						"col":1
+					},
+					{
+						"active":false,
+						"col":2
+					},
+					{
+						"active":false,
+						"col":3
+					}
+				]
+			}
+
+
+		]}

@@ -1,0 +1,27 @@
+
+
+<header class='header'>
+	{{#if back}}
+	<a href="{{backLink}}" class='left'>
+		<div class="ic ic_back"></div>
+	</a>
+	{{else}}
+	<div></div>
+	{{/if}}
+	<h2 class="header_title center">{{title}}</h2>
+	{{#if live}}
+	
+	<div class="right ic_live_container 
+		{{#if isLive}}
+		ic_active
+		{{else}}
+		ic_inactive
+		{{/if}}
+		">
+			<span class='ic_live_image'></span>
+			<span class='ic_title ic_live_title'>LIVE</span>
+	</div>
+	{{else }}
+	<div></div>
+	{{/if}}
+</header>

@@ -16,7 +16,6 @@ var drag = {
 			},
 			autoScroll: false,
 			onmove: function (event) {
-				console.log('hap');
 				var target = event.target;
 				
 				x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
@@ -59,7 +58,6 @@ var drag = {
 		interact(element).dropzone({
 			accept: accept,
 			ondropactivate: function (event) {
-				
 				event.target.classList.add('active');
 			},
 
@@ -68,8 +66,8 @@ var drag = {
 			},
 			
 			ondrop: function (event) {
-			module.deleteFromUser(event.relatedTarget.getAttribute('module-id'));
-			event.target.classList.remove('active');
+				module.deleteFromUser(event.relatedTarget.getAttribute('data-col'), event.relatedTarget.getAttribute('data-category'));
+				event.target.classList.remove('active');
 			},
 
 			ondropdeactivate: function (event) {
@@ -82,20 +80,20 @@ var drag = {
 }
 
 
+
 var module = {
 	addModule: function () {
-		console.log('addModule');
 		var modules = document.querySelectorAll('.fn-select-module');
 		
 		for(var i = 0; i < modules.length; i++) {
-			
 			modules[i].addEventListener('click',  module.addModuleEvent)
 		}
 	},
 	addModuleEvent(event) {
-		var location = window.location.pathname.split("/")[3];
+		var category = tools.getParameterByName('category');
+		var col      = tools.getParameterByName('col');
+		var id       = event.target.getAttribute('module-id');
 
-		var id = event.target.getAttribute('module-id');
 		if(id == null) {
 			id = event.target.parentNode.getAttribute('module-id');
 		}
@@ -103,13 +101,10 @@ var module = {
 		 url: '/play/add',
 		 data: {
 		 	moduleId: parseInt(id), 
-		 	gridPlace: {
-			 	row: location[0],
-			 	col: location[1]
-			}
+		 	col: col,
+		 	category: category
 		 },
 		 success: function(res){
-		  console.log('evaluate response and show alert');
 		  window.location = res.redirectTo;
 		 },
 		 error: function (res) {
@@ -119,15 +114,14 @@ var module = {
 		}); 
 
 	},
-	deleteFromUser: function (moduleId) {
+	deleteFromUser: function (col, category) {
 		$.post({
 		 url: '/play/remove',
-		 data: {moduleId: moduleId},
+		 data: {col: col, category:category},
 		 success: function(res){
 		  window.location = res.redirectTo;
 		 },
 		 error: function (res) {
-		 	console.log(res.error);
 		 	window.location = res.redirectTo;
 		 }
 		}); 
@@ -138,4 +132,71 @@ window.onload = function () {
 	console.log('window onload');
 	drag.init();
 	module.addModule();
+	motion.init();
+}
+var motion = {
+	first:true,
+	minDiff: 30,
+	base:0,
+	init: function () {
+		motion.right();
+		// motion.left();
+		console.log('motion.init');
+	},
+	right: function () {
+		window.addEventListener('deviceorientation', motion.motionEvent);
+	},
+	motionEvent: function (event, re) {
+		if(motion.first) {
+			motion.base  = event.alpha;        
+			motion.first = false;              
+		}
+		var change = event.alpha - motion.base;
+
+		if(change *-1 > motion.minDiff) {
+			console.log('got it!');
+			motion.changeLive();
+			window.removeEventListener('deviceorientation', motion.motionEvent);
+			
+			
+
+		}
+	},
+	changeLive: function () {
+		$.post({
+		 url: '/play/live',
+		 data: {
+		 	isLive: true
+		 },
+		 success: function(res){
+		 	console.log('success', res);
+		 	window.reload();
+		  // window.location = res.redirectTo;
+		 },
+		 error: function (res) {
+		 	console.log('error', res);
+		 	// alert('too much')
+		 	// window.location = res.redirectTo;
+		 }
+		});
+	}
+}
+
+var tools = {
+	getParameterByName: function (name, url) {
+		// code: http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+		if (!url) {
+	      url = window.location.href;
+	    }
+	    
+	    name = name.replace(/[\[\]]/g, "\\$&");
+	    
+	    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+	        results = regex.exec(url);
+	        
+	    if (!results) return null;
+	    if (!results[2]) return '';
+	    
+	    return decodeURIComponent(results[2].replace(/\+/g, " "));
+	}
 }

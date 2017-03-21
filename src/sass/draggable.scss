@@ -2,6 +2,7 @@
 
 .draggable {
 	z-index:99;
+	touch-action:none;
 
 	&[drag-status="none"] {
 		background:grey !important;
