@@ -14,6 +14,7 @@ gulp.task('build', ['build-lib', 'build-js', 'build-css', 'jsonlint'])
 gulp.task('watch', function () {
 	gulp.watch('src/sass/*.scss', ['build-css'])
 	gulp.watch('src/javascript/*.js', ['build-js'])
+	gulp.watch('src/data/*.json', ['jsonlint'])
 })
 
 gulp.task('browser-sync', ['nodemon'], function() {

@@ -22,6 +22,9 @@ router.get('/', function(req, res, next) {
 	res.render('play/overview', data);
 	
 });
+router.get('/tracker', function (req, res, next) {
+	res.render('play/tracker', {})
+})
 router.get('/module/:id', function (req, res, next) {
 	var data = modular.getModule(req.params.id, JSON.parse(fs.readFileSync('public/data/availableModules.json', 'utf8')).categories);
 	data.header = {

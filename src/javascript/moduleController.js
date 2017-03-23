@@ -45,10 +45,3 @@ var module = {
 		}); 
 	}
 }
-
-window.onload = function () {
-	console.log('window onload');
-	drag.init();
-	module.addModule();
-	motion.init();
-}

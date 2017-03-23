@@ -20,4 +20,19 @@ $size: 80px;
 			opacity:1;
 		}
 	}	
+	&_knob {
+		width:25vw;
+		display:block;
+		height:25vw;
+		border-radius:100%;
+		font-size:0;
+		background:url('/images/ic_fingerprint.png');
+		background-size:65%;
+		background-repeat:no-repeat;
+		background-position:center center;
+		border:none;
+		margin:1rem auto;
+		background-color:$color-grey1;
+
+	}
 }

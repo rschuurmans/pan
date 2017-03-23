@@ -46,34 +46,43 @@
             "parameters": [
                 {
                     "type":"waveType",
+                    "input":"radio",
                     "waveTypes": [
                         {
                             "type": "sine",
-                            "img": "ic_wave_sine.svg"
+                            "img": "ic_wave_sine.svg",
+                            "active":false
                         },
                         {
                             "type": "sawtooth",
-                            "img": "ic_wave_sawtooth.svg"
+                            "img": "ic_wave_sawtooth.svg",
+                            "active":false
                         },
                         {
                             "type": "triangle",
-                            "img": "ic_wave_triangle.svg"
+                            "img": "ic_wave_triangle.svg",
+                            "active":true
                         },
                         {
                             "type": "square",
-                            "img": "ic_wave_square.svg"
+                            "img": "ic_wave_square.svg",
+                            "active":false
                         }
                     ]
                 },
                 {
                     "type":"frequency",
+                    "input":"single-knob",
                     "min":0,
-                    "max":22000
+                    "max":22000,
+                    "value":500
                 },
                 {
                     "type":"pitch",
+                    "input":"single-knob",
                     "min":0,
-                    "max":22000
+                    "max":22000,
+                    "value":500
                 }
             ],
 

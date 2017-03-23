@@ -20,12 +20,16 @@
 	}
 }
 .grid_row_item {
-	padding-top:23%;
+	
 	box-sizing:border-box;
 	position:relative;
     width: calc(25% - (#{$gutter} * 2));
     margin:$gutter $gutter;
     box-sizing: border-box;
+}
+
+.grid_box {
+	padding-top:23%;
 }
 .clear-list {
 	margin: 0 0;

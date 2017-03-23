@@ -2,23 +2,27 @@
 
 {{#each parameters}}
 
-{{#ifCond type "===" 'waveType'}}
-<h2>Wavetype</h2>
+{{#ifCond input "===" 'radio'}}
     <ul class='list list_radio clear-list grid_row'>
 
     	{{#each waveTypes}}
 
-			<li class='grid_row_item'>
-				{{!-- <input type="radio" class='input input_radio' name='waveTypes' value='{{type}}' id='{{type}}'>
-				<div class="ic ic_wave input_img" style="background-image:url('/images/{{img}}')"></div>
-				 --}}
+			<li class='grid_row_item input_container_radio'>
+				<input type="radio" class='input input_radio' name='waveTypes' data-type='{{../type}}' value='{{type}}' id='{{type}}' 
+					{{#if active}}checked{{/if}}
+				>
+				<label for='{{type}}' class="ic ic_wave input_img" style="background-image:url('/images/{{img}}')"></label>
 			</li>
 	    {{/each}}
     </ul>
 {{/ifCond}}
 
-{{#ifCond type "===" 'frequency' }}
-<p>frequency</p>
+{{#ifCond input "===" 'single-knob' }}
+
+
+<label class='label label_knob' for="{{type}}">{{type}}</label>
+<input type="button" value="{{value}}" data-min='{{min}}' data-max='{{max}}' id='{{type}}' data-type='{{type}}' class='buttons buttons_knob fn-knob'>
+
 {{/ifCond}}
 {{/each}}
 

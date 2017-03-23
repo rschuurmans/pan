@@ -27,11 +27,11 @@
 				{{#each module}}
 				
 					{{#if active}}
-					<li class='grid_row_item module_box draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{id}} data-col={{col}} data-category={{category}}>  <a href='/play/module/{{id}}' style='background-color:{{color}}'  class="grid_title_center">{{title}}</a></li>
+					<li class='grid_row_item grid_box module_box draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{id}} data-col={{col}} data-category={{category}}>  <a href='/play/module/{{id}}' style='background-color:{{color}}'  class="grid_title_center">{{title}}</a></li>
 
 					{{else}}
 					
-					<li class='grid_row_item module_box' ><a href="/play/add?category={{../category}}&col={{col}}" ><p class="grid_title_center">x</p></li>
+					<li class='grid_row_item  grid_box  module_box' ><a href="/play/add?category={{../category}}&col={{col}}" ><p class="grid_title_center">x</p></li>
 					{{/if}}
 
 				

@@ -7,9 +7,14 @@
 		background-size:contain;
 	}
 	&_wave {
-		border:1px solid red;
+		
 		background-size:contain;
 		background-repeat:no-repeat;
+		display:inline-block;
+		width:100%;
+		height:auto;
+		background-position:center center;
+
 	}
 	&_back {
 		background:url(./images/ic_back.svg);

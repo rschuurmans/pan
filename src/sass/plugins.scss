@@ -1,0 +1,50 @@
+// draggable
+
+.draggable {
+	z-index:99;
+	touch-action:none;
+
+	&[drag-status="none"] {
+		background:grey !important;
+	}
+	&[drag-status="dragIn"] {
+		background:red !important;
+	}
+	&[drag-status='ghost'] {
+		color:white !important;
+	}
+}
+
+
+// tracking
+
+.video-tracker {
+	// why dis? tracking.js kan niet zonder de video. Ook niet op display none. Je zou er nog enkel het vierkant kunnen laten zien wat getracked wordt.
+	transform:translateX(-100%);
+}
+.tracking-meter-container {
+	border:2px solid grey;
+	width:80vw;
+	position:fixed;
+	top:0;
+	left:0;
+	border-top-left-radius:0;
+	border-top-right-radius:0;
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:100%;
+	height:80vw;
+	overflow:hidden;
+}
+.tracking-meter {
+	background:red;
+	transition: all .1s ease-in-out;
+
+	width:0%;
+	height:0%;
+	border-top-left-radius:0;
+	border-top-right-radius:0;
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:100%;
+	
+	
+}
