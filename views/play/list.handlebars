@@ -1,11 +1,33 @@
-{{> header header}}
 
-<ul class='grid_row clear-list' >
-	{{#each modules}}
-		<li class='grid_row_item grid_box fn-select-module' style='background-color:{{../color}}' module-id={{id}} location-index={{../location}}>
-			<p class='grid_title_center'>{{title}}</p>
-		</li>
+<div class="container container-default container-fullsize">
+<header class='header'>
+	
+	<h2 class="header_title center">{{title}}</h2>
+	<a href="{{backLink}}" class='left'>
+		<div class="ic ic_back"></div>
+	</a>
+</header>
+
+<form action="/play/add" method='post' class='fn-post-radio'>
+	
+<ul class='list-addModules list-clear list-radio'>
+	{{#each categories}}
+		{{#each modules}}
+			
+			<li class='fn-select-module' style='color:{{../color}}' module-id={{id}}>
+				<input type="radio" name='module' value="{{id}}" id="{{id}}" class=''>
+				<label for="{{id}}">{{title}}</label>
+			</li>
+		{{/each}}
 	{{/each}}
 </ul>
+<input type="submit">
 
-<script></script>
+</form>
+</div>
+
+<script>
+	window.onload = function () {
+		module.addModule();
+	}
+</script>

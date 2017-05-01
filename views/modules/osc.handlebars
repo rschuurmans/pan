@@ -1,0 +1,126 @@
+<div class="container container-fullsize container-padding module module-osc" style='background-color:#56009C;color:#FFFF00'>
+
+	<header class='header'>
+		
+		<a href="/play" class='left'>
+			<div class="ic ic_overview"></div>
+		</a>
+
+		
+		<h2 class="header_title center">{{module.title}}</h2>
+		
+		<div class="right ic_live_container 
+			{{#if isLive}}
+			ic_active
+			{{else}}
+			ic_inactive
+			{{/if}}
+			">
+				<span class='ic_live_image'></span>
+				<span class='ic_title ic_live_title'>LIVE</span>
+		</div>
+	</header>
+{{!-- 
+	<div class="wrapper">
+	  <div class="toggle_radio">
+	    <input type="radio" class="toggle_option" id="first_toggle" name="toggle_option">
+	    <input type="radio" checked class="toggle_option" id="second_toggle" name="toggle_option">
+	    <input type="radio" class="toggle_option" id="third_toggle" name="toggle_option">
+	    <label for="first_toggle"><p>First Button</p></label>
+	    <label for="second_toggle"><p>Second Button</p></label>
+	    <label for="third_toggle"><p>Third Button</p></label>
+	    <div class="toggle_option_slider">
+	    </div>
+  </div>
+  <div class="wrapper">
+  	
+  </div> --}}
+
+
+	{{#each module.parameters}}
+		
+			{{#ifCond type "===" "waveType"}}
+				<div class="radio-slider">
+					{{#each waveTypes}}
+						<input type="radio" id="input-{{@index}}" name='toggle_option' {{#ifCond @index "===" 0}} checked {{/ifCond}}>
+
+						<label for="input-{{@index}}"><span>{{type}}</span></label>
+					{{/each}}
+					<div class="radio-slider-slider" style='background-color:{{../../../../../../../../accentColor}}'>
+	    </div>
+				</div>
+
+		{{/ifCond}}
+		{{#ifCond type "===" "frequency"}}
+			{{>knob this}}
+		
+		{{/ifCond}}
+		{{#ifCond type "===" "pitch"}}
+			{{>knob this}}
+		{{/ifCond}}
+	{{/each}}
+</div>
+{{!-- 
+<div class="container container-fullsize container-padding" style='background-color:#56009C;color:#FFFF00'>
+	
+
+<header class='header'>
+	
+	<a href="/play" class='left'>
+		<div class="ic ic_overview"></div>
+	</a>
+
+	
+	<h2 class="header_title center">{{module.title}}</h2>
+	
+	<div class="right ic_live_container 
+		{{#if isLive}}
+		ic_active
+		{{else}}
+		ic_inactive
+		{{/if}}
+		">
+			<span class='ic_live_image'></span>
+			<span class='ic_title ic_live_title'>LIVE</span>
+	</div>
+</header>
+{{#each module.parameters}}
+
+{{#ifCond input "===" 'radio'}}
+    <ul class='list list-radio list-clear list-wavetypes grid_row'>
+
+    	{{#each waveTypes}}
+
+			<li class='grid_row_item input_container_radio'>
+				<input type="radio" class='input input_radio' name='waveTypes' data-type='{{../type}}' value='{{type}}' id='{{type}}' 
+					{{#if active}}checked{{/if}}
+				>
+				<label for='{{type}}' class="ic ic_wave input_img" style="background-image:url('/images/{{img}}')"></label>
+			</li>
+	    {{/each}}
+    </ul>
+{{/ifCond}}
+
+{{#ifCond input "===" 'single-knob' }}
+<p>{{type}}</p>
+
+<input type="range" value="{{value}}" min="{{min}}" max="{{max}}" data-target={{type}} class='fn-audio-range'>
+
+
+<label class='label label_knob' for="{{type}}">{{type}}</label>
+<input type="button" value="{{value}}" data-min='{{min}}' data-max='{{max}}' id='{{type}}' data-type='{{type}}' class='buttons buttons_knob fn-knob'>
+
+{{/ifCond}}
+{{/each}}
+
+
+</div>
+ --}}
+
+<script>
+
+
+	var user = {{{json user}}};
+	console.log(user);
+	</script>
+

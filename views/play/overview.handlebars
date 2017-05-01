@@ -17,7 +17,70 @@
 	- no behaviour
 
  --}}
-{{> header header}}
+{{!-- {{> header header}} --}}
+
+
+
+<div class="container container-default container-fullsize">
+<header class='header'>
+	
+	<a href="/play/add" class='left'>
+		<div class="ic ic_add"></div>
+	</a>
+	
+	<a href="/play/group">{{group.number}}<div class="ic ic_up"></div></a>
+	
+	
+	<div class="right ic_live_container 
+		{{#if isLive}}
+		ic_active
+		{{else}}
+		ic_inactive
+		{{/if}}
+		">
+			<span class='ic_live_image'></span>
+			<span class='ic_title ic_live_title'>LIVE</span>
+	</div>
+	
+</header>
+	{{#if user.addedModules}}
+
+	<ul class='list-addedmodules'>
+		{{#each user.addedModules}}
+			<li style='background-color:{{color}}' class='draggable fn-draggable' data-dragTarget='fn-delete-box' clonable='true' drag-status='none' module-id={{moduleId}}>
+				<a href="/play/{{shortTitle}}/{{moduleId}}">
+					<div>
+						<span style='color:{{accentColor}}'>{{shortTitle}}</span>
+					</div>
+				</a>
+			</li>
+		{{/each}}
+	</ul>
+
+	{{else}}
+	<p>Voeg modules toe door op de plus knop te drukken</p>
+	{{/if}}
+</div>
+
+{{!-- 
+
+{{#each group.users}}
+<li>{{username}}a</li>
+{{/each}}
+
+<p>deze user;</p>
+<a href="#test">test</a>
+{{user.username}}
+<form action="/play" method='post' class='fn-post-radio'>
+	{{#each user.addedModules}}
+
+		<input type="radio" value="{{id}}" id={{id}} name='activeModule' data-type="{{title}}" class='fn-overview-module'>
+		<label for="{{id}}">{{id}}{{title}}</label>
+	
+	{{/each}}
+	<input type="submit">
+</form>
+
 
 
 	<ul class='clear-list'>
@@ -41,4 +104,12 @@
 	{{/each}}
 	</ul>
 
-	<div class="fn-delete-box buttons_area"></div>
+	
+ --}}
+ <div class="fn-delete-box buttons_area"></div>
+<script>
+
+
+	var user = {{{json user}}};
+	console.log(user);
+	</script>

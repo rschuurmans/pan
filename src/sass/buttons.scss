@@ -36,3 +36,24 @@ $size: 80px;
 
 	}
 }
+.btn {
+	-webkit-appearance: none;
+
+	&-cta {
+		background-color:$color-blue;
+		font-size:1.125em;
+		color:$color-black;
+		letter-spacing: -0.19px;
+		font-weight:900;
+		text-transform:uppercase;
+		padding:.875em 0;
+		box-sizing:border-box;
+		margin:1rem 0;
+		border:none;
+
+	}
+	&-fullwidth {
+		width:100%;
+	}
+}
+

@@ -2,6 +2,7 @@ var fs      = require('fs');
 
 var modular = {
 	newModule: function (col, moduleId, data) {
+		console.log('modular.newItem');
 		var newItem = {};
 		for(var i in data ){
 			for(var y in data[i].modules) {
@@ -16,6 +17,7 @@ var modular = {
 		return newItem;
 	},
 	getCategory: function (category, data) {
+		console.log('modular.getCategory');
 		for(var i in data) {
 			if(data[i].category == category) {
 				return data[i];
@@ -24,12 +26,13 @@ var modular = {
 		}
 	},
 	setLive: function (user, isLive) {
+		console.log('modular.setLive');
 		console.log(user.live);
 		user.live = Boolean(isLive);
 		return user;
 	},
 	getModule: function (id, data) {
-
+		console.log('modular.getModule');
 		var module = {};
 		for(var i in data) {
 			for(var y in data[i].modules) {
@@ -43,6 +46,7 @@ var modular = {
 		return module;
 	},
 	addModule: function (user, col, moduleId, data) {
+		console.log('modular.addModule');
 		var newItem = modular.newModule(col, moduleId, data);
 		
 		for(var i in user.modules) {
@@ -54,13 +58,14 @@ var modular = {
 		return user;
 	},
 	getUnactiveModule: function (col) {
+		console.log('getUnactiveModule');
 		return {
 			active: false,
 			col: parseInt(col)
 		}
 	},
 	removeModule: function (modules, col, category) {
-		
+		console.log('removeModule');
 		for(var i in modules) {
 			if(modules[i].category == category) {
 				for(var y in modules[i].module){

@@ -1,0 +1,20 @@
+.module {
+	font-family:'Futura';
+	text-transform:uppercase;
+	&-osc {
+		.radio-slider {
+			margin-top:2rem;
+		}
+		.input-knob-container {
+			position:absolute;
+			&:nth-of-type(odd) {
+				
+				right:2rem;
+			}
+			&:nth-of-type(even) {
+				right:50%;
+				bottom:2rem;
+			}
+		}
+	}
+}

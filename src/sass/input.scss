@@ -1,4 +1,14 @@
 .input {
+	&-fullwidth {
+		width:100%;
+		box-sizing:border-box;
+
+	}
+	&-text {
+		font-size:1em;
+		
+		padding:.875em;
+	}
 	&_container {
 		&_radio {
 			text-align: center;
@@ -17,6 +27,70 @@
 
 
 	}
+	&-knob-container {
+	
+		display:inline-block;
+	}
 
 }
 
+
+.radio-slider {
+	position: relative;
+	left:$icon-width;
+	padding-left:$gutter *2;
+	height:25vh;
+	display:block;
+	width:15vh;
+	text-align:left;
+	display:flex;
+	justify-content:space-between;
+	flex-direction:column;
+	align-items:stretch;
+	align-content:stretch;
+	input[type=radio]{
+		display: none;
+	}
+	label{
+		z-index: 1;
+		text-align: center;
+		display:block;
+		position:relative;
+		text-align:left;
+		flex:2 25%;
+		display:flex;
+		justify-content:flex-start;
+		align-items:center;
+		text-transform:capitalize;
+	}
+	&-slider {
+		height:100%;
+		z-index:2;
+		width:$icon-width;
+		left:$icon-width *-1;
+		position: absolute;
+		top: 0;
+		transition: all .3s ease-in-out;
+		background: rgba(255,255,255,.2);
+		border: 1px solid rgba(255,255,255,.1);
+		border-radius:20px;
+		overflow:hidden;
+		&:before {
+			content: ' ';
+			background: rgba(255,255,255,.9);
+			z-index:-1;
+			width:$icon-width;
+			height:25%;
+			border-radius:20px;
+			left:0;
+			transition: all .4s ease;
+			position:absolute;
+		}
+	}
+}
+
+@for $i from 0 through 3 {
+  #input-#{$i}:checked ~ .radio-slider-slider:before {
+  	top:calc(25%*#{$i})
+  }
+}

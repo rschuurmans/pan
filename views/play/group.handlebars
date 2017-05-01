@@ -1,0 +1,45 @@
+{{!-- over audio vis
+https://www.keithmcmillen.com/blog/making-music-in-the-browser-web-audio-midi-vco-vca/
+
+
+ --}}
+
+<div class="container-audio-vis fn-audio-vis">
+	<div class="share-container">
+		<!-- Sharingbutton Facebook -->
+<a class="resp-sharing-button__link ic ic_share" href="https://facebook.com/sharer/sharer.php?u=test.rschuurmans.com" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solidcircle">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 0C5.38 0 0 5.38 0 12s5.38 12 12 12 12-5.38 12-12S18.62 0 12 0zm3.6 11.5h-2.1v7h-3v-7h-2v-2h2V8.34c0-1.1.35-2.82 2.65-2.82h2.35v2.3h-1.4c-.25 0-.6.13-.6.66V9.5h2.34l-.24 2z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<!-- Sharingbutton WhatsApp -->
+<a class="resp-sharing-button__link ic ic_share" href="whatsapp://send?text=Speel%20Pan%20op%20test.rschuurmans.com%20test.rschuurmans.com" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solidcircle">
+    <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24"><path d="m12 0c-6.6 0-12 5.4-12 12s5.4 12 12 12 12-5.4 12-12-5.4-12-12-12zm0 3.8c2.2 0 4.2 0.9 5.7 2.4 1.6 1.5 2.4 3.6 2.5 5.7 0 4.5-3.6 8.1-8.1 8.1-1.4 0-2.7-0.4-3.9-1l-4.4 1.1 1.2-4.2c-0.8-1.2-1.1-2.6-1.1-4 0-4.5 3.6-8.1 8.1-8.1zm0.1 1.5c-3.7 0-6.7 3-6.7 6.7 0 1.3 0.3 2.5 1 3.6l0.1 0.3-0.7 2.4 2.5-0.7 0.3 0.099c1 0.7 2.2 1 3.4 1 3.7 0 6.8-3 6.9-6.6 0-1.8-0.7-3.5-2-4.8s-3-2-4.8-2zm-3 2.9h0.4c0.2 0 0.4-0.099 0.5 0.3s0.5 1.5 0.6 1.7 0.1 0.2 0 0.3-0.1 0.2-0.2 0.3l-0.3 0.3c-0.1 0.1-0.2 0.2-0.1 0.4 0.2 0.2 0.6 0.9 1.2 1.4 0.7 0.7 1.4 0.9 1.6 1 0.2 0 0.3 0.001 0.4-0.099s0.5-0.6 0.6-0.8c0.2-0.2 0.3-0.2 0.5-0.1l1.4 0.7c0.2 0.1 0.3 0.2 0.5 0.3 0 0.1 0.1 0.5-0.099 1s-1 0.9-1.4 1c-0.3 0-0.8 0.001-1.3-0.099-0.3-0.1-0.7-0.2-1.2-0.4-2.1-0.9-3.4-3-3.5-3.1s-0.8-1.1-0.8-2.1c0-1 0.5-1.5 0.7-1.7s0.4-0.3 0.5-0.3z"/></svg>
+    </div>
+  </div>
+</a>
+
+	</div>
+</div>
+<div class="container container-info">
+	<h4 class='list-head text-groupmaster'>{{group.master}}</h4>
+	
+	{{#ifCond group.users.length ">" 1}}
+	
+		<ul class='list list-users'>
+			{{#each group.users}}
+				<li class='list-users-item'>{{username}}</li>
+			{{/each}}
+		</ul>
+	{{else}}
+		<p class='text-center'>Er zijn nog geen actieve gebruikers. Deel de groep</p>
+	{{/ifCond}}
+</div>
+<div class="container container-bottom text-center">
+	<a href="/play">Play! <div class="ic ic_down"></div></a>
+</div>
+

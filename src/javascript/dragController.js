@@ -1,8 +1,9 @@
 var drag = {
 	init:function () {
-		console.log('drag.init');
-		drag.createDraggable('.fn-draggable', 'body');
-		drag.createDrop('.fn-delete-box', '.fn-draggable')
+		if(document.querySelector('.fn-draggable')) {
+			drag.createDraggable('.fn-draggable', 'body');
+			drag.createDrop('.fn-delete-box', '.fn-draggable');
+		}
 	},
 	createDraggable: function (element, area) {
 		console.log('drag.createDraggable');
@@ -41,6 +42,7 @@ var drag = {
 				
 				clone.setAttribute('clonable','false');
 				clone.style.position = "absolute";
+				original.setAttribute('drag-status', 'ghost');
 				clone.style.left     = original.offsetLeft + "px";
 				clone.style.top      = original.offsetTop + "px";
 				clone.style.width    = original.offsetWidth + "px";
@@ -58,6 +60,7 @@ var drag = {
 		interact(element).dropzone({
 			accept: accept,
 			ondropactivate: function (event) {
+				console.log(event.target);
 				event.target.classList.add('active');
 			},
 
@@ -66,13 +69,17 @@ var drag = {
 			},
 			
 			ondrop: function (event) {
-				module.deleteFromUser(event.relatedTarget.getAttribute('data-col'), event.relatedTarget.getAttribute('data-category'));
+				console.log('dropped it', event);
+				module.deleteFromUser(event.relatedTarget.getAttribute('module-id'));
 				event.target.classList.remove('active');
 			},
 
 			ondropdeactivate: function (event) {
-			document.querySelector('.fn-clone').remove()
-			event.target.classList.remove('active');
+				console.log('ondropdeactivate');
+				document.querySelector('li[drag-status="ghost"]').setAttribute('drag-status', 'none');
+				
+				document.querySelector('.fn-clone').remove()
+				event.target.classList.remove('active');
 			}
 		});
 

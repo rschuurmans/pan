@@ -1,9 +1,32 @@
-{{> header header}}
+{{!-- <div class="container container-default container-fullsize"> --}}
 
-{{#each parameters}}
+<div class="container container-fullsize container-padding module module-osc" style='background-color:#56009C;color:#FFFF00'>
+	
+
+<header class='header'>
+	
+	<a href="/play" class='left'>
+		<div class="ic ic_overview"></div>
+	</a>
+
+	
+	<h2 class="header_title center">{{module.title}}</h2>
+	
+	<div class="right ic_live_container 
+		{{#if isLive}}
+		ic_active
+		{{else}}
+		ic_inactive
+		{{/if}}
+		">
+			<span class='ic_live_image'></span>
+			<span class='ic_title ic_live_title'>LIVE</span>
+	</div>
+</header>
+{{#each module.parameters}}
 
 {{#ifCond input "===" 'radio'}}
-    <ul class='list list_radio clear-list grid_row'>
+    <ul class='list list-radio list-clear list-wavetypes grid_row'>
 
     	{{#each waveTypes}}
 
@@ -18,6 +41,9 @@
 {{/ifCond}}
 
 {{#ifCond input "===" 'single-knob' }}
+<p>{{type}}</p>
+
+<input type="range" value="{{value}}" min="{{min}}" max="{{max}}" data-target={{type}} class='fn-audio-range'>
 
 
 <label class='label label_knob' for="{{type}}">{{type}}</label>
@@ -25,4 +51,15 @@
 
 {{/ifCond}}
 {{/each}}
+
+
+</div>
+
+
+<script>
+
+
+	var user = {{{json user}}};
+	console.log(user);
+	</script>
 
