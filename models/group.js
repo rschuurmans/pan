@@ -3,19 +3,25 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 // create a schema
+// var groupSchema = new Schema({
+//   number: {type: Number, unique: true} ,
+//   users: Array,
+//   demo: Boolean,
+//   master: String
+// });
+
 var groupSchema = new Schema({
-  number: {type: Number, unique: true} ,
-  users: Array,
-  demo: Boolean,
-  master: String
-});
+	activeSounds : Array,
+	users: Array,
+	timestamp: Date,
+	demo: Boolean
+})
 
 
-// the schema is useless so far
-// we need to create a model using it
+
+
 var Group = mongoose.model('Group', groupSchema);
 
-// make this available to our users in our Node applications
 
 module.exports = Group;
 

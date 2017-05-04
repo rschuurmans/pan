@@ -31,8 +31,29 @@
 	
 		display:inline-block;
 	}
+	&-range {
+		border:1px solid $color-white;
+		-webkit-appearance:none;
+		width:80%;
+		margin:20px auto;
+		height:0px;
+		background: rgba(0,0,0,0);
+		border-radius:4px;
+	
+		&::-webkit-slider-thumb{
+			-webkit-appearance:none;
+			width:32px;
 
+			height:32px;
+			border-radius: 100%;
+			background: $color-purple;
+			position:relative;
+			z-index:3;
+			cursor: pointer;
+		}
+	}
 }
+
 
 
 .radio-slider {

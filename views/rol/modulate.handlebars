@@ -1,0 +1,45 @@
+<div class="container container-fullsize container-default">
+	<div class="slider-step fn-stepslider">
+		<div class="slider-step-inner fn-stepslider-inner"></div>
+	</div>
+
+	<div class="slider-fullpage fn-fullpage-slider container-padding">
+		<div class="slide slide-left slide-active fn-fullpage-slide" swipe-direction='right'>
+			<h2>Hey {{user.username}}</h2>
+			<div class="fixed-bottom">
+				<ul class="list list-twogrid ">
+					{{#each modulate}}
+						<li class='btn btn-modulate fn-modulate-btn' data-type="{{type}}" data-value={{value}} >
+							<div class="content-wrapper">
+								
+							<p class="content">{{type}}</p>
+						</li>
+						
+					{{/each}}
+				</ul>
+				<div class="press-overlay fn-overlay">
+					<h1 class='fn-modulate-value'>{{value}}</h1>
+				</div>
+			</div>
+		</div>
+
+		<div class="slide slide-right fn-fullpage-slide" swipe-direction='left'>
+			<h2>change the stuff here</h2>
+		</div>
+	</div>
+	
+</div>
+
+<div class="overlay overlay-pressplay">
+	<p>Ben je er klaar voor?</p>
+	<div class="btn btn-cta btn-cta-black fn-press-play">Beginnen!</div>
+</div>
+
+
+
+
+
+<script>
+	var newdata  = {{{json this}}};
+	console.log(newdata);
+</script> 

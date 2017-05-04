@@ -26,9 +26,21 @@ var tools = {
 	    
 	    return decodeURIComponent(results[2].replace(/\+/g, " "));
 	},
-	shareButton: function () {
-		// var button = document.querySelector('.fn-share');
-
-		
+	get: function (name) {
+		name = name + '=';
+		var decodedCookie = decodeURIComponent(document.cookie);
+		return true;
+		// var ca = decodedCookie.split(';');
+		// var result = '';
+	 //    for(var i = 0; i <ca.length; i++) {
+	 //        var c = ca[i];
+	 //        while (c.charAt(0) == ' ') {
+	 //            c = c.substring(1);
+	 //        }
+	 //        if (c.indexOf(name) == 0) {
+	 //            result =  c.substring(name.length, c.length);
+	 //        }
+	 //    }
+	 //    return result;
 	}
 }

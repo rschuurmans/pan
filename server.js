@@ -15,7 +15,7 @@ var handlebars   = require('./helpers/handlebars.js')(exphbs);
 var cookieParser = require('cookie-parser');
 var mongoose     = require('mongoose');
 var session      = require('express-session');
-var io           = require('socket.io')(http);
+// var io           = require('socket.io')(http);
 var db           = require('./helpers/db');
 
 app.engine('handlebars', handlebars.engine);
@@ -36,16 +36,19 @@ app.use(session({
 	}))
 
 app.use(express.static(path.join(__dirname, 'public')))
-mongoose.connect('mongodb://admin:panword@ds145220.mlab.com:45220/pan');
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://admin:Roos1995!@ds029381.mlab.com:29381/pan2');
+// mongodb://<dbuser>:<dbpassword>@ds029381.mlab.com:29381/pan2
 
 var checkUser = function (req, res, next) {
-  db.userByName(req.cookies.username, function (user) {
-    if(user) {
-      next();
-    } else {
-      res.redirect('/')
-    }
-  })
+  next();
+  // db.userById(req.cookies.userId, function (user) {
+  //   if(user) {
+  //     next();
+  //   } else {
+  //     res.redirect('/')
+  //   }
+  // })
  }
 
 
@@ -53,15 +56,15 @@ app.use('/', indexRouter);
 app.use('/play',checkUser, playRouter);
 app.use('/create',checkUser, createRouter);
 app.use('/test',checkUser, testRouter);
-app.use('/rol',checkUser, rolRouter);
+app.use('/role',checkUser, rolRouter);
 
 
-io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('news', function (data) {
-    console.log(data);
-  });
-});
+// io.on('connection', function (socket) {
+//   socket.emit('news', { hello: 'world' });
+//   socket.on('news', function (data) {
+//     console.log(data);
+//   });
+// });
       
     
 

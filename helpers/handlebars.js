@@ -1,3 +1,6 @@
+var timeago = require("timeago.js");
+
+
 function hbsHelpers(hbs) {
 	
 	return hbs.create({
@@ -13,6 +16,22 @@ function hbsHelpers(hbs) {
 			json: function (context) {
 				return JSON.stringify(context)
 			},
+			percentageRadial: function (value, min, max) {
+				var percentage = 70 * value;
+				percentage = percentage / max;
+				return percentage;
+
+
+			},
+			arrayLength: function (arr) {
+				return arr.length;
+			},
+			prettyDate: function (timestamp) {
+				console.log(timestamp.getMonth());
+				 // return new Date(timestamp).toString('yyyy-MM-dd')
+				 return timeago().format(timestamp)
+			},
+
 			ifCond: function (v1, operator, v2, options) {
 				
 				switch (operator) {

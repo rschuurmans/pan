@@ -5,11 +5,9 @@ var Schema = mongoose.Schema;
 // create a schema
 var userSchema = new Schema({
   username: String,
-  addedModules: Array,
-  groupNumber: Number,
-  groupId: String,
-  demo: Boolean
-
+  active:Boolean,
+  startDate: Date,
+  role: String
 });
 
 userSchema.methods.dudify = function() {

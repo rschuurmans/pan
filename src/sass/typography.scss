@@ -14,6 +14,7 @@ h1, h2, h3, h4 {
   font-weight: inherit;
   line-height: 1.2;
   font-family: 'Futura', sans-serif;
+  font-weight:700;
 }
 
 h1 {
@@ -21,7 +22,7 @@ h1 {
   font-size: 3.157em;
 }
 
-h2 {font-size: 2.369em;}
+h2 {font-size:22px;}
 
 h3 {font-size: 1.777em;}
 
@@ -47,7 +48,7 @@ a {
 .text-groupmaster {
 	// margin-left:3em;
 	&:before {
-		background-color: $color-blue;
+		background-color: $color-accent;
 		content: 'M';
 		border-radius:100%;
 		font-size:.8em;
@@ -63,7 +64,31 @@ a {
 
 	}
 }
+.text-module-info {
+	margin:$padding-page-lg 0;
+	font-family: 'Futura';
+	font-size: 18px;
+	letter-spacing: -0.29px;
+	position:relative;
+	height:5em;
+	// overflow:hidden;
+
+	.in {
+		transform:translateX(0);
+	}
+	.out {
+		transform:translateX(120%);
+	}
+	.in, .out {
+		position:absolute;
+		top:0;
+		width:100%;
+		transition:all .3s ease-in-out;
+	}
+}
+
 
 p {
-
+	margin-top:0;
+	margin-bottom:0;
 }

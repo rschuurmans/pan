@@ -10,33 +10,35 @@ var io      = require('socket.io')(http);
 
 router.get('/', function(req, res, next) { 
 	console.log('getting play');
-	db.getDemoData(req.cookies.username, function (group, user) {
+	res.send('/play')
+	// db.getDemoData(req.cookies.username, function (group, user) {
 		
-		io.on('connection', function (socket) {
-			console.log('connection');
-			  socket.emit('startAudio', { activeModules:user.activeModules  });
-		});
-		res.render('play/overview', {
-			header: {
-				back: false,
-				add:true,
-				live: true,
-				isLive: false,
-				title:'room: ' + group.number
-			},
-			group: group,
-			user: user
-		})
-	})
+	// 	io.on('connection', function (socket) {
+	// 		console.log('connection');
+	// 		  socket.emit('startAudio', { activeModules:user.activeModules  });
+	// 	});
+	// 	res.render('play/overview', {
+	// 		header: {
+	// 			back: false,
+	// 			add:true,
+	// 			live: true,
+	// 			isLive: false,
+	// 			title:'room: ' + group.number
+	// 		},
+	// 		group: group,
+	// 		user: user
+	// 	})
+	// })
 });
 router.get('/group', function (req, res, next) {
-	db.getDemoData(req.cookies.username, function (group, user) {
-		console.log(group);
-		res.render('play/group',  {
-			group:group,
-			user:user
-		})
-	})
+	res.send('/gorup')
+	// db.getDemoData(req.cookies.username, function (group, user) {
+	// 	console.log(group);
+	// 	res.render('play/group',  {
+	// 		group:group,
+	// 		user:user
+	// 	})
+	// })
 })	
 
 

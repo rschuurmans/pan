@@ -38,22 +38,49 @@ $size: 80px;
 }
 .btn {
 	-webkit-appearance: none;
-
+	&-modulate {
+		list-style:none;
+		border:5px solid $color-blue;
+		color:$color-blue;
+		border-radius:100%;
+		display:flex;
+		font-family:'Futura';
+		font-weight:700;
+		justify-content: center;
+		align-items: center;
+		     &:after {
+		    	content: ' ';
+		    	display:block;
+		    	padding-bottom:100%;
+		    }
+	}
 	&-cta {
-		background-color:$color-blue;
+		background-color:$color-accent;
 		font-size:1.125em;
 		color:$color-black;
 		letter-spacing: -0.19px;
 		font-weight:900;
 		text-transform:uppercase;
-		padding:.875em 0;
+		padding:.875em 2em;
 		box-sizing:border-box;
 		margin:1rem 0;
 		border:none;
+		&-black {
+			color:$color-black;
+			border:4px solid $color-black;
+			background:rgba(0,0,0,0);
+		}
 
 	}
 	&-fullwidth {
 		width:100%;
 	}
+	&-round {
+		border-radius:100%;
+	    border:2px solid $color-blue;
+	    transition:.2s ease-in-out;
+
+	}
+	
 }
 

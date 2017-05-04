@@ -1,11 +1,13 @@
 'use strict';
 
-var gulp        = require('gulp');
-var browserSync = require('browser-sync');
-var nodemon     = require('gulp-nodemon');
-var	sass        = require('gulp-sass');
-var concat      = require('gulp-concat');
-var jsonlint    = require('gulp-json-lint');
+var gulp         = require('gulp');
+var browserSync  = require('browser-sync');
+var nodemon      = require('gulp-nodemon');
+var	sass         = require('gulp-sass');
+var concat       = require('gulp-concat');
+var jsonlint     = require('gulp-json-lint');
+var autoprefixer = require('gulp-autoprefixer');
+
 
 gulp.task('default', ['browser-sync', 'build', 'watch']);
 
@@ -33,8 +35,11 @@ gulp.task('jsonlint', function(){
 });
 
 gulp.task('build-css', function() {
-  return gulp.src('src/sass/style.scss')
+  return gulp
+  	.src('src/sass/style.scss')
     .pipe(sass())
+    .on('error', errorHandle)
+	.pipe(autoprefixer())
     .pipe(gulp.dest('public'))    
 });
 
@@ -62,3 +67,8 @@ gulp.task('nodemon', function (cb) {
 		} 
 	});
 });
+
+var errorHandle = function (err) {
+	console.log('error!', err);
+	this.emit('end');
+}

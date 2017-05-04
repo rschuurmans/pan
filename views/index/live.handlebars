@@ -1,0 +1,31 @@
+<h2>Group created: {{{prettyDate timestamp}}}</h2>
+
+<h2>users</h2>
+{{#if users}}
+
+	<ul>
+		{{#each users}}
+			<li>{{username}}</li>
+			<p>attatched with:</p>
+		{{/each}}
+	</ul>
+{{else}}
+<p>none yet...</p>
+
+{{/if}}
+
+<h2>Overall connections made in pan: </h2>
+
+<h2>current connections:<h4>{{arrayLength activeSounds}}</h4> </h2>
+
+<ul>
+	{{#each activeSounds}}
+		<li>
+			
+		</li>
+	{{/each}}
+</ul>
+
+
+
+

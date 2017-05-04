@@ -1,9 +1,7 @@
 .header {
 	padding:1.875em 0 .7em;
 	text-align:center;
-	display:flex;
-	align-items:center;
-	justify-content:space-between;
+	
 
 	.header_title {
 		display:inline-block;
@@ -12,4 +10,10 @@
 // color: #FFFF00;
 		letter-spacing: 0;
 	}
+}
+.header-abs-top {
+	position:absolute;
+	top:0;
+	width:100%;
+	left:0;
 }
