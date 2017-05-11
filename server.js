@@ -47,10 +47,15 @@ var interval = setInterval(function () {
 
 io.on('connection', function (socket) {
   console.log('connect');
-  socket.on('joinRoom', function (data) {
-    socket.join(data.room);
+  socket.on('joinRoom', function (room) {
+    console.log('about to join this room: ', room);
+    socket.join(room);
   });
   socket.on('message', function (data) {
+  })
+  socket.on('testmessage', function (data) {
+    console.log('received test messagE: ', data);
+    io.sockets.to(data.room).emit('testmessage', data)
   })
   socket.on('update', function (data) {
     io.sockets.emit('update', data);
@@ -58,16 +63,14 @@ io.on('connection', function (socket) {
   socket.on('sequenceStep', function (data) {
     io.sockets.emit('sequenceStep', data);
   })
-  socket.on('startSequence', function (data) {
-    console.log('received a serverstep', data);
-    io.sockets.emit('startSequence', data);
-  })
-  socket.on('startSequenceMod', function (data) {
-    console.log('start sequence signal from sequencer to modulator');
-    io.sockets.emit('startSequenceMod', data)
-  })
+  // socket.on('startSequence', function (data) {
+  //   console.log('received a serverstep', data);
+  //   io.sockets.emit('startSequence', data);
+  // })
+  
   socket.on('updateSteps', function(data) {
-    io.sockets.emit('updateSteps', data);
+    console.log('received updateSteps', data);
+    io.sockets.to(data.room).emit('updateSteps', data.steps);
   })
   socket.on('sequenceStepMod', function (data) {
     io.sockets.emit('sequenceStepMod', data);

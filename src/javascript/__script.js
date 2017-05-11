@@ -2,22 +2,17 @@
 
 var onLoad = function () {
 
-	switch(window.location.pathname) {
-		case '/role/modulator':
-			console.log('at modulator');
-			
-			modulateRole.init();
-			break;
-		case '/role/sequencer':
-			console.log('at sequencer');
-			
-			sequencerRole.init();
-			break;
-		default:
-			console.log('at nothing');
-			break;
+	var path = window.location.pathname;
 
+	if(path.indexOf('/role/modulator') !== -1) {
+		modulateRole.init();
+
+	} else if(path.indexOf('/role/sequencer') !== -1) {
+		sequencerRole.init();
+	} else {
+		console.log('nothing');
 	}
+
 
 	// tools.autoSubmit();
 	// drag.init();

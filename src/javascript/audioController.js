@@ -9,6 +9,18 @@ var tunaFilter = new tuna.PingPongDelay({
     delayTimeLeft: 0, //1 to 10000 (milliseconds)
     delayTimeRight: 0 //1 to 10000 (milliseconds)
 });
+
+var setLive = {
+	infiniteSequencer: function () {
+		// console.log('infiniteSequencer!');
+		// var fulldelay = 4000;
+
+		// window.setInterval(function () {
+		// 	console.log('send a startSequence');
+		// 	socket.emit('startSequence', fulldelay);
+		// }, fulldelay)
+	}
+}
 var setOsc = {
 	frequency: 220,
 	type:'SINE',
@@ -72,6 +84,14 @@ var activeSound = {
 		
 		
 	},
+	allClientSequence:function () {
+		// var fulldelay = 4000;
+
+		// window.setInterval(function () {
+		// 	console.log('send a startSequence');
+		// 	socket.emit('startSequence', fulldelay);
+		// }, fulldelay)
+	},
 	createOscillator: function () {
 		return oscillator;
 	},
@@ -79,6 +99,7 @@ var activeSound = {
 		
 		if(audioData.vca === false) {
 			audioData.vca = setVca.create()
+			// setVca.connect(audioData.vca, audioContext.destination);
 			setVca.connect(audioData.vca, tunaFilter);
 			tunaFilter.connect(audioContext.destination);
 			
@@ -99,10 +120,14 @@ var activeSound = {
 	
 
 		socket.on('startSequence', function (fulldelay) {
-			if(!isplaying) {
-				isplaying = true;
-				activeSound.startNormalSequence();
-			}
+			activeSound.startNormalSequence(fulldelay);
+			// console.log('got a startSequence', fulldelay);
+			// if(!isplaying) {
+			// 	isplaying = true;
+			// 	if(window.location.pathname.indexOf('sequencer') !== -1) {
+			// 		activeSound.startNormalSequence(fulldelay);
+			// 	}
+			// }
 			// if(window.location.pathname.indexOf('sequencer') !== -1) {
 			// 	activeSound.startSequence();
 			// }
@@ -110,46 +135,48 @@ var activeSound = {
 
 		
 	},
-	startNormalSequence() {
-		console.log('do start startNormalSequence');
+	startNormalSequence(fulldelay) {
+		
 		var steps    = audioData.steps.length;
-		var maxDelay = 4000/1000;
-		var perStep  = maxDelay / steps;
+		var maxDelay = fulldelay;
+		var perStep  = maxDelay / (steps+1);
+		
 		var currentStep = 0;
 		
 		var loop = function () {
-			console.log('calling currentstep', currentStep);
-			activeSound.currentStep(currentStep, perStep);
-			socket.emit('sequenceStepMod', {currentStep:currentStep, perStep:perStep});
+			
+			activeSound.currentStep(currentStep, perStep/1000);
+			// socket.emit('sequenceStepMod', {currentStep:currentStep, perStep:perStep/1000});
 
 			setTimeout(function() {
 
 				currentStep++;
-				if(currentStep == steps-1) {
+				if(currentStep == steps) {
 					currentStep == 0;
-					isplaying=false;
+					
 				} else {
 					loop();
 				}
-			}, perStep * 1000)
+			}, perStep)
 		}
 		loop();
 	},
 	currentStep: function (index, perStep) {
-		console.log('currentStep');
+		
 		setOsc.setFrequency(audioData.sources[0].audio ,audioData.steps[index].frequency);
 		var t0 = audioContext.currentTime;
 		var t1 = t0 + (perStep /2);
 		
 		if(audioData.steps[index].active) {
-			setVca.setValueAtTime(audioData.vca, 1, t0)
+			setVca.setValueAtTime(audioData.vca, .5, t0)
 			setVca.setValueAtTime(audioData.vca, 0, t1)
 		}
+		
 
 		activeSound.highlightStep(index);
 	},
 	pressStart: function () {
-		activeSound.setup();
+		
 		body.setAttribute('press-play', 'open');
 		var button = document.querySelector('.fn-press-play');
 		button.addEventListener('click', function(e) {
@@ -161,6 +188,11 @@ var activeSound = {
 
 		});
 	
+	},
+	autoPress: function () {
+		audioData.sources.forEach(function(source) {
+			setOsc.start(source.audio);
+		});
 	},
 	resetLoop () {
 		activeSound.currentStep = 0;
@@ -198,48 +230,7 @@ var activeSound = {
 			stepsItem[index].classList.add('highlight')
 		}
 	},
-	singleStep: function (e) {
-		// var t0 = e.playbackTime;
-
-		// var t1 = t0 + e.args.duration; 
-		   
-		// setOsc.setFrequency(audioData.sources[0].audio ,e.args.frequency);
-		// if(audioData.steps[e.args.currentStep].active) {
-		// 	setVca.setValueAtTime(audioData.vca, 1, t0)
-		// 	setVca.setValueAtTime(audioData.vca, 0, t1)
-		// }
-
-		// activeSound.highlightStep(e.args.currentStep);
-
-		// socket.emit('sequenceStepMod', {
-		// 	step: audioData.steps[e.args.currentStep],
-		// 	duration:e.args.duration,
-
-		// })
-		
-		// if(parseInt(e.args.currentStep) ===  audioData.steps.length -1 && activeSound.updatedData) {
-		// 	activeSound.updatedData = false;
-		// 	
-		// }
-
-	},
-	singleStepSocket: function () {
-		socket.on('sequenceStepMod', function (data) {
-			console.log('got something!');
-			activeSound.currentStep(data.currentStep, data.perStep)
-			// var t0 = audioContext.currentTime;
-			// var t1 = t0 + data.duration; 
-			   
-			// setOsc.setFrequency(audioData.sources[0].audio ,data.step.frequency);
-			
-			// if(data.step.active) {
-			// 	setVca.setValueAtTime(audioData.vca, 1, t0)
-			// 	setVca.setValueAtTime(audioData.vca, 0, t1)
-			// }
-
-			// activeSound.highlightStep(e.args.currentStep);
-		})	
-	}
+	
 	
 }
 
@@ -249,14 +240,20 @@ var modulateRole = {
 		// modulateRole.sliderStep();
 		// modulateRole.sliderPage();
 		// modulateRole.modulateEvents();
-		activeSound.singleStepSocket();
-		activeSound.pressStart();
-		modulateRole.socketSequence();
+		// activeSound.singleStepSocket();
+		
+		
+		
 		modulateRole.modulateEvents();
-	},
-	socketSequence: function () {
 		activeSound.setup();
+		activeSound.allClientSequence();
+		activeSound.pressStart();
+		modulateRole.updateSteps();
+	},
+	updateSteps: function () {
+		console.log('waiting for updateSteps');
 		socket.on('updateSteps', function (newSteps) {
+			console.log('received updatesetps!');
 			audioData.steps = newSteps;
 		})
 		// socket.on('sequenceStep', function (freq) {
@@ -363,8 +360,12 @@ var body        = document.querySelector('body');
 
 var sequencerRole = {
 	init: function () {
+		console.log('OM');
 		sequencerRole.clickActive();
+		activeSound.setup();
+		activeSound.allClientSequence();
 		activeSound.pressStart();
+		// activeSound.autoPress();
 		// sequencerRole.testEvent();
 	},
 	isTouching: function (arr, val) {
@@ -376,6 +377,10 @@ var sequencerRole = {
 	},
 	clickActive: function () {
 		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
+
+		
+
+
 		for(var i = 0; i < stepsItem.length; i++) {
 			$(stepsItem[i]).on('click', function (e) {
 
@@ -390,8 +395,11 @@ var sequencerRole = {
 
 				audioData.steps[index].active = !audioData.steps[index].active;
 				e.target.classList.toggle('inactive');
-
-				socket.emit('updateSteps', audioData.steps);
+				console.log('about to send and updateSteps');
+				socket.emit('updateSteps', {
+					room: audioData._id,
+					steps: audioData.steps
+				});
 			})
 		}
 		

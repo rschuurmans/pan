@@ -12,7 +12,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/login', function (req, res, next) {
 	db.initDemo(req.body.username,res, function (user, group, url) {
-		res.redirect(`/role/${user.role}`); 
+		res.redirect(`/role/${user.role}/${group._id}/${user._id}`); 
 	})
 })
 

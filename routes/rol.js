@@ -15,23 +15,22 @@ router.get('/', function (req, res, next) {
 
 // clearInterval(interval);
 
-router.get('/sequencer', function(req, res, next) {
-
-	// socketModule.joinDuo(req.cookies.groupId);
-
-	db.getData(req.cookies.groupId, req.cookies.userId , function (group, user) {
+router.get('/sequencer/:groupid/:userid', function(req, res, next) {
+	db.getData(req.params.groupid, req.params.userid , function (group, user) {
 		var data = {
 			group: group
 		}
+		
+
 		res.render('rol/sequencer', group)
 	})
 	
 
 })
-router.get('/modulator', function (req, res, next) {
+router.get('/modulator/:groupid/:userid', function (req, res, next) {
 	
 	// socketModule.joinDuo(req.cookies.groupId);
-	db.getData(req.cookies.groupId, req.cookies.userId , function (group, user) {
+	db.getData(req.params.groupid, req.params.userid , function (group, user) {
 	
 		var data = {
 			group: group

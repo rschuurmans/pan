@@ -193,7 +193,8 @@ var db = {
 	randomSequenceValues: function () {
 		var stepsChoices = [4, 8,16];
 
-		var steps = stepsChoices[Math.floor(Math.random()*stepsChoices.length)];
+		// var steps = stepsChoices[Math.floor(Math.random()*stepsChoices.length)];
+		var steps = 16;
 
 		var CMajor = [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
 
@@ -208,6 +209,7 @@ var db = {
 				max:2200
 			})
 		};
+		var data = [{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200}];
 		return data;
 	},
 	randomSource: function (steps) {
@@ -218,6 +220,7 @@ var db = {
 		return data;
 	},
 	getData: function (groupId, userId, cb) {
+		console.log('r u here?', groupId, userId);
 		Group.findById(groupId, function (err, group) {
 			User.findById(userId, function (err, user) {
 				cb(group, user)
