@@ -10,7 +10,6 @@ function hbsHelpers(hbs) {
 		],
 		helpers: {
 			inc: function (value, options) {
-				console.log('reading it');
 				return parseInt(value) +1;
 			},
 			json: function (context) {
@@ -27,8 +26,6 @@ function hbsHelpers(hbs) {
 				return arr.length;
 			},
 			prettyDate: function (timestamp) {
-				console.log(timestamp.getMonth());
-				 // return new Date(timestamp).toString('yyyy-MM-dd')
 				 return timeago().format(timestamp)
 			},
 

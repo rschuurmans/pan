@@ -320,7 +320,8 @@ p {
       margin-top: 0; }
 
 .list-fourgrid {
-  position: relative; }
+  position: relative;
+  width: 80%; }
   .list-fourgrid li {
     float: left;
     list-style: none;
@@ -424,7 +425,11 @@ p {
   .btn-round {
     border-radius: 100%;
     border: 2px solid #3038F2;
-    transition: .2s ease-in-out; }
+    transition: .05s ease-in-out;
+    box-shadow: 0px 0px 0px 0px #FFFF00; }
+    .btn-round.highlight {
+      background-color: #FFFF00 !important;
+      box-shadow: 0px 0px 53px 0px #FFFF00; }
 
 .label {
   margin: 0 auto;

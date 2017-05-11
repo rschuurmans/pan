@@ -78,7 +78,15 @@ $size: 80px;
 	&-round {
 		border-radius:100%;
 	    border:2px solid $color-blue;
-	    transition:.2s ease-in-out;
+	    transition:.05s ease-in-out;
+
+		box-shadow: 0px 0px 0px 0px $color-yellow;
+
+	    &.highlight {
+	    	// border-color:green;
+	    	background-color:$color-yellow !important;
+	    	box-shadow: 0px 0px 53px 0px $color-yellow;
+		    }
 
 	}
 	

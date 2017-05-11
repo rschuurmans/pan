@@ -7,7 +7,8 @@ var userSchema = new Schema({
   username: String,
   active:Boolean,
   startDate: Date,
-  role: String
+  role: String,
+  groupId: String
 });
 
 userSchema.methods.dudify = function() {

@@ -1,6 +1,27 @@
+
+
 var onLoad = function () {
-	tools.autoSubmit();
-	drag.init();
+
+	switch(window.location.pathname) {
+		case '/role/modulator':
+			console.log('at modulator');
+			
+			modulateRole.init();
+			break;
+		case '/role/sequencer':
+			console.log('at sequencer');
+			
+			sequencerRole.init();
+			break;
+		default:
+			console.log('at nothing');
+			break;
+
+	}
+
+	// tools.autoSubmit();
+	// drag.init();
+	// formLoad.init();
 
 	// drag.init();
 	// motion.init();

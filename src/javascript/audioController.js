@@ -1,436 +1,453 @@
-// var socket = io.connect('http://localhost:3000');
-
-// socket.on('startAudio', function (data) {
-// 	console.log('starting the audio');
-// 	console.log(data);
-// })
-// // setTimeout(function () {
-// // 	socket.emit('news', 'big news')
-// // }, 2000	)
-// //   socket.on('news', function (data) {
-    
-// //     socket.emit('my other event', { my: 'data' });
-// //   });
-
-// var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+var tuna         = new Tuna(audioContext);	
+var sched        = new WebAudioScheduler({ context: audioContext });
 
 
-// var VCO = (function(context) {
-//   function VCO(){
-//     this.oscillator = context.createOscillator();
-//     this.oscillator.type = 'square';
-//     this.setFrequency(440);
-//     this.oscillator.start(0);
-//     this.oscillator.connect(context.destination)
-//   };
+var tunaFilter = new tuna.PingPongDelay({
+    wetLevel: 1, //0 to 1
+    feedback: 0.3, //0 to 1
+    delayTimeLeft: 0, //1 to 10000 (milliseconds)
+    delayTimeRight: 0 //1 to 10000 (milliseconds)
+});
+var setOsc = {
+	frequency: 220,
+	type:'SINE',
+	create:function (options) {
+		var _oscillator = audioContext.createOscillator();
+		return _oscillator;
+	},
+	setWavetype(osc, type) {
+		osc.type = type
+	},
+	setFrequency(osc, freq) {
+		osc.frequency.setValueAtTime(freq, 0);
+	},
+	setAllFrequency(arr, freq) {
+		for(var i in arr) {
+			arr[i].audio.frequency.setValueAtTime(freq, 0);
+		}
+	},
+	connect:function(osc, dest) {
+		osc.connect(dest);
+		
+	},
+	start:function (osc) {
+		osc.start(audioContext.currentTime + 2);
+	}
 
-//   VCO.prototype.setFrequency = function(frequency) {
-//     this.oscillator.frequency.setValueAtTime(frequency, context.currentTime);
-//   };
+}
 
-//   VCO.prototype.setType = function (type) {
-//   	this.oscillator.type = type
-//   }
+var setVca = {
+	create: function (value, index) {
+		var _vca = audioContext.createGain();
+		setVca.setValue(_vca, 0)
+		return _vca;
+	},
+	setInput: function (vca) {
+		
+	},
+	connect: function (vca, dest) {
+		vca.connect(dest)
+	},
+	setValue: function (vca, value) {
+		vca.gain.linearRampToValueAtTime(value, audioContext.currentTime + 0.01);
+	},
+	holdAndSetValue: function (vca, value, holdTime) {
+		window.setTimeout(function () {
 
-  
+			vca.gain.linearRampToValueAtTime(value, audioContext.currentTime + 0.01);
+		}, holdTime );
+	},
+	setValueAtTime: function (vca, value, time) {
+		// time =time / 1000;
+		vca.gain.setTargetAtTime(value, time, 0.005);
+		
+	},
+};
+var isplaying = false;
 
-//   return VCO;
-// })(audioContext);
-
-// // var activeModules = document.querySelectorAll('.fn-overview-module');
-
-// // for(var i = 0; i < activeModules.length; i++) {
-// // 	// console.log(activeModules[i]);
-// // 	switch(activeModules[i].getAttribute('data-type')) {
-// // 		case 'oscillator': 
-// // 			var vco = new VCO;
-// // 			vco.setType('sine');
-// // 			console.log('happesn');
-// // 			break;
-
-
-// // 	}
-// // }
-// // var vco = new VCO;
-// // 		vco.setType('sine');
-
-// var audio = {
-// 	init:function () {
-// 		console.log('audio.init@');
+var activeSound = {
+	running: false,
+	create: function () {
 		
 		
-
+	},
+	createOscillator: function () {
+		return oscillator;
+	},
+	setup: function () {
 		
+		if(audioData.vca === false) {
+			audioData.vca = setVca.create()
+			setVca.connect(audioData.vca, tunaFilter);
+			tunaFilter.connect(audioContext.destination);
+			
+		}
 
-		
+		audioData.sources.forEach(function(source) {
+			if(source.newObj) {
+				!source.newObj;
+
+				source.audio = setOsc.create();
+				setOsc.setWavetype(source.audio, source.type);
+				setOsc.connect(source.audio, audioData.vca);
+				
+				
+			}
+		});
+		// audioData.connect()
 	
-// 		// wait for message from server untill osc is added
 
-// 	},
-// 	oscillator:function () {
+		socket.on('startSequence', function (fulldelay) {
+			if(!isplaying) {
+				isplaying = true;
+				activeSound.startNormalSequence();
+			}
+			// if(window.location.pathname.indexOf('sequencer') !== -1) {
+			// 	activeSound.startSequence();
+			// }
+		})
 
-// 	}
-// 	// getActiveModules: function () {
-// 	// 	console.log(document.cookie.split(';'));
-// 	// }
-
-// }
-
-
-// var data = [
-// 	{
-// 	"id": 11,
-// 	"title": "sequencer",
-// 	"shortTitle": "SEQ",
-// 	"category": "rythm",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 12,
-// 	"title": "pressure pads",
-// 	"shortTitle": "PP",
-// 	"category": "rythm",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 9,
-// 	"title": "VCA",
-// 	"shortTitle": "VCA",
-// 	"category": "modulate",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 10,
-// 	"category": "modulate",
-// 	"shortTitle": "MOD",
-// 	"title": "envelope generator",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 4,
-// 	"title": "delay",
-// 	"shortTitle": "D",
-// 	"category": "filter",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 5,
-// 	"title": "low pass filter",
-// 	"shortTitle": "LPF",
-// 	"category": "filter",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 6,
-// 	"title": "high pass filter",
-// 	"shortTitle": "HPF",
-// 	"category": "filter",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 7,
-// 	"title": "synthesizer voice",
-// 	"shortTitle": "VCE",
-// 	"category": "filter",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 8,
-// 	"title": "panning",
-// 	"shortTitle": "PAN",
-// 	"category": "filter",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 3,
-// 	"title": "VCO",
-// 	"shortTitle": "VCO",
-// 	"category": "source",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 1,
-// 	"title": "clock modulator",
-// 	"shortTitle": "CMOD",
-// 	"category": "source",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 2,
-// 	"title": "noise",
-// 	"shortTitle": "NS",
-// 	"category": "source",
-// 	"once": "false",
-// 	"connectedTo": "",
-// 	"active": true,
-// 	"parameters": [{
-
-// 	}],
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	},
-// 	{
-// 	"id": 0,
-// 	"title": "oscillator",
-// 	"shortTitle": "OSC",
-// 	"category": "source",
-// 	"once": "false",
-// 	"active": true,
-// 	"parameters": [
-// 	{
-// 	"type":"waveType",
-// 	"input":"radio",
-// 	"value": "sine",
-// 	"waveTypes": [
-// 	{
-// 	"type": "sine",
-// 	"img": "ic_wave_sine.svg",
-// 	"active":false
-// 	},
-// 	{
-// 	"type": "sawtooth",
-// 	"img": "ic_wave_sawtooth.svg",
-// 	"active":false
-// 	},
-// 	{
-// 	"type": "triangle",
-// 	"img": "ic_wave_triangle.svg",
-// 	"active":true
-// 	},
-// 	{
-// 	"type": "square",
-// 	"img": "ic_wave_square.svg",
-// 	"active":false
-// 	}
-// 	]
-// 	},
-// 	{
-// 	"type":"frequency",
-// 	"input":"single-knob",
-// 	"min":0,
-// 	"max":22000,
-// 	"value":500
-// 	},
-// 	{
-// 	"type":"pitch",
-// 	"input":"single-knob",
-// 	"min":0,
-// 	"max":22000,
-// 	"value":500
-// 	}
-// 	],
-
-// 	"color":"#56009C",
-// 	"accentColor":"#FFFF00"
-// 	}]
-
-// var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-// var oscillator = {
-// 	frequency: 220,
-// 	type:'SINE',
-// 	create:function (options) {
-// 		var _oscillator = audioContext.createOscillator();
-
-// 		return _oscillator;
-// 	},
-// 	setWavetype(osc, type) {
-// 		osc.type = type
-// 	},
-// 	setFrequency(osc, freq) {
-// 		osc.frequency.value = freq;
-// 	},
-// 	connect:function(osc) {
-// 		osc.connect(audioContext.destination);
 		
-// 	},
-// 	start:function (osc) {
-// 		osc.start();
-// 	}
-
-// }
-
-// var vca = {
-// 	create: function (value, index) {
-// 		var _vca = audioContext.createGain();
-// 		_vca.gain.value = 0;
-// 		return _vca;
-// 	},
-// 	setInput: function (vca) {
+	},
+	startNormalSequence() {
+		console.log('do start startNormalSequence');
+		var steps    = audioData.steps.length;
+		var maxDelay = 4000/1000;
+		var perStep  = maxDelay / steps;
+		var currentStep = 0;
 		
-// 	},
-// 	setOutput: function (vca) {
+		var loop = function () {
+			console.log('calling currentstep', currentStep);
+			activeSound.currentStep(currentStep, perStep);
+			socket.emit('sequenceStepMod', {currentStep:currentStep, perStep:perStep});
 
-// 	},
-// 	setValue: function (vca, value) {
-// 		vca.gain.value = value;
-// 	}
-// }	
+			setTimeout(function() {
 
-// var modules = {
-// 	oscillator:[oscillator.create(), oscillator.create()],
-// 	vca:[vca.create()]
-// }
+				currentStep++;
+				if(currentStep == steps-1) {
+					currentStep == 0;
+					isplaying=false;
+				} else {
+					loop();
+				}
+			}, perStep * 1000)
+		}
+		loop();
+	},
+	currentStep: function (index, perStep) {
+		console.log('currentStep');
+		setOsc.setFrequency(audioData.sources[0].audio ,audioData.steps[index].frequency);
+		var t0 = audioContext.currentTime;
+		var t1 = t0 + (perStep /2);
+		
+		if(audioData.steps[index].active) {
+			setVca.setValueAtTime(audioData.vca, 1, t0)
+			setVca.setValueAtTime(audioData.vca, 0, t1)
+		}
 
-// var options = {
-// 	OSC:  {
-// 		waveform: function (value, index) {
-// 			oscillator.setWavetype(modules.oscillator[index], value)
-// 		},
-// 		frequency: function (value, index) {
-// 			oscillator.setFrequency(modules.oscillator[index], value);
-// 		}, 
-// 		pulseWidth: function (value, index) {
-// 			console.log('change pulseWidth');
-// 		},
-// 		output: function (value, index) {
-// 			console.log('change output');
-// 		}
-// 	},
-// 	VCA: {
-// 		input: function (value, index) {
-// 			console.log('change input');
-// 		},
-// 		cvControl: function (value, index) {
-// 			vca.setValue(modules.vca[index], value);
-// 		},
-// 		output: function (value, index) {
-// console.log('change output');
-// 		}
-// 	}
-// }
+		activeSound.highlightStep(index);
+	},
+	pressStart: function () {
+		activeSound.setup();
+		body.setAttribute('press-play', 'open');
+		var button = document.querySelector('.fn-press-play');
+		button.addEventListener('click', function(e) {
+			body.removeAttribute('press-play');
+			
+			audioData.sources.forEach(function(source) {
+				setOsc.start(source.audio);
+			});
 
-// var synth = {
+		});
 	
-// 	init:function () {
-// 		console.log('synth.init');
+	},
+	resetLoop () {
+		activeSound.currentStep = 0;
+		audioContext.close();
+	},
+	schedule: function (e) {
+		// var steps    = audioData.steps.length;
+		// var maxDelay = 4000/1000;
+		// var perStep  = maxDelay / steps;
+		// var t0       = e.playbackTime;
 		
-// 		oscillator.setWavetype(modules.oscillator[0], 'sine');
-// 		oscillator.setFrequency(modules.oscillator[0], 440);
+		// for(var i in audioData.steps) {
+		// 	var delay = perStep * i;
+		// 	var duration = perStep/2;
+		// 	var freq = audioData.steps[i].frequency;
+		// 	if(window.location.pathname.indexOf('sequencer') !== -1) {
+		// 		freq = freq/2;
 
-// 		vca.setValue(modules.vca[0], 1);
+		// 	}
 
-// 		modules.oscillator[0].start(0);
-// 		modules.vca[0].connect(audioContext.destination);
-// 		modules.oscillator[0].connect(modules.vca[0]);
-// 		modules.oscillator[1].connect(modules.vca[0]);
-
-// 		synth.getDOMModules();
+		// 	sched.insert(t0 + delay, activeSound.singleStep, {frequency:freq, duration: duration, currentStep: i} );	
 		
-// 	},
-// 	getDOMModules: function () {
-// 		var parameterDOM = document.querySelectorAll('.fn-parameter');
+			
+		// }
+	},
+	startSequence() {
+		// sched.start(activeSound.schedule);
+	},
+	highlightStep: function (index) {
+		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
+		if(stepsItem.length) {
+			stepsItem.forEach(function(step) {
+				step.classList.remove('highlight');
+			});
+			stepsItem[index].classList.add('highlight')
+		}
+	},
+	singleStep: function (e) {
+		// var t0 = e.playbackTime;
+
+		// var t1 = t0 + e.args.duration; 
+		   
+		// setOsc.setFrequency(audioData.sources[0].audio ,e.args.frequency);
+		// if(audioData.steps[e.args.currentStep].active) {
+		// 	setVca.setValueAtTime(audioData.vca, 1, t0)
+		// 	setVca.setValueAtTime(audioData.vca, 0, t1)
+		// }
+
+		// activeSound.highlightStep(e.args.currentStep);
+
+		// socket.emit('sequenceStepMod', {
+		// 	step: audioData.steps[e.args.currentStep],
+		// 	duration:e.args.duration,
+
+		// })
 		
-// 		for(var i = 0; i < parameterDOM.length;i++) {
-// 			parameterDOM[i].addEventListener('input', function (e) {
-// 				options[e.target.getAttribute('data-module')][e.target.getAttribute('data-target')](e.target.value, e.target.getAttribute('module-index'));
-// 			})
-// 		}
-// 	}
-// }
+		// if(parseInt(e.args.currentStep) ===  audioData.steps.length -1 && activeSound.updatedData) {
+		// 	activeSound.updatedData = false;
+		// 	
+		// }
+
+	},
+	singleStepSocket: function () {
+		socket.on('sequenceStepMod', function (data) {
+			console.log('got something!');
+			activeSound.currentStep(data.currentStep, data.perStep)
+			// var t0 = audioContext.currentTime;
+			// var t1 = t0 + data.duration; 
+			   
+			// setOsc.setFrequency(audioData.sources[0].audio ,data.step.frequency);
+			
+			// if(data.step.active) {
+			// 	setVca.setValueAtTime(audioData.vca, 1, t0)
+			// 	setVca.setValueAtTime(audioData.vca, 0, t1)
+			// }
+
+			// activeSound.highlightStep(e.args.currentStep);
+		})	
+	}
+	
+}
 
 
+var modulateRole = {
+	init: function () {
+		// modulateRole.sliderStep();
+		// modulateRole.sliderPage();
+		// modulateRole.modulateEvents();
+		activeSound.singleStepSocket();
+		activeSound.pressStart();
+		modulateRole.socketSequence();
+		modulateRole.modulateEvents();
+	},
+	socketSequence: function () {
+		activeSound.setup();
+		socket.on('updateSteps', function (newSteps) {
+			audioData.steps = newSteps;
+		})
+		// socket.on('sequenceStep', function (freq) {
+		// 	setOsc.setFrequency(audioData.sources[0].audio ,freq);
+		// })
+		
+	},
+	events: function () {
+
+	},
+	sliderStep: function () {
+		var element = document.querySelector('.slider-step-inner');
+		var steps = audioData.steps.length - 1;
+		var percentage = (100 / steps) * activeSound.currentStep;
+		percentage = 100 - percentage;
+		element.style.width = percentage + '%';
+		element.style.transitionDuration = activeSound.delay/1000 + 's';
+	},
+	sliderPage: function () {
+		var slider = document.querySelector('.fn-fullpage-slider');
+		var slides = slider.querySelectorAll('.fn-fullpage-slide');
+
+		var slideLeft = slider.querySelector('[swipe-direction="left"]');
+		var slideRight = slider.querySelector('[swipe-direction="right"]');
+		var hammertime = new Hammer(slider, {
+		});
+		hammertime.on('swipeleft', function(ev) {
+			slideLeft.classList.add('slide-active');
+			slideRight.classList.remove('slide-active');
+		});
+		hammertime.on('swiperight', function(ev) {
+			slideLeft.classList.remove('slide-active');
+			slideRight.classList.add('slide-active');
+		});
+	},
+	modulateEvents: function () {
+		var modulateButtons = document.querySelectorAll('.fn-modulate-btn');
+		var modulateValue   = document.querySelector('.fn-modulate-value');
+		var body            = document.querySelector('body');
+
+		
+		for(var i = 0; i < modulateButtons.length;i++) {
+			
+			modulateButtons[i].addEventListener('touchstart', function (e) {
+				var type = e.currentTarget.getAttribute('data-type');
+				e.target.classList.add('active');
+				modulateValue.innerHTML = e.target.getAttribute('data-value') + '%';
+				
+				
+				body.setAttribute('touch-active','modulate');
+				body.setAttribute('current-touch', type);
+				modulateRole.rotateEvent(false);
+
+			})
+			modulateButtons[i].addEventListener('touchend', function (e) {
+				var type = e.currentTarget.getAttribute('data-type');
+				e.target.classList.remove('active');
+				modulateValue.innerHTML = e.target.getAttribute('data-value') + '%';
+				
+				
+				body.removeAttribute('touch-active');
+				body.removeAttribute('current-touch');
+				modulateRole.rotateEvent(true);
+
+			})
+		}
+	},
+	rotateEvent: function (stop) {
+		
+		var phoneDirection = DeviceOrientationEvent.webkitCompassHeading;
+
+		var page = document.querySelector('.fn-overlay');
+		window.addEventListener('deviceorientation', function (e) {
+			
+
+			page.style.webkitTransform = "rotate("+ e.webkitCompassHeading +"deg)";
+			var compass = e.webkitCompassHeading;
+			var value = compass / 360;
+			console.log(compass);
+			tunaFilter.delayTimeLeft = compass;
+			// value = value * 5;
+			
+
+			// setVca.setValue(audioData.vca, value);
+			// audioData.filter.delay = value;
+
+			// var phoneDirection = DeviceOrientationEvent.alpha
+			// als de phone direction 30 + of 30- gaat, weet je de richting + de hoeveelheid
+			// maar opletten als de dinges meer dan 360 wordt
 
 
+			// nulpunt: 350 - 10;
+			// dieptepunt = 170 - 190
+			// tussen 0 en 170 : naar rechts,
+			// tussen 190 en 360 is naar links
 
-// // synth.init();
+			// overdrive is schudden!
 
-// // window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+		})
+	}
+}
+var body        = document.querySelector('body');
 
-// // var oscillator = window.audioContext.createOscillator();
-// // oscillator.frequency.value = 440;
-// // // oscillator.noteOn(window.audioContext.currentTime + 0.00);
-// // // oscillator.noteOff(window.audioContext.currentTime + 2.25);
 
-// // var gain = window.audioContext.createGain();
-// // gain.gain.setValueAtTime(0.05, window.audioContext.currentTime + 0.00);
-// // gain.gain.setValueAtTime(0.00, window.audioContext.currentTime + 0.25);
-// // gain.gain.setValueAtTime(0.10, window.audioContext.currentTime + 0.50);
-// // gain.gain.setValueAtTime(0.00, window.audioContext.currentTime + 0.75);
-// // gain.gain.setValueAtTime(0.20, window.audioContext.currentTime + 1.00);
-// // gain.gain.setValueAtTime(0.00, window.audioContext.currentTime + 1.25);
-// // gain.gain.setValueAtTime(0.40, window.audioContext.currentTime + 1.50);
-// // gain.gain.setValueAtTime(0.00, window.audioContext.currentTime + 1.75);
-// // gain.gain.setValueAtTime(0.80, window.audioContext.currentTime + 2.00);
+var sequencerRole = {
+	init: function () {
+		sequencerRole.clickActive();
+		activeSound.pressStart();
+		// sequencerRole.testEvent();
+	},
+	isTouching: function (arr, val) {
+		if(arr.indexOf(val) !== -1) {
+			return true; 
+		} else {
+			return false;
+		}
+	},
+	clickActive: function () {
+		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
+		for(var i = 0; i < stepsItem.length; i++) {
+			$(stepsItem[i]).on('click', function (e) {
 
-// // oscillator.start(0);
-// // gain.connect(audioContext.destination);
-// // oscillator.connect(gain);
-//             
+				// activeSound.updatedData = true;
+
+				var index = e.target.getAttribute('sequence-index');
+				
+				if(!e.target.classList.contains('fn-sequencer-item')) {
+					index = e.target.parentNode.getAttribute('sequence-index')
+				}
+
+
+				audioData.steps[index].active = !audioData.steps[index].active;
+				e.target.classList.toggle('inactive');
+
+				socket.emit('updateSteps', audioData.steps);
+			})
+		}
+		
+
+	},
+	events: function () {
+		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
+		
+		var inputSlider = document.querySelector('.fn-frequency-input');
+
+		for(var i = 0; i < stepsItem.length; i++ ) {
+			stepsItem[i].addEventListener('touchstart', function (e) {
+				var index = e.target.getAttribute('sequence-index');
+				touches.push(e.target);
+
+				window.setTimeout(function () {
+					if(sequencerRole.isTouching(touches, e.target)) {
+						body.setAttribute('touch-active', 'sequence');
+						tooltip.getHelper('sawlight');
+						e.target.classList.add('touching');
+					} else {
+						audioData.steps[index].active = !audioData.steps[index].active;
+						e.target.classList.toggle('inactive');
+					}
+				}, 100)
+			})
+			var removeTouch = function (e) {
+				body.setAttribute('touch-active', false);
+				tooltip.removeHelper('sawlight');
+
+				touches.splice( touches.indexOf(e.target), 1 );
+				e.target.classList.remove('touching');
+			}
+			stepsItem[i].addEventListener('touchend', function (e) {
+				removeTouch(e);
+			})
+			stepsItem[i].addEventListener('touchcancel', function (e) {
+				removeTouch(e);
+			})
+
+		}
+		
+	},
+	setFrequencyInputSlider: function (input) {
+		var circle = document.querySelectorAll('.fn-inner-circle')[3];
+
+		input.disabled = false;
+		input.value = audioData.steps[3].frequency;
+
+		input.addEventListener('input', function (e) {
+			audioData.steps[3].frequency = e.target.value;
+			var scale = (5*e.target.value)/audioData.steps[3].max;
+			circle.style.transform = 'scale('+scale+')';
+
+
+		})
+	}	
+}
+

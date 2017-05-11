@@ -1,59 +1,39 @@
-var User     = require('./../models/user');
-var Group    = require('./../models/group');
-var mongoose = require('mongoose');
-var fs      = require('fs');
-var availableModules = JSON.parse(fs.readFileSync('public/data/availableModules.json', 'utf8')).categories;
+var User             = require('./../models/user');
+var Group            = require('./../models/group');
+var mongoose         = require('mongoose');
 
 var db = {
 	initDemo: function (username,res, cb ) {
-		db.getDemoGroup(function (group) {
-			db.getDemoUser(username, group, function (user) {
-				res.cookie('userId', user._id.toString())
-				var match = false;
-				var userInGroup = {
-					username:user.username,
-					id: user._id,
-					isSequencer: true
-				}
-				
-				for(var i = 0 ; i < group.activeSounds.length ; i++) {
+		db.createOrFindGroup(function (group) {
+			db.createUser(username, group, function (user) {
+				db.updateRole(user, group, function (user, group) {
+					res.cookie('userId', user._id.toString());
+					res.cookie('groupId', group._id.toString());
+					
 
-					if(group.activeSounds[i].members.length <= 1) {
-						match = true;
-
-						if(group.activeSounds[i].members[0].isSequencer || group.activeSounds[i].members[0].isSequencer == 'true') {
-							userInGroup.isSequencer = false;
-						}
-						group.activeSounds[i].members.push(userInGroup);
-						break;
-					}
-				}
-				if(!match) {
-					var stepsChoices = [4, 8,16];
-					var steps        = stepsChoices[Math.floor(Math.random()*stepsChoices.length)];
-					var randomSteps  = db.randomSequenceValues(steps);
-					var randomSource = db.randomSource(steps);
-					group.activeSounds.push({
-						members:[userInGroup],
-						steps:randomSteps,
-						source:randomSource,
-						timestamp:new Date()
-					})
-				}
-				
-				group.markModified('activeSounds');
-
-				group.save(function (err) {
-					if(err) { console.log( err) }
-					db.saveRole(user._id, userInGroup.isSequencer, function (newuser) {
-						cb(newuser)
-					})
-				})				
-				
+					cb(user, group, '/role/sequencer')
+				})
 			})
 		})
-
-		
+	},
+	countGroups: function (cb) {
+		Group.find().count(function (err, count) {
+			cb(count)
+		})
+	},
+	updateRole: function (user, group, cb) {
+		if(group.sequencer == null) {
+			user.role = 'sequencer';
+			group.sequencer = user;
+		} else {
+			user.role = 'modulator';
+			group.modulator = user;
+		}
+		user.save(function () {
+			group.save(function () {
+				cb(user, group);
+			})
+		})
 	},
 	saveRole: function (id, isSequencer, cb) {
 		var role = 'modulate'
@@ -69,6 +49,18 @@ var db = {
 			})
 		})
 		
+	},
+	createUser:function (username, group, cb) {
+		var user = new User({
+			username: username,
+			active:true,
+			startDate: new Date(),
+			role: 'none',
+			groupId: group._id
+		})
+		user.save( function () {
+			cb(user)
+		});
 	},
 	getDemoUser: function (username,group, cb) {
 		db.userByName(username, function (user) {
@@ -88,7 +80,33 @@ var db = {
 			}
 		})
 	},
-	
+	createOrFindGroup: function (cb) {
+		Group.findOne({$or:[{'sequencer': null},{'modulator':null} ]}, function (err, group) {
+			if(err) throw err;
+			if(group) {
+				cb(group);
+			} else {
+				db.countGroups(function (count) {
+						var melody = db.randomSequenceValues();
+						var source = db.randomSource(melody.length);
+						var sound = db.randomSound();
+					group = new Group({
+						steps: melody,
+						sources: source,
+						modulate: sound,
+						timestamp: new Date(),
+						sequencer: null,
+						modulator: null,
+						groupCounter: count,
+						vca: false
+					})
+					group.save(function () {
+						cb(group);
+					})
+				})
+			}
+		})
+	},
 	getDemoGroup: function (cb) {
 		Group.findOne({demo: true}, function (err, group) {
 			if(group) {
@@ -99,7 +117,8 @@ var db = {
 					activeSounds: [],
 					users:[],
 					timestamp: new Date(),
-					demo: true
+					demo: true,
+					modulate: []
 				})
 				group.save(function (err, group) {
 					cb(group)
@@ -124,7 +143,58 @@ var db = {
 			
 		})
 	},
-	randomSequenceValues: function (steps) {
+	randomSound: function () {
+		var sound = [{
+				type: 'Delay',
+				values: {
+					feedback:0.1,
+					delayTime:0.1,
+					wetLevel:0,
+					dryLevel:0,
+					cutoff:2000,
+					bypass:0
+				},
+				setValue: 'delayTime'
+			},
+			{
+				type: 'Chorus',
+				values: {
+					rate:0,
+					feedback:0,
+					delay:0,
+					bypass:0,
+				},
+				setValue: 'rate'
+			},
+			{
+				type: 'Tremelo',
+				values: {
+					intensity: 0,
+					rate: 0.001,
+					stereoPhase: 0,   
+					bypass: 0
+				},
+				setValue:'intensity'
+			},
+			{
+				type: 'Overdrive',
+				values: {
+					outputGain: 0,
+				    drive: 0,
+				    curveAmount: 1,
+				    algorithmIndex: 0,
+				    bypass: 0
+				},
+				setValue:'drive'
+			}
+		];
+		return sound;
+	},
+	randomSequenceValues: function () {
+		var stepsChoices = [4, 8,16];
+
+		var steps = stepsChoices[Math.floor(Math.random()*stepsChoices.length)];
+
 		var CMajor = [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
 
 		var data = [];
@@ -142,10 +212,17 @@ var db = {
 	},
 	randomSource: function (steps) {
 		var data = [{
-			type:'SINE',
+			type:'sine',
 			newObj: true
 		}];
 		return data;
+	},
+	getData: function (groupId, userId, cb) {
+		Group.findById(groupId, function (err, group) {
+			User.findById(userId, function (err, user) {
+				cb(group, user)
+			})
+		})
 	},
 	getSoundData: function (userId, cb) {
 		db.getDemoGroup(function (group) {

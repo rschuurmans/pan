@@ -1,91 +1,45 @@
 var express = require('express');  
-var db      = require('./../helpers/db');
+var app     = express();
+var server    = require('http').Server(app);
 var router  = express.Router();
-
+var io           = require('../socket.js').listen(server);
+var fs      = require('fs');
+var modular = require('../helpers/modular.js');
+var db      = require('./../helpers/db');
+// var testData = audioData  = {"_id":"5911f16fa40f795972c206c4","timestamp":"2017-05-09T16:42:23.669Z","sequencer":{"_id":"5911f16fa40f795972c206c5","groupId":"5911f16fa40f795972c206c4","role":"sequencer","startDate":"2017-05-09T16:42:23.756Z","active":true,"username":"Roos-seq","__v":0},"modulator":null,"groupCounter":1,"__v":0,"modulate":[{"type":"Delay","values":{"feedback":0.1,"delayTime":0.1,"wetLevel":0,"dryLevel":0,"cutoff":2000,"bypass":0},"setValue":"delayTime"},{"type":"Chorus","values":{"rate":0,"feedback":0,"delay":0,"bypass":0},"setValue":"rate"},{"type":"Tremelo","values":{"intensity":0,"rate":0.001,"stereoPhase":0,"bypass":0},"setValue":"intensity"},{"type":"Overdrive","values":{"outputGain":0,"drive":0,"curveAmount":1,"algorithmIndex":0,"bypass":0},"setValue":"drive"}],"sources":[{"type":"SINE","newObj":true}],"steps":[{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":523.25,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200}]};
 router.get('/', function (req, res, next) {
-	res.send('rol/index');
-	db.userById(req.cookies.userId, function (user) {
-		// console.log(isSequencer);
-		res.render('rol/sequencer');
-	})
+
 })
+
+
+
+// clearInterval(interval);
 
 router.get('/sequencer', function(req, res, next) {
-	console.log('getting this');
-	db.getSoundData(req.cookies.userId, function (data) {
-		data.modulate = [
-			{
-				type: 'Delay',
-				values: {
-					feedback:0.1,
-					delayTime:0.1,
-					wetLevel:0,
-					dryLevel:0,
-					cutoff:2000,
-					bypass:0
-				},
-				setValue: 'delayTime'
-			},
-			{
-				type: 'Chorus',
-				values: {
-					rate:0,
-					feedback:0,
-					delay:0,
-					bypass:0,
-				},
-				setValue: 'rate'
-			},
-			{
-				type: 'Tremelo',
-				values: {
-					intensity: 0,
-					rate: 0.001,
-					stereoPhase: 0,   
-					bypass: 0
-				},
-				setValue:'intensity'
-			},
-			{
-				type: 'Overdrive',
-				values: {
-					outputGain: 0,
-				    drive: 0,
-				    curveAmount: 1,
-				    algorithmIndex: 0,
-				    bypass: 0
-				},
-				setValue:'drive'
-			}
-		]
-		res.render('rol/sequencer', data)
+
+	// socketModule.joinDuo(req.cookies.groupId);
+
+	db.getData(req.cookies.groupId, req.cookies.userId , function (group, user) {
+		var data = {
+			group: group
+		}
+		res.render('rol/sequencer', group)
 	})
+	
 
 })
-router.get('/modulate', function (req, res, next) {
-	db.getSoundData(req.cookies.userId, function (data, user) {
-		console.log('get sound data callback');
-		data.modulate = [
-			{
-				type: 'delay',
-				value: 0,
-			},
-			{
-				type: 'chorus',
-				value: 0,
-			},
-			{
-				type: 'Tremmelo',
-				value: 0,
-			},
-			{
-				type: 'Gain',
-				value: 0,
-			}
-		]
-		res.render('rol/modulate', data)
+router.get('/modulator', function (req, res, next) {
+	
+	// socketModule.joinDuo(req.cookies.groupId);
+	db.getData(req.cookies.groupId, req.cookies.userId , function (group, user) {
+	
+		var data = {
+			group: group
+		}
+		res.render('rol/modulator', group)
 	})
 })
 
 
-module.exports = router;  
+
+module.exports = router;

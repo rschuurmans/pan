@@ -1,11 +1,9 @@
 var express      = require('express');
 var app          = express();
-var http         = require('http').Server(app);
+var server       = require('http').Server(app);
+var io           = require('./socket.js').listen(server);
 var indexRouter  = require('./routes/index');
-var createRouter = require('./routes/create');
-var playRouter   = require('./routes/play');
-var testRouter   = require('./routes/test');
-var rolRouter   = require('./routes/rol');
+var rolRouter    = require('./routes/rol');
 
 var exphbs       = require('express-handlebars');
 var bodyParser   = require('body-parser');
@@ -15,8 +13,10 @@ var handlebars   = require('./helpers/handlebars.js')(exphbs);
 var cookieParser = require('cookie-parser');
 var mongoose     = require('mongoose');
 var session      = require('express-session');
-// var io           = require('socket.io')(http);
 var db           = require('./helpers/db');
+
+
+
 
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
@@ -37,36 +37,48 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, 'public')))
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://admin:Roos1995!@ds029381.mlab.com:29381/pan2');
-// mongodb://<dbuser>:<dbpassword>@ds029381.mlab.com:29381/pan2
+mongoose.connect('mongodb://admin:Roos1995!@ds137191.mlab.com:37191/pan3');
 
-var checkUser = function (req, res, next) {
-  next();
-  // db.userById(req.cookies.userId, function (user) {
-  //   if(user) {
-  //     next();
-  //   } else {
-  //     res.redirect('/')
-  //   }
-  // })
- }
+var serverDelay = 4000;
+var interval = setInterval(function () {
+  io.sockets.emit('startSequence', serverDelay)
+}, serverDelay)
+
+
+io.on('connection', function (socket) {
+  console.log('connect');
+  socket.on('joinRoom', function (data) {
+    socket.join(data.room);
+  });
+  socket.on('message', function (data) {
+  })
+  socket.on('update', function (data) {
+    io.sockets.emit('update', data);
+  })
+  socket.on('sequenceStep', function (data) {
+    io.sockets.emit('sequenceStep', data);
+  })
+  socket.on('startSequence', function (data) {
+    console.log('received a serverstep', data);
+    io.sockets.emit('startSequence', data);
+  })
+  socket.on('startSequenceMod', function (data) {
+    console.log('start sequence signal from sequencer to modulator');
+    io.sockets.emit('startSequenceMod', data)
+  })
+  socket.on('updateSteps', function(data) {
+    io.sockets.emit('updateSteps', data);
+  })
+  socket.on('sequenceStepMod', function (data) {
+    io.sockets.emit('sequenceStepMod', data);
+  })
+
+})
 
 
 app.use('/', indexRouter);
-app.use('/play',checkUser, playRouter);
-app.use('/create',checkUser, createRouter);
-app.use('/test',checkUser, testRouter);
-app.use('/role',checkUser, rolRouter);
+app.use('/role', rolRouter);
 
-
-// io.on('connection', function (socket) {
-//   socket.emit('news', { hello: 'world' });
-//   socket.on('news', function (data) {
-//     console.log(data);
-//   });
-// });
-      
-    
 
 // 404 page
 app.route('*')
@@ -75,6 +87,6 @@ app.route('*')
   })
 
 
-http.listen(3000, function(){
+server.listen(3000, function(){
   console.log('listening on *:3000');
 });

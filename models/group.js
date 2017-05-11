@@ -10,11 +10,21 @@ var Schema = mongoose.Schema;
 //   master: String
 // });
 
+// var groupSchema = new Schema({
+// 	activeSounds : Array,
+// 	users: Array,
+// 	timestamp: Date,
+// 	demo: Boolean
+// })
 var groupSchema = new Schema({
-	activeSounds : Array,
-	users: Array,
+	steps: Array,
+	sources: Array,
+	modulate: Array,
 	timestamp: Date,
-	demo: Boolean
+	sequencer: Object,
+	modulator: Object,
+	groupCounter: Number,
+	vca: Boolean
 })
 
 
