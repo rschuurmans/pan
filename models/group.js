@@ -24,7 +24,8 @@ var groupSchema = new Schema({
 	sequencer: Object,
 	modulator: Object,
 	groupCounter: Number,
-	vca: Boolean
+	vca: Boolean,
+	effects: Boolean
 })
 
 

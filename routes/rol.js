@@ -39,6 +39,13 @@ router.get('/modulator/:groupid/:userid', function (req, res, next) {
 	})
 })
 
+router.post('/data', function (req, res, next) {
+	// console.log('from post:',req.body);
+	var newGroup = req.body;
 
+	db.updateGroup(newGroup._id, newGroup, function (group) {
+
+	})
+})
 
 module.exports = router;

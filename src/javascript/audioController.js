@@ -3,12 +3,7 @@ var tuna         = new Tuna(audioContext);
 var sched        = new WebAudioScheduler({ context: audioContext });
 
 
-var tunaFilter = new tuna.PingPongDelay({
-    wetLevel: 1, //0 to 1
-    feedback: 0.3, //0 to 1
-    delayTimeLeft: 0, //1 to 10000 (milliseconds)
-    delayTimeRight: 0 //1 to 10000 (milliseconds)
-});
+
 
 var setLive = {
 	infiniteSequencer: function () {
@@ -97,25 +92,55 @@ var activeSound = {
 	},
 	setup: function () {
 		
-		if(audioData.vca === false) {
-			audioData.vca = setVca.create()
-			// setVca.connect(audioData.vca, audioContext.destination);
-			setVca.connect(audioData.vca, tunaFilter);
-			tunaFilter.connect(audioContext.destination);
-			
-		}
+		audioData.vca = setVca.create()
 
 		audioData.sources.forEach(function(source) {
-			if(source.newObj) {
-				!source.newObj;
-
-				source.audio = setOsc.create();
-				setOsc.setWavetype(source.audio, source.type);
-				setOsc.connect(source.audio, audioData.vca);
-				
-				
-			}
+			source.audio = setOsc.create();
+			setOsc.setWavetype(source.audio, source.type);
+			setOsc.connect(source.audio, audioData.vca);
 		});
+		audioData.effects = {
+			chorus: false,
+			pingpong: false,
+			tremelo : false,
+			wahwah : false,
+		};
+		audioData.modulate.forEach(function(module) {
+			if(module.type == 'pingpong') {
+				
+				var filter = new tuna.PingPongDelay(module.values);
+				setVca.connect(audioData.vca, filter);
+				filter.connect(audioContext.destination);
+
+				audioData.effects.pingpong = filter;
+			} else if (module.type == 'chorus') {
+
+				console.log('happend');
+				var filter = new tuna.Chorus(module.values);
+				setVca.connect(audioData.vca, filter);
+				filter.connect(audioContext.destination);
+
+				audioData.effects.chorus = filter;
+			} else if  (module.type == 'tremelo') {
+				console.log(module.values);
+				var filter = new tuna.Tremolo(module.values);
+				
+				setVca.connect(audioData.vca, filter);
+				filter.connect(audioContext.destination);
+
+				audioData.effects.tremelo = filter;
+			} else if (module.type == 'wahwah') {
+				console.log(module.values);
+				// var f = new tuna.Tremolo(module.values);
+				var filter = new tuna.WahWah();
+				setVca.connect(audioData.vca, filter);
+				filter.connect(audioContext.destination);
+
+				audioData.effects.wahwah = filter;
+			}
+			
+		});
+		activeSound.beforeUnload();
 		// audioData.connect()
 	
 
@@ -140,7 +165,7 @@ var activeSound = {
 		var steps    = audioData.steps.length;
 		var maxDelay = fulldelay;
 		var perStep  = maxDelay / (steps+1);
-		
+
 		var currentStep = 0;
 		
 		var loop = function () {
@@ -165,12 +190,33 @@ var activeSound = {
 		
 		setOsc.setFrequency(audioData.sources[0].audio ,audioData.steps[index].frequency);
 		var t0 = audioContext.currentTime;
-		var t1 = t0 + (perStep /2);
+		var duration = (audioData.steps[index].duration * perStep)/100
+		var t1 = t0 + duration;
 		
-		if(audioData.steps[index].active) {
-			setVca.setValueAtTime(audioData.vca, .5, t0)
+		if(audioData.steps[index].duration > 90) {
+			if(audioData.steps[index].active) {
+				setVca.setValueAtTime(audioData.vca, .5, t0)
+			} else {
+				setVca.setValueAtTime(audioData.vca, 0, t0)
+			}
+		} else if(audioData.steps[index].active) {
+			setVca.setValueAtTime(audioData.vca, .5, t0);
 			setVca.setValueAtTime(audioData.vca, 0, t1)
+
 		}
+
+
+		// if(audioData.steps[index].active) {
+		// 	setVca.setValueAtTime(audioData.vca, .5, t0)
+			
+		// 	if(audioData.steps[index].duration  < 90) {
+		// 		setVca.setValueAtTime(audioData.vca, 0, t1);
+		// 	} else {
+
+		// 	}
+		// } else if(audioData.steps[index].duration > 90) {
+
+		// }
 		
 
 		activeSound.highlightStep(index);
@@ -220,6 +266,26 @@ var activeSound = {
 	},
 	startSequence() {
 		// sched.start(activeSound.schedule);
+	},
+	saveData: function () {
+		$.ajax({
+			type:'POST',
+			data:JSON.stringify(audioData),
+			contentType: 'application/json',
+			url:'/role/data',
+			succes: function (data) {
+				console.log('sucecs!');
+				console.log(JSON.stringify(data));
+			}
+
+		})
+
+	},
+	beforeUnload: function () {
+		window.addEventListener('beforeunload', function(event) {
+			activeSound.saveData();
+		  //do something here
+		}, false);
 	},
 	highlightStep: function (index) {
 		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
@@ -299,43 +365,125 @@ var modulateRole = {
 			
 			modulateButtons[i].addEventListener('touchstart', function (e) {
 				var type = e.currentTarget.getAttribute('data-type');
-				e.target.classList.add('active');
-				modulateValue.innerHTML = e.target.getAttribute('data-value') + '%';
+				e.currentTarget.classList.add('active');
+
+
+				modulateValue.innerHTML = e.currentTarget.getAttribute('data-value') + '%';
 				
 				
 				body.setAttribute('touch-active','modulate');
 				body.setAttribute('current-touch', type);
-				modulateRole.rotateEvent(false);
+				modulateRole.rotateEvent(e.currentTarget, modulateValue);
 
 			})
-			modulateButtons[i].addEventListener('touchend', function (e) {
-				var type = e.currentTarget.getAttribute('data-type');
-				e.target.classList.remove('active');
-				modulateValue.innerHTML = e.target.getAttribute('data-value') + '%';
-				
-				
-				body.removeAttribute('touch-active');
-				body.removeAttribute('current-touch');
-				modulateRole.rotateEvent(true);
 
-			})
 		}
 	},
-	rotateEvent: function (stop) {
+	rotateEvent: function (item, modulateValue) {
 		
 		var phoneDirection = DeviceOrientationEvent.webkitCompassHeading;
+		var page           = document.querySelector('.fn-overlay');	
+		var type           = item.getAttribute('data-type');
+		
+		item.addEventListener('touchend', function (e) {
+			e.target.classList.remove('active');
+			
+			body.removeAttribute('touch-active');
+			body.removeAttribute('current-touch');
 
-		var page = document.querySelector('.fn-overlay');
-		window.addEventListener('deviceorientation', function (e) {
+			window.removeEventListener('deviceorientation', rotateListener);
+
+		})
+	
+		window.addEventListener('deviceorientation', rotateListener);
+
+		function rotateListener(event) {
+
+			page.style.webkitTransform = "rotate("+ event.webkitCompassHeading +"deg)";
+			var compass = event.webkitCompassHeading;
+			var percentage = Math.floor((compass*100)/360);
+			
+			var value = compass / 360;
+
+			modulateValue.innerHTML =percentage+ '%';
+			var sendData = {
+				type:type
+			}
+			for(var i = 0; i < audioData.modulate.length;i++) {
+				if(audioData.modulate[i].type.toUpperCase() == type.toUpperCase()) {
+
+					if(audioData.modulate[i].type == 'pingpong') {
+						sendData.delayTimeLeft = audioData.effects.pingpong.delayTimeLeft = compass;
+					} else if(audioData.modulate[i].type == 'chorus') {
+						sendData.rate     = audioData.effects.chorus.rate = audioData.modulate[i].value = audioData.modulate[i].rate = percentage/10;
+						sendData.feedback = audioData.modulate[i].feedback = audioData.effects.chorus.feedback = percentage/100;
+					} else if(audioData.modulate[i].type == 'tremelo') {
+						var value = percentage / 10;
+						console.log(audioData.effects);
+						sendData.intensity = sendData.rate = audioData.effects.tremelo.rate = audioData.effects.tremelo.intensity = value;
+					} else if(audioData.modulate[i].type == 'wahwah') {
+						var value = percentage / 100;
+						console.log(audioData.effects);
+						sendData.baseFrequency = audioData.effects.wahwah.baseFrequency = value;
+					}
+				} 
+			}
+
+		// 	if(type === 'pingpong') {
+		// 		audioData.effects.pingpong.delayTimeLeft = compass;
+		// 		audioData.modules
+
+		// 	} else if (type === 'Chorus') {
+		// 		console.log(audioData.effects.chorus);
+		// 		audioData.effects.chorus.rate = percentage/10;
+		// 		audioData.effects.chorus.feedback = percentage/100;
+		// 	}
+
+
+		// 	audioData.modulate.forEach(function(module) {
+		// 	console.log(module);
+		// 	if(module.type == 'pingpong') {
+				
+		// 		var filter = new tuna.PingPongDelay(module.values);
+		// 		setVca.connect(audioData.vca, filter);
+		// 		filter.connect(audioContext.destination);
+
+		// 		audioData.effects.pingpong = filter;
+		// 	} else if (module.type == 'Chorus') {
+
+		// 		console.log('happend');
+		// 		var filter = new tuna.Chorus(module.values);
+		// 		setVca.connect(audioData.vca, filter);
+		// 		filter.connect(audioContext.destination);
+
+		// 		audioData.effects.chorus = filter;
+		// 	}
+			
+		// });
+
+
+			socket.emit('updateSound', {
+				room: audioData._id,
+				effect: sendData
+			});
+
+		}
+
+		// setTimeout(function () {
+		// 	window.removeEventListener('rotateListener', myListener);
+		// }, 1000)
+
+
+		// var page = document.querySelector('.fn-overlay');
+		// window.addEventListener('deviceorientation', function (e) {
 			
 
-			page.style.webkitTransform = "rotate("+ e.webkitCompassHeading +"deg)";
-			var compass = e.webkitCompassHeading;
-			var value = compass / 360;
-			console.log(compass);
-			tunaFilter.delayTimeLeft = compass;
+			
+			
+			// tunaFilter.delayTimeLeft = compass;
 			// value = value * 5;
 			
+
 
 			// setVca.setValue(audioData.vca, value);
 			// audioData.filter.delay = value;
@@ -352,7 +500,12 @@ var modulateRole = {
 
 			// overdrive is schudden!
 
-		})
+		// })
+		// item.addEventListener('touchend', function (f) {
+
+		// 		console.log('shoudl stop now');
+		// 		window.removeEventListener('deviceorientation');
+		// 	})
 	}
 }
 var body        = document.querySelector('body');
@@ -366,7 +519,32 @@ var sequencerRole = {
 		activeSound.allClientSequence();
 		activeSound.pressStart();
 		// activeSound.autoPress();
-		// sequencerRole.testEvent();
+		sequencerRole.updateSound();
+	},
+	updateSound: function () {
+		socket.on('updateSound', function (newData) {
+			
+			console.log(newData);
+			if(newData.effect.type == 'chorus') {
+				audioData.effects.chorus.rate = newData.effect.rate;
+				audioData.effects.chorus.feedback = newData.effect.feedback;
+			} else if (newData.effect.type == 'pingpong') {
+				audioData.effects.pingpong.delayTimeLeft = newData.effect.delayTimeLeft
+			} else if (newData.effect.type == 'tremelo') {
+				console.log(newData.effect, audioData.effects.tremelo);
+				audioData.effects.tremelo.rate = newData.effect.intensity;
+				audioData.effects.tremelo.intensity = newData.effect.intensity;
+			} else if (newData.effect.type == 'wahwah') {
+				console.log(newData.effect, audioData.effects.wahwah);
+				audioData.effects.wahwah.baseFrequency = newData.effect.baseFrequency;
+			} else {
+				console.log('not created yet');
+			}
+		
+			
+			// audioData.effects = data.effects;
+			// console.log(audioData.effects);
+		})
 	},
 	isTouching: function (arr, val) {
 		if(arr.indexOf(val) !== -1) {

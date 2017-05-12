@@ -42,9 +42,11 @@
 	
 	&-twogrid {
 		position:relative;
-
+		
 		padding: 0 0;
 		display:block;
+		max-width:20em;
+		margin: 0 auto;
 		li {
 			float:left;
 			max-width:calc(50%);
@@ -62,9 +64,16 @@
 		    }
 		}
 	}
+	&-length-32 {
+		overflow:scroll;
+		margin:2rem auto;
+	}
 	&-fourgrid {
 		position:relative;
 		width:80%;
+
+		// margin-top:4rem;
+
 		// padding:4.5rem;
 		li {
 			float:left;

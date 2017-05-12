@@ -21,6 +21,30 @@ var db = {
 			cb(count)
 		})
 	},
+	updateGroup: function (groupId, newGroup, cb) {
+		Group.update({_id: groupId}, {
+		    effects: newGroup.effects,
+		    modulate: newGroup.modulate,
+		    sources: newGroup.sources,
+		    steps: newGroup.steps,
+		    vca: newGroup.vca
+		}, function(err, res) {
+		   //handle it
+		   console.log(err, res);
+		   cb(res);
+		})
+
+
+		// Group.findById(groupId, function (err, group) {
+		// 	console.log('found it?',group);
+			
+		// 	group.save(function () {
+		// 		console.log('did it work?', group);
+		// 		cb(group);
+		// 	})
+
+		// })
+	},
 	updateRole: function (user, group, cb) {
 		if(group.sequencer == null) {
 			user.role = 'sequencer';
@@ -98,7 +122,8 @@ var db = {
 						sequencer: null,
 						modulator: null,
 						groupCounter: count,
-						vca: false
+						vca: false,
+						effects: false
 					})
 					group.save(function () {
 						cb(group);
@@ -144,61 +169,81 @@ var db = {
 		})
 	},
 	randomSound: function () {
+
+
 		var sound = [{
-				type: 'Delay',
+				type: 'pingpong',
 				values: {
-					feedback:0.1,
-					delayTime:0.1,
-					wetLevel:0,
-					dryLevel:0,
-					cutoff:2000,
-					bypass:0
+					wetLevel: 1, 
+				    feedback: 0.3,
+				    delayTimeLeft: 0,
+				    delayTimeRight: 0 
 				},
-				setValue: 'delayTime'
+				setValue: 'delayTimeLeft',
+				value: 0,
+				min:0,
+				max:300
 			},
 			{
-				type: 'Chorus',
+				type: 'chorus',
 				values: {
 					rate:0,
 					feedback:0,
 					delay:0,
 					bypass:0,
 				},
-				setValue: 'rate'
+				setValue: 'rate',
+				value: 0,
+				min:0,
+				max:300
 			},
 			{
-				type: 'Tremelo',
+				type: 'tremelo',
 				values: {
 					intensity: 0,
 					rate: 0.001,
 					stereoPhase: 0,   
 					bypass: 0
 				},
-				setValue:'intensity'
+				setValue:'intensity',
+				value: 0,
+				min:0,
+				max:300
 			},
 			{
-				type: 'Overdrive',
-				values: {
-					outputGain: 0,
-				    drive: 0,
-				    curveAmount: 1,
-				    algorithmIndex: 0,
+				type: 'wahwah',
+				values:{
+				    automode: true,            
+				    baseFrequency: 0,
+				    excursionOctaves: 2,
+				    sweep: 1,           
+				    resonance: 10,      
+				    sensitivity: 0.5,              
 				    bypass: 0
 				},
-				setValue:'drive'
+				setValue:'baseFrequency',
+				value: 0,
+				min:0,
+				max:1
 			}
 		];
 		return sound;
 	},
 	randomSequenceValues: function () {
-		var stepsChoices = [4, 8,16];
+		var stepsChoices = [4, 8,16, 32];
 
-		// var steps = stepsChoices[Math.floor(Math.random()*stepsChoices.length)];
-		var steps = 16;
+		var steps = stepsChoices[Math.floor(Math.random()*stepsChoices.length)];
+		// var steps = 32;
 
 		var CMajor = [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
 
 		var data = [];
+		var duration = 100;
+		if(steps === 32) {
+			duration = 20;
+		} else if (steps == 16 ) {
+			duration = 50;
+		} 
 
 		for(var i=0;i<steps;i++) {
 			data.push({
@@ -206,15 +251,19 @@ var db = {
 				active: Math.random() >= 0.5,
 				sustain: null,
 				min:0,
-				max:2200
+				max:1200,
+				duration:duration
 			})
 		};
-		var data = [{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200}];
+
+		// var data = [{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200}];
 		return data;
 	},
 	randomSource: function (steps) {
+		var wavetypes = ['sine', 'square', 'sawtooth', 'triangle'];
+
 		var data = [{
-			type:'sine',
+			type:wavetypes[Math.floor(Math.random()*wavetypes.length)],
 			newObj: true
 		}];
 		return data;

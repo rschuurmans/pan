@@ -5,7 +5,7 @@ var io      = require('../socket.js');
 
 router.get('/', function(req, res, next) { 
 	res.render('index/home');
-	console.log('get/');
+	
 
 });
 

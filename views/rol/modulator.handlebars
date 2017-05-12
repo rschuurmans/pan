@@ -5,11 +5,11 @@
 
 	<div class="slider-fullpage fn-fullpage-slider container-padding">
 		<div class="slide slide-left slide-active fn-fullpage-slide" swipe-direction='right'>
-			<h2>Hey {{user.username}}</h2>
-			<div class="fixed-bottom">
+			<h2>Hey {{user.username}}, {{groupCounter}}</h2>
+			<div class="container-center">
 				<ul class="list list-twogrid ">
 					{{#each modulate}}
-						<li class='btn btn-modulate fn-modulate-btn' data-type="{{type}}" data-value={{value}} >
+						<li class='btn btn-modulate fn-modulate-btn' data-index={{@index}} data-type="{{type}}" data-value={{value}} >
 							<div class="content-wrapper">
 								
 							<p class="content">{{type}}</p>
@@ -18,7 +18,7 @@
 					{{/each}}
 				</ul>
 				<div class="press-overlay fn-overlay">
-					<h1 class='fn-modulate-value'>{{value}}</h1>
+					<h1 class='fn-modulate-value'>value</h1>
 				</div>
 			</div>
 		</div>

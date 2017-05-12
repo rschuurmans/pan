@@ -24,7 +24,7 @@
 }
 .fixed-bottom {
 	position:fixed;
-	bottom:4em;
+	bottom:0;
 	box-sizing:border-box;
 	left:0;
 	width:100%;
@@ -37,6 +37,9 @@
 		align-items:center;
 		flex-direction: column;
 
+	}
+	&-maxwidth > *{
+		max-width:25em;
 	}
 	&-padding {
 		padding:0 $padding-page-lg;
@@ -80,6 +83,13 @@
 	}
 }
 
+.press-overlay {
+	position:fixed;
+	top:-100%;
+	left:0;
+
+
+}
 .overlay {
 	position:fixed;
 	top:-100%;
@@ -143,12 +153,12 @@ body[touch-active='modulate'] {
 
 	.press-overlay {
 		background:$color-accent;
-		position:fixed;
+		
 		top:0;
 		left:0;
 		z-index:1;
 		width:100%;
-
+		opacity:1;
 		height:100%;
 		
 		h1 {

@@ -2,7 +2,7 @@
 
 <header class='header header-abs-top'>
 	
-	<h2 class="header_title">SEQUENCER</h2>
+	<h2 class="header_title">SEQUENCER {{groupCounter}}</h2>
 	
 </header>
 
@@ -11,7 +11,7 @@
 </div>
 
 
-<ul class='list list-clear list-fourgrid fn-sequencer list-padding'>
+<ul class='list list-clear list-fourgrid fn-sequencer list-padding list-length-{{{arrayLength steps}}}'>
 	{{#each steps}}
 	<li class='fn-sequencer-item btn btn-round 
 		{{#if active}}

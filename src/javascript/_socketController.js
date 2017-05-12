@@ -6,10 +6,7 @@ socket.on('connect', function () {
 		console.log('going to join a room');
 
 		socket.emit('joinRoom', audioData._id);
-		socket.emit('testmessage', {
-			room: audioData._id,
-			message: 'hey!'
-		})
+	
 	}
 
 	socket.on('testmessage', function (data) {

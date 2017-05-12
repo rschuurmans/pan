@@ -41,6 +41,7 @@ mongoose.connect('mongodb://admin:Roos1995!@ds137191.mlab.com:37191/pan3');
 
 var serverDelay = 4000;
 var interval = setInterval(function () {
+  // this is the start of 16 steps
   io.sockets.emit('startSequence', serverDelay)
 }, serverDelay)
 
@@ -69,8 +70,11 @@ io.on('connection', function (socket) {
   // })
   
   socket.on('updateSteps', function(data) {
-    console.log('received updateSteps', data);
+
     io.sockets.to(data.room).emit('updateSteps', data.steps);
+  })
+  socket.on('updateSound', function (data) {
+    io.sockets.to(data.room).emit('updateSound', data);
   })
   socket.on('sequenceStepMod', function (data) {
     io.sockets.emit('sequenceStepMod', data);
