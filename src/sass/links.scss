@@ -1,0 +1,12 @@
+
+
+// link
+.link {
+	text-decoration:none;
+	&-turq {
+		color:$color-turq;
+	}
+	&-underline {
+		text-decoration:underline;
+	}
+}

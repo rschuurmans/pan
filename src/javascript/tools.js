@@ -10,6 +10,14 @@ var tools = {
 		}
 
 	},
+	submitForm: function () {
+		var form = document.querySelector('form');
+		form.addEventListener('submit', function (e) {
+			e.preventDefault();
+			var username = form.querySelector('.fn-username').value;
+			$.post('/login', {username:username})
+		})
+	},
 	getParameterByName: function (name, url) {
 		// code: http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
 		if (!url) {

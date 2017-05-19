@@ -1,26 +1,16 @@
-body {
-	margin: 0 0;
-	height:100%;
-	position:relative;
-	-webkit-touch-callout: none;               
-	-webkit-text-size-adjust: none;            
-	-webkit-user-select: none;    
-	
-	position:fixed;
-	width:100%;
-	overflow:hidden;
-	 -webkit-overflow-scrolling: touch;
-
-
-}
-html {
-	height:100%;
-}
-h1,h2, h3, h4 {
+// base
+html, body {
 	margin: 0 0;
 	padding:0 0;
-}
+	font-family:$font-family-text;
+	font-size:$font-size-base;
+	-webkit-touch-callout: none;               
+	-webkit-text-size-adjust: none;            
+	-webkit-user-select: none;   
+	background-color: $color-black;
+	color:$color-turq; 
 
-.hide {
-	display:none;
+}
+* {
+	box-sizing:border-box;
 }

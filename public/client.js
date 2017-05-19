@@ -10,7 +10,8 @@ var onLoad = function () {
 	} else if(path.indexOf('/role/sequencer') !== -1) {
 		sequencerRole.init();
 	} else {
-		console.log('nothing');
+		animate.login();
+		// tools.submitForm();
 	}
 
 
@@ -46,102 +47,101 @@ var onLoad = function () {
 	// }
 }
 
-var pageTransitions = function () {
-	Barba.Pjax.start();
-	var HideShowTransition = Barba.BaseTransition.extend({
-	  start: function() {
-	  	Promise
-	      .all([this.newContainerLoading, this.scrollOld()])
-	      .then(this.moveDown.bind(this));
-	  },
-	  scrollOld: function () {
-	  	 TweenLite.set(this.oldContainer, {
-	        visibility: 'visible',
-	        position: 'absolute',
-	        left: 0,
-	        top: 0,
-	        right: 0,
-	        height:'100%'
-	      });
-	  	$(this.oldContainer).promise();
-	  },
-	  moveDown: function() {
-		var _this         = this;
-		var animationTime = .3;
-		var lastLink      = Barba.HistoryManager.prevStatus().url.split('/').pop();
-		var currentLink   = Barba.HistoryManager.currentStatus().url.split('/').pop();
-		console.log(Barba.HistoryManager.currentStatus().url.split('/'));
-		var newContainerFrom = {
-			visibility: 'visible',
-			position  : 'fixed',
-			left      : 0,
-			top       : 0,
-			right     : 0,
-			height    :'100%',
-			transform:'scale(1)',
-		};
-		var oldContainerTo = {
-			top :0,
-			left:0,
-			opacity:1
-		}
-		var newContainerTo = {
-			top:0,
+// var pageTransitions = function () {
+// 	Barba.Pjax.start();
+// 	var HideShowTransition = Barba.BaseTransition.extend({
+// 	  start: function() {
+// 	  	Promise
+// 	      .all([this.newContainerLoading, this.scrollOld()])
+// 	      .then(this.moveDown.bind(this));
+// 	  },
+// 	  scrollOld: function () {
+// 	  	 TweenLite.set(this.oldContainer, {
+// 	        visibility: 'visible',
+// 	        position: 'absolute',
+// 	        left: 0,
+// 	        top: 0,
+// 	        right: 0,
+// 	        height:'100%'
+// 	      });
+// 	  	$(this.oldContainer).promise();
+// 	  },
+// 	  moveDown: function() {
+// 		var _this         = this;
+// 		var animationTime = .3;
+// 		var lastLink      = Barba.HistoryManager.prevStatus().url.split('/').pop();
+// 		var currentLink   = Barba.HistoryManager.currentStatus().url.split('/').pop();
+// 		console.log(Barba.HistoryManager.currentStatus().url.split('/'));
+// 		var newContainerFrom = {
+// 			visibility: 'visible',
+// 			position  : 'fixed',
+// 			left      : 0,
+// 			top       : 0,
+// 			right     : 0,
+// 			height    :'100%',
+// 			transform:'scale(1)',
+// 		};
+// 		var oldContainerTo = {
+// 			top :0,
+// 			left:0,
+// 			opacity:1
+// 		}
+// 		var newContainerTo = {
+// 			top:0,
 
-			onComplete: function() {
-				TweenLite.set(_this.newContainer, { clearProps: 'all' });
-				onLoad();
-				_this.done();
-			}
-		};
+// 			onComplete: function() {
+// 				TweenLite.set(_this.newContainer, { clearProps: 'all' });
+// 				onLoad();
+// 				_this.done();
+// 			}
+// 		};
 
-		if(currentLink == 'group') {
-			oldContainerTo.top   = '100%';
-			newContainerFrom.top = '-100%';
-		} else if(currentLink == 'play') {
-			if($.inArray('module', Barba.HistoryManager.currentStatus().url.split('/'))) {
-				oldContainerTo.top   = '100%';
-				newContainerFrom.top = '-100%';
-				newContainerTo.top   = 0;
-			} else {
-				oldContainerTo.left   = '-100%';
-				newContainerFrom.left = '100%';
-				newContainerTo.left   = 0;
-			}
-		} else if (currentLink == 'add') {
-			oldContainerTo.left   = '100%';
-			newContainerFrom.left = '-100%';
-			newContainerTo.left   = 0;
-		} else if($.inArray('module', Barba.HistoryManager.currentStatus().url.split('/'))) {
-			oldContainerTo.top   = '-100%';
-			newContainerFrom.top = '100%';
-			newContainerTo.top   = 0;
-		}
+// 		if(currentLink == 'group') {
+// 			oldContainerTo.top   = '100%';
+// 			newContainerFrom.top = '-100%';
+// 		} else if(currentLink == 'play') {
+// 			if($.inArray('module', Barba.HistoryManager.currentStatus().url.split('/'))) {
+// 				oldContainerTo.top   = '100%';
+// 				newContainerFrom.top = '-100%';
+// 				newContainerTo.top   = 0;
+// 			} else {
+// 				oldContainerTo.left   = '-100%';
+// 				newContainerFrom.left = '100%';
+// 				newContainerTo.left   = 0;
+// 			}
+// 		} else if (currentLink == 'add') {
+// 			oldContainerTo.left   = '100%';
+// 			newContainerFrom.left = '-100%';
+// 			newContainerTo.left   = 0;
+// 		} else if($.inArray('module', Barba.HistoryManager.currentStatus().url.split('/'))) {
+// 			oldContainerTo.top   = '-100%';
+// 			newContainerFrom.top = '100%';
+// 			newContainerTo.top   = 0;
+// 		}
 
-			TweenLite.set(this.newContainer,newContainerFrom);
-			TweenLite.to(this.oldContainer, animationTime, oldContainerTo);
-			TweenLite.to(this.newContainer, animationTime, newContainerTo);
-		},
+// 			TweenLite.set(this.newContainer,newContainerFrom);
+// 			TweenLite.to(this.oldContainer, animationTime, oldContainerTo);
+// 			TweenLite.to(this.newContainer, animationTime, newContainerTo);
+// 		},
 
 	
-	  finish: function () {
-	  	onLoad();
-	  	console.log('finish!');
-		this.done();
+// 	  finish: function () {
+// 	  	onLoad();
+// 	  	console.log('finish!');
+// 		this.done();
 		
-	  }
+// 	  }
 	 
-	});
+// 	});
 	
-	Barba.Pjax.getTransition = function() {
-	  return HideShowTransition;
-	};
+// 	Barba.Pjax.getTransition = function() {
+// 	  return HideShowTransition;
+// 	};
 	
-}
+// }
 
 
 window.onload = function () {
-	pageTransitions();
 	onLoad();
 
 }
@@ -175,6 +175,76 @@ socket.on('connect', function () {
 // socket.on('connect', function () {
 // 	setLive.infiniteSequencer();
 // })
+var body = document.querySelector('body');
+
+var animate = {
+	loginBackground: function() {
+		console.log('login');
+		
+		var confettiWrapper = document.querySelector('.fn-confetti');
+		var colors = ["#56009C", "#DF1977", "#3038F2","#FFFF00", "#FF5500"];
+		var amount = Math.floor(Math.random() * 12) + 8;  
+		console.log(amount);
+		var randomLocation = function (item) {
+			item.style.left            = Math.floor(Math.random() * 90) + 0 + 'vw';
+			item.style.top             = Math.floor(Math.random() * 100) + 0 + '%';
+		}
+		var createShape = function () {
+			var color        = colors[Math.floor(Math.random()*colors.length)];
+			var shapes       = ['<svg width="34px" height="31px" viewBox="0 0 34 31" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">    <!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch -->    <desc>Created with Sketch.</desc>    <defs></defs>    <g id="design-v2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">        <g id="iPhone-7-Copy-68" transform="translate(-172.000000, -33.000000)" fill=" ' +color+ ' ">            <g id="bg">                <g id="animated" transform="translate(10.000000, 33.000000)">                    <polygon id="Polygon" points="179 0 195.167961 11.7467111 188.992349 30.7532889 169.007651 30.7532889 162.832039 11.7467111"></polygon>                </g></g></g></g></svg>', '<svg width="62px" height="64px" viewBox="0 0 62 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch --><desc>Created with Sketch.</desc><defs></defs><g id="design-v2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="iPhone-7-Copy-68" transform="translate(-34.000000, -162.000000)" stroke-width="8" stroke="'+color+'"><g id="bg"><g id="animated" transform="translate(10.000000, 33.000000)"><path d="M43,134.408029 L69.6816418,176 L16.3183582,176 L43,134.408029 Z" id="Triangle-2" transform="translate(43.000000, 153.500000) rotate(-27.000000) translate(-43.000000, -153.500000) "></path></g></g></g></g></svg>', '<svg width="66px" height="66px" viewBox="0 0 66 66" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch --><desc>Created with Sketch.</desc><defs></defs><g id="design-v2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="iPhone-7-Copy-68" transform="translate(-45.000000, -45.000000)" stroke-width="14" stroke="'+color+'"><g id="bg"><g id="animated" transform="translate(10.000000, 33.000000)"><circle id="Oval-22" cx="68" cy="45" r="26"></circle></g></g></g></g></svg>']
+			var item         = document.createElement('div');
+
+			item.innerHTML   = shapes[Math.floor(Math.random()*shapes.length)];;
+
+			var svg          = item.querySelector('svg');
+			var size         = Math.floor(Math.random() * 50) + 25;
+
+			item.className   += "animate-shape animate-shape-in ";
+			svg.style.width  = size + 'px';
+			svg.style.height = size + 'px';
+
+			// svg.setAttribute('transform', 'rotate('+Math.floor(Math.random() * 180) + 5 +')');
+
+			randomLocation(item);
+
+
+			confettiWrapper.appendChild(item);
+			window.setTimeout(function () {
+				randomLocation(item);
+			},200)
+			window.setInterval(function () {
+				randomLocation(item)
+			}, 20000)
+		}
+
+
+		var index = 0;
+		var loop = function () {
+			window.setTimeout(function () {
+				createShape();
+				index++;
+
+				if(index < amount) {
+					loop();
+				}
+			}, 500)
+		}
+		loop();
+
+	},
+	loginTransition: function () {
+		var animateWrapper = document.querySelector('.fn-animate-wrapper');
+
+		window.setTimeout(function () {
+			animateWrapper.setAttribute('splash', 'finished');
+		}, 200)
+	},
+	login: function () {
+		animate.loginBackground();
+		animate.loginTransition();
+	}
+}
+
 var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 var tuna         = new Tuna(audioContext);	
 var sched        = new WebAudioScheduler({ context: audioContext });
@@ -873,6 +943,14 @@ var tools = {
 			
 		}
 
+	},
+	submitForm: function () {
+		var form = document.querySelector('form');
+		form.addEventListener('submit', function (e) {
+			e.preventDefault();
+			var username = form.querySelector('.fn-username').value;
+			$.post('/login', {username:username})
+		})
 	},
 	getParameterByName: function (name, url) {
 		// code: http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript

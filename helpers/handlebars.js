@@ -1,5 +1,3 @@
-var timeago = require("timeago.js");
-
 
 function hbsHelpers(hbs) {
 	

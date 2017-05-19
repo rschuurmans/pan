@@ -1,0 +1,22 @@
+// container container-padding-lg text-center container-center container-black
+
+.container {
+
+	&-padding-lg {
+		padding:$padding-page-lg;
+	}
+
+	&-fixed {
+		position:fixed;
+		left:0;
+		width:100%;
+		height:100%;
+		overflow:hidden;
+	}
+	&-center {
+		position: relative;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+}

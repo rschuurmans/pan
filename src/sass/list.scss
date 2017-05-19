@@ -1,134 +1,134 @@
 
-.list {
-	&-clear {
-		margin: 0 0;
-		padding: 0 0;
-		list-style:none;
-	}
-	&-head {
+// .list {
+// 	&-clear {
+// 		margin: 0 0;
+// 		padding: 0 0;
+// 		list-style:none;
+// 	}
+// 	&-head {
 
-	}
-	&-users {
-		li {
+// 	}
+// 	&-users {
+// 		li {
 			
-			font-family: SFUIText-Light;
-			font-size: 15px;
-			color: #030303;
-			letter-spacing: -0.24px;
+// 			font-family: SFUIText-Light;
+// 			font-size: 15px;
+// 			color: #030303;
+// 			letter-spacing: -0.24px;
 
-		}
-		
-		.list-users-item-nousers {
-			color:red;
-		}
-	}
-	&-addModules {
-		li {
-			padding:.25rem 0;
-			font-family: Futura-Bold;
-			font-size: 20px;
-			color: #F8E81C;
-		}
-		
-	}
-	&-radio {
-		input {
-			display:none;
-		}
-	}
-	&-padding {
-		padding:$padding-page-lg  0;
-	}
-	
-	&-twogrid {
-		position:relative;
-		
-		padding: 0 0;
-		display:block;
-		max-width:20em;
-		margin: 0 auto;
-		li {
-			float:left;
-			max-width:calc(50%);
-			box-sizing:border-box;
-			position:relative;
-			width: calc(100% * (1/2) - 1.4em);
-		    margin-right:$padding-page*2;
-		    margin-top:$padding-page*2;
-		    max-width:8em;
-		    &:nth-of-type(even) {
-		    	margin-right:0;
-		    }
-		    &:nth-of-type(1),&:nth-of-type(2) {
-				margin-top:0;
-		    }
-		}
-	}
-	&-length-32 {
-		overflow:scroll;
-		margin:2rem auto;
-	}
-	&-fourgrid {
-		position:relative;
-		width:80%;
-
-		// margin-top:4rem;
-
-		// padding:4.5rem;
-		li {
-			float:left;
-			list-style:none;
-			max-width:calc(25% - 12px);
-			margin-right:15px;
-			box-sizing:border-box;
-			position:relative;
-			display: inline-block;
-		    width: calc(100% * (1/4) - 10px - 1px);
-		    margin-bottom:15px;
-		    
-		    &:before {
-				content: ' ';
-				display:block;
-				padding-top:100%;
-			}
-			
-			&:nth-of-type(4n) {
-				margin-right:0;
-			}
-			div {
-				position:absolute;
-				width:100%;
-				height:100%;
-			}
-		}
-	}
-	
-	&-wavetypes {
-		position:absolute;
-		width:3em;
-		
-	}
-}
-
-
-// .knob {
-// 	&-container {
-// 		display:block;
-// 		// width:25vw;
-// 		// height:25vw;
-// 		border-radius:100%;
-// 		box-sizing: border-box;
-// 		position:relative;
-// 		&:not(.active) {
-// 			opacity:.5;
 // 		}
-// 		// background:radial-gradient(rgba(0,0,0,0) 60%, red 60% );
-// 		// border:1px solid green;
-// // background-image:
 		
-// 		// radial-gradient(circle at center center, rgba(204,0,0,0) 70%, #c00 10%),
+// 		.list-users-item-nousers {
+// 			color:red;
+// 		}
+// 	}
+// 	&-addModules {
+// 		li {
+// 			padding:.25rem 0;
+// 			font-family: Futura-Bold;
+// 			font-size: 20px;
+// 			color: #F8E81C;
+// 		}
 		
 // 	}
+// 	&-radio {
+// 		input {
+// 			display:none;
+// 		}
+// 	}
+// 	&-padding {
+// 		padding:$padding-page-lg  0;
+// 	}
+	
+// 	&-twogrid {
+// 		position:relative;
+		
+// 		padding: 0 0;
+// 		display:block;
+// 		max-width:20em;
+// 		margin: 0 auto;
+// 		li {
+// 			float:left;
+// 			max-width:calc(50%);
+// 			box-sizing:border-box;
+// 			position:relative;
+// 			width: calc(100% * (1/2) - 1.4em);
+// 		    margin-right:$padding-page*2;
+// 		    margin-top:$padding-page*2;
+// 		    max-width:8em;
+// 		    &:nth-of-type(even) {
+// 		    	margin-right:0;
+// 		    }
+// 		    &:nth-of-type(1),&:nth-of-type(2) {
+// 				margin-top:0;
+// 		    }
+// 		}
+// 	}
+// 	&-length-32 {
+// 		overflow:scroll;
+// 		margin:2rem auto;
+// 	}
+// 	&-fourgrid {
+// 		position:relative;
+// 		width:80%;
+
+// 		// margin-top:4rem;
+
+// 		// padding:4.5rem;
+// 		li {
+// 			float:left;
+// 			list-style:none;
+// 			max-width:calc(25% - 12px);
+// 			margin-right:15px;
+// 			box-sizing:border-box;
+// 			position:relative;
+// 			display: inline-block;
+// 		    width: calc(100% * (1/4) - 10px - 1px);
+// 		    margin-bottom:15px;
+		    
+// 		    &:before {
+// 				content: ' ';
+// 				display:block;
+// 				padding-top:100%;
+// 			}
+			
+// 			&:nth-of-type(4n) {
+// 				margin-right:0;
+// 			}
+// 			div {
+// 				position:absolute;
+// 				width:100%;
+// 				height:100%;
+// 			}
+// 		}
+// 	}
+	
+// 	&-wavetypes {
+// 		position:absolute;
+// 		width:3em;
+		
+// 	}
+// }
+
+
+// // .knob {
+// // 	&-container {
+// // 		display:block;
+// // 		// width:25vw;
+// // 		// height:25vw;
+// // 		border-radius:100%;
+// // 		box-sizing: border-box;
+// // 		position:relative;
+// // 		&:not(.active) {
+// // 			opacity:.5;
+// // 		}
+// // 		// background:radial-gradient(rgba(0,0,0,0) 60%, red 60% );
+// // 		// border:1px solid green;
+// // // background-image:
+		
+// // 		// radial-gradient(circle at center center, rgba(204,0,0,0) 70%, #c00 10%),
+		
+// // 	}
 	
 
-// }
+// // }
