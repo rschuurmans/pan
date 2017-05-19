@@ -9,10 +9,15 @@
 	background:none;
 	font-size:$font-size-base;
 	&-submit {
-	
+		background-image:url(./images/ic_enter.svg);
 	}
 	&-turq {
-		background:$color-turq;
+		background-color:$color-turq;
+	}
+	&-ic {
+		background-size:$icon-width $icon-width;
+		background-repeat:no-repeat;
+		background-position:center center;	
 	}
 	&-lg {
 		padding:$button-padding;
@@ -36,7 +41,10 @@
 		color:$color-yellow;
 	}
 	&-yellow {
-		background:$color-yellow;
+		background-color:$color-yellow;
+	}
+	&-blue {
+		background-color:$color-blue;
 	}
 	&-rounded {
 		border-radius:$button-border-radius;

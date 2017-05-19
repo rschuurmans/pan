@@ -7,20 +7,20 @@
 						Je bent de sequencer
 					</p>
 				</div>
-			{{else}}
-				<h1 class='head h1 h1-logo text-turq'>
-					{{title}}
-					</h1>
-					<div class="animate-collapse">
-						<p class='text text-intro text-center animate-stagger animate-stagger-1'>
-							Welkom bij de demo van Pan. Sluit je aan bij de groep door je hier onder voor te stellen en ontdek de wereld van de modulaire muziek.
-						</p>
+{{else}}
+	<h1 class='head h1 h1-logo text-white'>
+		{{title}}
+	</h1>
+	<div class="animate-collapse">
+		<p class='text text-intro text-white animate-stagger animate-stagger-1'>
+			Welkom bij de demo van Pan. Sluit je aan bij de groep door je hier onder voor te stellen en ontdek de wereld van de modulaire muziek.
+		</p>
 
-						<form action="/login" class='form' method="post">
-							<input type="text" class='input input-text input-lg text-center fn-username animate-stagger animate-stagger-2' placeholder='Gebruikersnaam'>
-							<input type="submit" value='Begin' class='btn btn-submit btn-turq btn-lg margin-t-md animate-stagger animate-stagger-3'>
-						</form>
+		<form action="/login" class='form form-login animate-stagger  animate-stagger-2' method="post">
+			<input type="text" class='input input-text input-lg fn-username ' placeholder='Mijn naam is ...'>
+			<input type="submit" value='' class='btn btn-ic btn-submit btn-blue btn-lg '>
+		</form>
 
-						<a class="link link-turq link-underline text-center text-small margin-t-sm animate-stagger animate-stagger-4">Ik wil alleen maar luisteren</a>
-					</div>
-			{{/if}}
+		<a class="link text-white link-underline text-center text-small fixed-bottom">Ik wil alleen maar luisteren</a>
+	</div>
+{{/if}}

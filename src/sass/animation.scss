@@ -39,40 +39,46 @@
 .animate-wrapper {
 
 	&.login {
-		&:before {
-			background:$color-black;
-			z-index:-1;
-			position:absolute;
-			top:0;
-			left:0;
-			width:100%;
-			height:100%;
-			content: ' ';
-			filter:blur(20px);
-			opacity:.5;
-		}
 		.h1-logo {
-			transform:scale(1.5)translateY(50px);
+			// transform:scale(1.5)translateY(50px);
 			transition:.5s ease-in-out;
+			font-size:$font-size-h1-lg;
 		}
 		.animate-stagger {
 			opacity:0;
+
 			animation-fill-mode:forwards;
 		}
-		&[splash='finished'] {
-			.h1-logo {
-				transform:none;
-			}
-			@for $i from 1 through 4 {
-			  .animate-stagger-#{$i} {
-			    animation-name:opacity-stagger;
-			    animation-iteration-count: 1;
-			    animation-delay: 0.1s + $i/5;
-			    animation-duration: 0.3s;
-			    animation-timing-function: ease-in-out;
-			    
-			  }
-			}
+		.animate-collapse {
+			max-height:0;
+			transition:.2s ease-in;
+		}
+		
+	}
+}
+
+body[splash='finished'] {
+	.place-color, .place-stroke {
+		fill:rgba(225,225,225,.3) !important;
+	}
+
+	.animate-wrapper {
+		.animate-collapse {
+			max-height:999px;
+		}
+		.h1-logo {
+			transform:none;
+			font-size:$font-size-h1;
+		}
+		@for $i from 1 through 4 {
+		  .animate-stagger-#{$i} {
+		    animation-name:opacity-stagger;
+		    animation-iteration-count: 1;
+		    animation-delay: 0.1s + $i/5;
+		    animation-duration: 0.3s;
+		    animation-timing-function: ease-in-out;
+		    
+		  }
 		}
 	}
 }

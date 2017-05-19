@@ -8,6 +8,19 @@
 	font-size: $font-size-h1;
 	&-logo {
 		text-transform:uppercase;
+		position:relative;
+		&:after {
+			// font-size:$font-size-base;
+			height: 8px;
+			content:' ';
+		
+			position:absolute;
+			bottom:-8px;
+			left:.05em;
+			width:.5em;
+			border-top:5px solid $color-blue;
+			border-bottom:5px solid $color-blue;
+		}
 	}
 
 }
@@ -34,6 +47,9 @@
 	}
 	&-blue {
 		color:$color-blue;
+	}
+	&-white {
+		color:$color-white;
 	}
 	&-small {
 		font-size:$font-size-small;

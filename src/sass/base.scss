@@ -9,6 +9,11 @@ html, body {
 	-webkit-user-select: none;   
 	background-color: $color-black;
 	color:$color-turq; 
+	position:fixed;
+	left:0;
+	height:100%;
+	width:100%;
+	overflow:hidden;
 
 }
 * {
