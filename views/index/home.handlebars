@@ -1,26 +1,60 @@
-{{#if loggedIn}}
-				<div class="intro-role">
-					<p data-intro='modulator' class='text hide'>
-						Als modulator vervorm je het geluid van je sequencer. Roep je sequencer om samen verder te gaan. 
-					</p>
-					<p data-intro='sequencer' class='text hide'>
-						Je bent de sequencer
-					</p>
-				</div>
-{{else}}
-	<h1 class='head h1 h1-logo text-white'>
-		{{title}}
-	</h1>
-	<div class="animate-collapse">
-		<p class='text text-intro text-white animate-stagger animate-stagger-1'>
-			Welkom bij de demo van Pan. Sluit je aan bij de groep door je hier onder voor te stellen en ontdek de wereld van de modulaire muziek.
-		</p>
 
-		<form action="/login" class='form form-login animate-stagger  animate-stagger-2' method="post">
-			<input type="text" class='input input-text input-lg fn-username ' placeholder='Mijn naam is ...'>
-			<input type="submit" value='' class='btn btn-ic btn-submit btn-blue btn-lg '>
-		</form>
+<div class="animate-page animate-page-login fn-animate-page" current-page='login' active='true'>
+	<div class="container container-padding-lg container-fixed ">
+		<div class="container-center animate-wrapper login fn-animate-wrapper" >
+			<h1 class='head h1 h1-logo text-white'>
+			{{title}}
+			</h1>
 
-		<a class="link text-white link-underline text-center text-small fixed-bottom">Ik wil alleen maar luisteren</a>
+			<p class='text text-intro text-white animate-stagger animate-stagger-1 margin-top-lg margin-bottom-lg'>Welkom bij de demo van Pan. Sluit je aan bij de groep door je hier onder voor te stellen en ontdek de wereld van de modulaire muziek.</p>
+
+			<form action="" class='form form-login animate-stagger  animate-stagger-2 fn-form' method="post">
+				<input type="text" class='input input-text input-lg fn-username ' placeholder='Mijn naam is ...'>
+				<input type="submit" value='' class='btn btn-ic btn-submit btn-blue btn-lg '>
+			</form>
+		</div>
 	</div>
-{{/if}}
+	<a class="link text-white link-underline text-center text-small fixed-bottom">Ik wil alleen maar luisteren</a>
+</div>
+
+
+<div class="animate-page  animate-page-login fn-animate-page" current-page='group-list' active='false'>
+	<div class="container container-padding-lg container-fixed  container-scroll">
+		<h4 class='head h4 text-white'>Pan wordt gespeeld in duo's. Kies een leuke uit</h4>
+
+
+
+
+		<ul class='list list-clear list-group'>
+			{{#each groups}}
+				<li class='list-item list-item-group 
+					{{#openGroup modulator.username sequencer.username}}fn-grouplist-item
+					{{/openGroup}}' group-id='{{_id}}'>
+
+					{{#openGroup modulator.username sequencer.username}}
+						<span class="ic ic-notification"></span>
+					{{/openGroup}}
+					
+					<div class="list-content">
+						<h4 class='head h4 text-white text-condensed'> 
+							{{{groupMembers modulator.username sequencer.username}}}
+						</h4>
+						<p class='text text-small text-blue'>
+							{{{groupText modulator.username sequencer.username }}}
+						</p>
+					</div>
+					{{#openGroup modulator.username sequencer.username}}
+						<span class="ic ic-next"></span>
+					{{/openGroup}}
+				</li>
+			{{/each}}
+		</ul>
+		<div class="container-float">
+			<a href="/create" class='btn btn-lg btn-blue text-white text-center fn-random'>Willekeurig</a>
+		</div>
+
+	</div>
+</div>
+
+
+<div class="fn-confetti animate-wrapper-confetti"></div>

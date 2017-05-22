@@ -1,0 +1,3 @@
+var user = {
+	username: null
+}

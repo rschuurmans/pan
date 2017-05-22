@@ -3,12 +3,16 @@
 .container {
 
 	&-padding-lg {
-		padding:$padding-page-lg;
+		padding:$padding-page-lg $padding-page-md;
+	}
+	&-padding-sm {
+		padding:$padding-page-sm;
 	}
 
 	&-fixed {
 		position:fixed;
 		left:0;
+		top:0;
 		width:100%;
 		height:100%;
 		overflow:hidden;
@@ -17,6 +21,21 @@
 		position: relative;
 		top: 50%;
 		transform: translateY(-50%);
+	}
+	&-scroll {
+		overflow-y:scroll;
+	}
+	&-float {
+		position:fixed;
+		width:100%;
+		left:0;
+		bottom:0;
+		height:4em;
+		padding:$padding-page-sm $padding-page-md;
+		z-index: 2;
+		// backdrop-filter: blur(2px);
+
+
 	}
 
 }

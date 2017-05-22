@@ -1,3 +1,54 @@
+
+@mixin stagger-in-animation($length, $delay) {
+	& > * {
+		opacity:0;
+	}
+	@for $i from 1 through $length {
+	  & > *:nth-of-type(#{$i}) {
+	  	// animation-iteration-count:1;
+		
+		
+	    animation-name:animate-sequencer-in;
+	    animation-delay: $delay + $i/($length*2);
+	    animation-duration: 0.3s;
+	    animation-timing-function: ease-in-out;
+	    animation-fill-mode:forwards;
+	    
+	  }
+	}
+}
+
 @mixin button-border($color) {
 	border:5px solid $color;
+}
+
+@mixin dark-overlay($amount) {
+	position:relative;
+	&:before {	
+		content:' ';
+		background:rgba(0,0,0,1);
+		opacity:#{$amount/10};
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		pointer-events: none;
+		height:100%;
+
+	   }
+}
+@mixin light-overlay($amount) {
+	position:relative;
+	&:before {	
+		content:' ';
+		background:rgba(225,225,225,1);
+		opacity:#{$amount/10};
+		position:absolute;
+		top:0;
+		left:0;
+		width:100%;
+		pointer-events: none;
+		height:100%;
+
+	   }
 }

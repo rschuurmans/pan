@@ -1,21 +1,7 @@
 var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 var tuna         = new Tuna(audioContext);	
 var sched        = new WebAudioScheduler({ context: audioContext });
-
-
-
-
-var setLive = {
-	infiniteSequencer: function () {
-		// console.log('infiniteSequencer!');
-		// var fulldelay = 4000;
-
-		// window.setInterval(function () {
-		// 	console.log('send a startSequence');
-		// 	socket.emit('startSequence', fulldelay);
-		// }, fulldelay)
-	}
-}
+var holdTone = false;
 var setOsc = {
 	frequency: 220,
 	type:'SINE',
@@ -36,7 +22,6 @@ var setOsc = {
 	},
 	connect:function(osc, dest) {
 		osc.connect(dest);
-		
 	},
 	start:function (osc) {
 		osc.start(audioContext.currentTime + 2);
@@ -50,9 +35,6 @@ var setVca = {
 		setVca.setValue(_vca, 0)
 		return _vca;
 	},
-	setInput: function (vca) {
-		
-	},
 	connect: function (vca, dest) {
 		vca.connect(dest)
 	},
@@ -61,7 +43,6 @@ var setVca = {
 	},
 	holdAndSetValue: function (vca, value, holdTime) {
 		window.setTimeout(function () {
-
 			vca.gain.linearRampToValueAtTime(value, audioContext.currentTime + 0.01);
 		}, holdTime );
 	},
@@ -71,113 +52,96 @@ var setVca = {
 		
 	},
 };
-var isplaying = false;
 
 var activeSound = {
 	running: false,
-	create: function () {
-		
-		
-	},
-	allClientSequence:function () {
-		// var fulldelay = 4000;
-
-		// window.setInterval(function () {
-		// 	console.log('send a startSequence');
-		// 	socket.emit('startSequence', fulldelay);
-		// }, fulldelay)
-	},
+	currentStepIndex:0,
 	createOscillator: function () {
 		return oscillator;
 	},
 	setup: function () {
 		
-		audioData.vca = setVca.create()
+		// audioData.vca = setVca.create()
 
-		audioData.sources.forEach(function(source) {
-			source.audio = setOsc.create();
-			setOsc.setWavetype(source.audio, source.type);
-			setOsc.connect(source.audio, audioData.vca);
-		});
-		audioData.effects = {
-			chorus: false,
-			pingpong: false,
-			tremelo : false,
-			wahwah : false,
-		};
-		audioData.modulate.forEach(function(module) {
-			if(module.type == 'pingpong') {
-				
-				var filter = new tuna.PingPongDelay(module.values);
-				setVca.connect(audioData.vca, filter);
-				filter.connect(audioContext.destination);
+		// audioData.sources.forEach(function(source) {
+		// 	source.audio = setOsc.create();
+		// 	setOsc.setWavetype(source.audio, source.type);
+		// 	setOsc.connect(source.audio, audioData.vca);
+		// });
+		// audioData.effects = {
+		// 	chorus  : false,
+		// 	pingpong: false,
+		// 	tremelo : false,
+		// 	wahwah  : false,
+		// };
+		// audioData.modulate.forEach(function(module) {
+		// 	// dit kan korter door de filter meer globaal te bouwen. COnnect is overal het zelfde nl.
+		// 	if(module.type == 'pingpong') {
+		// 		var filter = new tuna.PingPongDelay(module.values);
+		// 		setVca.connect(audioData.vca, filter);
+		// 		filter.connect(audioContext.destination);
+		// 		audioData.effects.pingpong = filter;
 
-				audioData.effects.pingpong = filter;
-			} else if (module.type == 'chorus') {
+		// 	} else if (module.type == 'chorus') {
+		// 		var filter = new tuna.Chorus(module.values);
+		// 		setVca.connect(audioData.vca, filter);
+		// 		filter.connect(audioContext.destination);
+		// 		audioData.effects.chorus = filter;
 
-				console.log('happend');
-				var filter = new tuna.Chorus(module.values);
-				setVca.connect(audioData.vca, filter);
-				filter.connect(audioContext.destination);
+		// 	} else if  (module.type == 'tremelo') {
+		// 		var filter = new tuna.Tremolo(module.values);
+		// 		setVca.connect(audioData.vca, filter);
+		// 		filter.connect(audioContext.destination);
+		// 		audioData.effects.tremelo = filter;
 
-				audioData.effects.chorus = filter;
-			} else if  (module.type == 'tremelo') {
-				console.log(module.values);
-				var filter = new tuna.Tremolo(module.values);
-				
-				setVca.connect(audioData.vca, filter);
-				filter.connect(audioContext.destination);
+		// 	} else if (module.type == 'wahwah') {
+		// 		var filter = new tuna.WahWah();
+		// 		setVca.connect(audioData.vca, filter);
+		// 		filter.connect(audioContext.destination);
 
-				audioData.effects.tremelo = filter;
-			} else if (module.type == 'wahwah') {
-				console.log(module.values);
-				// var f = new tuna.Tremolo(module.values);
-				var filter = new tuna.WahWah();
-				setVca.connect(audioData.vca, filter);
-				filter.connect(audioContext.destination);
-
-				audioData.effects.wahwah = filter;
-			}
+		// 		audioData.effects.wahwah = filter;
+		// 	}
 			
-		});
-		activeSound.beforeUnload();
-		// audioData.connect()
-	
+		// });
+		// activeSound.beforeUnload();
 
-		socket.on('startSequence', function (fulldelay) {
-			activeSound.startNormalSequence(fulldelay);
-			// console.log('got a startSequence', fulldelay);
-			// if(!isplaying) {
-			// 	isplaying = true;
-			// 	if(window.location.pathname.indexOf('sequencer') !== -1) {
-			// 		activeSound.startNormalSequence(fulldelay);
-			// 	}
-			// }
-			// if(window.location.pathname.indexOf('sequencer') !== -1) {
-			// 	activeSound.startSequence();
-			// }
-		})
+		// socket.on('startSequence', function (fulldelay) {
+		// 	activeSound.startNormalSequence(fulldelay);
+		// })
+	},
+	holdTone: function(start, freq) {
+		var t0       = audioContext.currentTime;
+		if(start) {
+			holdTone = true;
+			
+			freq ? freq : audioData.steps[activeSound.currentStepIndex].frequency
+			setOsc.setFrequency(audioData.sources[0].audio ,freq);
+			setVca.setValueAtTime(audioData.vca, .5, t0)
+		} else {
+			holdTone = false;
+			// setOsc.setFrequency(audioData.sources[0].audio ,880);
+			// setVca.setValueAtTime(audioData.vca, 0, t0)
+		}
 
-		
 	},
 	startNormalSequence(fulldelay) {
-		
-		var steps    = audioData.steps.length;
-		var maxDelay = fulldelay;
-		var perStep  = maxDelay / (steps+1);
-
-		var currentStep = 0;
+		var steps       = audioData.steps.length;
+		var maxDelay    = fulldelay;
+		var perStep     = maxDelay / (steps+1);
 		
 		var loop = function () {
 			
-			activeSound.currentStep(currentStep, perStep/1000);
-			// socket.emit('sequenceStepMod', {currentStep:currentStep, perStep:perStep/1000});
+			if(!holdTone) {
+				activeSound.currentStep(activeSound.currentStepIndex, perStep/1000);
+			}
 
 			setTimeout(function() {
 
-				currentStep++;
-				if(currentStep == steps) {
-					currentStep == 0;
+				activeSound.currentStepIndex++;
+				if(activeSound.currentStepIndex == steps) {
+					console.log('restart', activeSound.currentStepIndex);
+					activeSound.currentStepIndex = 0;
+					console.log('restart', activeSound.currefmodulntStepIndex);
 					
 				} else {
 					loop();
@@ -186,54 +150,40 @@ var activeSound = {
 		}
 		loop();
 	},
-	currentStep: function (index, perStep) {
-		
+	currentStep: function (index, perStep, osc) {
+		console.log(activeSound.currentStepIndex, index);
 		setOsc.setFrequency(audioData.sources[0].audio ,audioData.steps[index].frequency);
-		var t0 = audioContext.currentTime;
+		var t0       = audioContext.currentTime;
 		var duration = (audioData.steps[index].duration * perStep)/100
-		var t1 = t0 + duration;
+		var t1       = t0 + duration;
 		
 		if(audioData.steps[index].duration > 90) {
 			if(audioData.steps[index].active) {
-				setVca.setValueAtTime(audioData.vca, .5, t0)
+				setVca.setValueAtTime(audioData.vca, .2, t0)
 			} else {
 				setVca.setValueAtTime(audioData.vca, 0, t0)
 			}
 		} else if(audioData.steps[index].active) {
-			setVca.setValueAtTime(audioData.vca, .5, t0);
+			setVca.setValueAtTime(audioData.vca, .2, t0);
 			setVca.setValueAtTime(audioData.vca, 0, t1)
 
 		}
 
-
-		// if(audioData.steps[index].active) {
-		// 	setVca.setValueAtTime(audioData.vca, .5, t0)
-			
-		// 	if(audioData.steps[index].duration  < 90) {
-		// 		setVca.setValueAtTime(audioData.vca, 0, t1);
-		// 	} else {
-
-		// 	}
-		// } else if(audioData.steps[index].duration > 90) {
-
-		// }
 		
 
 		activeSound.highlightStep(index);
 	},
 	pressStart: function () {
-		
 		body.setAttribute('press-play', 'open');
 		var button = document.querySelector('.fn-press-play');
+
 		button.addEventListener('click', function(e) {
 			body.removeAttribute('press-play');
 			
 			audioData.sources.forEach(function(source) {
 				setOsc.start(source.audio);
 			});
-
 		});
-	
 	},
 	autoPress: function () {
 		audioData.sources.forEach(function(source) {
@@ -244,29 +194,7 @@ var activeSound = {
 		activeSound.currentStep = 0;
 		audioContext.close();
 	},
-	schedule: function (e) {
-		// var steps    = audioData.steps.length;
-		// var maxDelay = 4000/1000;
-		// var perStep  = maxDelay / steps;
-		// var t0       = e.playbackTime;
-		
-		// for(var i in audioData.steps) {
-		// 	var delay = perStep * i;
-		// 	var duration = perStep/2;
-		// 	var freq = audioData.steps[i].frequency;
-		// 	if(window.location.pathname.indexOf('sequencer') !== -1) {
-		// 		freq = freq/2;
 
-		// 	}
-
-		// 	sched.insert(t0 + delay, activeSound.singleStep, {frequency:freq, duration: duration, currentStep: i} );	
-		
-			
-		// }
-	},
-	startSequence() {
-		// sched.start(activeSound.schedule);
-	},
 	saveData: function () {
 		$.ajax({
 			type:'POST',
@@ -274,12 +202,9 @@ var activeSound = {
 			contentType: 'application/json',
 			url:'/role/data',
 			succes: function (data) {
-				console.log('sucecs!');
 				console.log(JSON.stringify(data));
 			}
-
 		})
-
 	},
 	beforeUnload: function () {
 		window.addEventListener('beforeunload', function(event) {
@@ -303,48 +228,36 @@ var activeSound = {
 
 var modulateRole = {
 	init: function () {
-		// modulateRole.sliderStep();
-		// modulateRole.sliderPage();
-		// modulateRole.modulateEvents();
-		// activeSound.singleStepSocket();
-		
-		
-		
 		modulateRole.modulateEvents();
 		activeSound.setup();
-		activeSound.allClientSequence();
-		activeSound.pressStart();
+		// activeSound.pressStart();
+		activeSound.autoPress();
 		modulateRole.updateSteps();
 	},
 	updateSteps: function () {
-		console.log('waiting for updateSteps');
 		socket.on('updateSteps', function (newSteps) {
-			console.log('received updatesetps!');
 			audioData.steps = newSteps;
 		})
-		// socket.on('sequenceStep', function (freq) {
-		// 	setOsc.setFrequency(audioData.sources[0].audio ,freq);
-		// })
-		
-	},
-	events: function () {
-
+		socket.on('holdStep', function (data) {
+			console.log('received a holdstep', data);
+			activeSound.holdTone(data.start, data.frequency)
+		})
 	},
 	sliderStep: function () {
-		var element = document.querySelector('.slider-step-inner');
-		var steps = audioData.steps.length - 1;
+		var element    = document.querySelector('.slider-step-inner');
+		var steps      = audioData.steps.length - 1;
 		var percentage = (100 / steps) * activeSound.currentStep;
-		percentage = 100 - percentage;
-		element.style.width = percentage + '%';
+		percentage                       = 100 - percentage;
+		element.style.width              = percentage + '%';
 		element.style.transitionDuration = activeSound.delay/1000 + 's';
 	},
 	sliderPage: function () {
 		var slider = document.querySelector('.fn-fullpage-slider');
 		var slides = slider.querySelectorAll('.fn-fullpage-slide');
 
-		var slideLeft = slider.querySelector('[swipe-direction="left"]');
+		var slideLeft  = slider.querySelector('[swipe-direction="left"]');
 		var slideRight = slider.querySelector('[swipe-direction="right"]');
-		var hammertime = new Hammer(slider, {
+		var hammertime = new Hammer(slider, {			
 		});
 		hammertime.on('swipeleft', function(ev) {
 			slideLeft.classList.add('slide-active');
@@ -367,20 +280,15 @@ var modulateRole = {
 				var type = e.currentTarget.getAttribute('data-type');
 				e.currentTarget.classList.add('active');
 
-
 				modulateValue.innerHTML = e.currentTarget.getAttribute('data-value') + '%';
-				
-				
+			
 				body.setAttribute('touch-active','modulate');
 				body.setAttribute('current-touch', type);
 				modulateRole.rotateEvent(e.currentTarget, modulateValue);
-
 			})
-
 		}
 	},
 	rotateEvent: function (item, modulateValue) {
-		
 		var phoneDirection = DeviceOrientationEvent.webkitCompassHeading;
 		var page           = document.querySelector('.fn-overlay');	
 		var type           = item.getAttribute('data-type');
@@ -392,7 +300,6 @@ var modulateRole = {
 			body.removeAttribute('current-touch');
 
 			window.removeEventListener('deviceorientation', rotateListener);
-
 		})
 	
 		window.addEventListener('deviceorientation', rotateListener);
@@ -400,14 +307,13 @@ var modulateRole = {
 		function rotateListener(event) {
 
 			page.style.webkitTransform = "rotate("+ event.webkitCompassHeading +"deg)";
-			var compass = event.webkitCompassHeading;
+			var compass    = event.webkitCompassHeading;
 			var percentage = Math.floor((compass*100)/360);
-			
-			var value = compass / 360;
+			var value      = compass / 360;
 
-			modulateValue.innerHTML =percentage+ '%';
+			modulateValue.innerHTML = percentage + '%';
 			var sendData = {
-				type:type
+				type : type
 			}
 			for(var i = 0; i < audioData.modulate.length;i++) {
 				if(audioData.modulate[i].type.toUpperCase() == type.toUpperCase()) {
@@ -428,98 +334,29 @@ var modulateRole = {
 					}
 				} 
 			}
-
-		// 	if(type === 'pingpong') {
-		// 		audioData.effects.pingpong.delayTimeLeft = compass;
-		// 		audioData.modules
-
-		// 	} else if (type === 'Chorus') {
-		// 		console.log(audioData.effects.chorus);
-		// 		audioData.effects.chorus.rate = percentage/10;
-		// 		audioData.effects.chorus.feedback = percentage/100;
-		// 	}
-
-
-		// 	audioData.modulate.forEach(function(module) {
-		// 	console.log(module);
-		// 	if(module.type == 'pingpong') {
-				
-		// 		var filter = new tuna.PingPongDelay(module.values);
-		// 		setVca.connect(audioData.vca, filter);
-		// 		filter.connect(audioContext.destination);
-
-		// 		audioData.effects.pingpong = filter;
-		// 	} else if (module.type == 'Chorus') {
-
-		// 		console.log('happend');
-		// 		var filter = new tuna.Chorus(module.values);
-		// 		setVca.connect(audioData.vca, filter);
-		// 		filter.connect(audioContext.destination);
-
-		// 		audioData.effects.chorus = filter;
-		// 	}
-			
-		// });
-
-
 			socket.emit('updateSound', {
 				room: audioData._id,
 				effect: sendData
 			});
 
 		}
-
-		// setTimeout(function () {
-		// 	window.removeEventListener('rotateListener', myListener);
-		// }, 1000)
-
-
-		// var page = document.querySelector('.fn-overlay');
-		// window.addEventListener('deviceorientation', function (e) {
-			
-
-			
-			
-			// tunaFilter.delayTimeLeft = compass;
-			// value = value * 5;
-			
-
-
-			// setVca.setValue(audioData.vca, value);
-			// audioData.filter.delay = value;
-
-			// var phoneDirection = DeviceOrientationEvent.alpha
-			// als de phone direction 30 + of 30- gaat, weet je de richting + de hoeveelheid
-			// maar opletten als de dinges meer dan 360 wordt
-
-
-			// nulpunt: 350 - 10;
-			// dieptepunt = 170 - 190
-			// tussen 0 en 170 : naar rechts,
-			// tussen 190 en 360 is naar links
-
-			// overdrive is schudden!
-
-		// })
-		// item.addEventListener('touchend', function (f) {
-
-		// 		console.log('shoudl stop now');
-		// 		window.removeEventListener('deviceorientation');
-		// 	})
 	}
 }
+// this might be removed?
+
 var body        = document.querySelector('body');
 
 
 var sequencerRole = {
 	init: function () {
-		console.log('OM');
+		
 		sequencerRole.clickActive();
 		activeSound.setup();
-		activeSound.allClientSequence();
-		activeSound.pressStart();
-		// activeSound.autoPress();
+		// activeSound.pressStart();
+		activeSound.autoPress();
 		sequencerRole.updateSound();
+		sequencerRole.shEvent();
+		sequencerRole.ppEvent();
 	},
 	updateSound: function () {
 		socket.on('updateSound', function (newData) {
@@ -540,10 +377,59 @@ var sequencerRole = {
 			} else {
 				console.log('not created yet');
 			}
-		
-			
-			// audioData.effects = data.effects;
-			// console.log(audioData.effects);
+		})
+	},
+	ppEvent:function () {
+		var buttons = document.querySelectorAll('.fn-pp-button');
+		buttons.forEach(function(button) {
+			button.addEventListener('touchstart', function (e) {
+				console.log('touchstart');
+				activeSound.holdTone(true, e.currentTarget.getAttribute('pp-value'));
+				button.classList.add('active');
+				socket.emit('holdStep', {
+					room: audioData._id,
+					frequency: e.currentTarget.getAttribute('pp-value'),
+					start:true
+				});
+			})
+			button.addEventListener('touchend', function (e) {
+				console.log('touchend');
+				button.classList.remove('active');
+				activeSound.holdTone(false);
+				socket.emit('holdStep', {
+					room: audioData._id,
+					frequency: e.currentTarget.getAttribute('pp-value'),
+					start:false
+				});
+			})
+			button.addEventListener('touchcancel', function (e) {
+				console.log('touchend');
+				button.classList.remove('active');
+				activeSound.holdTone(false);
+				socket.emit('holdStep', {
+					room: audioData._id,
+					frequency: e.currentTarget.getAttribute('pp-value'),
+					start:false
+				});
+			})
+		});
+	},
+	shEvent: function () {
+		var button = document.querySelector('.fn-seq-sh');
+		button.addEventListener('touchstart', function (e) {
+			console.log('touchstart');
+			activeSound.holdTone(true);
+			button.classList.add('active');
+		})
+		button.addEventListener('touchend', function (e) {
+			console.log('touchend');
+			button.classList.remove('active');
+			activeSound.holdTone(false);
+		})
+		button.addEventListener('touchcancel', function (e) {
+			console.log('touchend');
+			button.classList.remove('active');
+			activeSound.holdTone(false);
 		})
 	},
 	isTouching: function (arr, val) {
@@ -556,24 +442,17 @@ var sequencerRole = {
 	clickActive: function () {
 		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
 
-		
-
-
 		for(var i = 0; i < stepsItem.length; i++) {
 			$(stepsItem[i]).on('click', function (e) {
-
-				// activeSound.updatedData = true;
 
 				var index = e.target.getAttribute('sequence-index');
 				
 				if(!e.target.classList.contains('fn-sequencer-item')) {
 					index = e.target.parentNode.getAttribute('sequence-index')
 				}
-
-
 				audioData.steps[index].active = !audioData.steps[index].active;
-				e.target.classList.toggle('inactive');
-				console.log('about to send and updateSteps');
+				e.target.classList.toggle('active');
+				
 				socket.emit('updateSteps', {
 					room: audioData._id,
 					steps: audioData.steps
@@ -585,7 +464,6 @@ var sequencerRole = {
 	},
 	events: function () {
 		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
-		
 		var inputSlider = document.querySelector('.fn-frequency-input');
 
 		for(var i = 0; i < stepsItem.length; i++ ) {

@@ -5,12 +5,19 @@ var onLoad = function () {
 	var path = window.location.pathname;
 
 	if(path.indexOf('/role/modulator') !== -1) {
+
 		modulateRole.init();
 
 	} else if(path.indexOf('/role/sequencer') !== -1) {
+
+		
+		changePage.sequencerNavigation();
 		sequencerRole.init();
 	} else {
-		animate.login();
+		animate.loginBackground();
+		animate.loginTransition();
+		postData.username();
+		postData.groupList();
 		// tools.submitForm();
 	}
 

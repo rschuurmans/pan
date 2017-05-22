@@ -1,6 +1,20 @@
 var body = document.querySelector('body');
 
 var animate = {
+	restartAnimations: function () {
+		var animations = document.querySelectorAll('.fn-start-animation');
+		
+		for(var i = 0; i < animations.length;i++) {
+				animations[i].classList.remove('animate-stagger');
+				animations[i].style.opacity=0;
+				window.setTimeout(function (item) {
+					item.classList.add('animate-stagger');
+					item.style.opacity=1;
+
+				},5, animations[i])
+		}
+
+	},
 	loginBackground: function() {
 		console.log('login');
 		
@@ -66,10 +80,8 @@ var animate = {
 
 		window.setTimeout(function () {
 			body.setAttribute('splash', 'finished');
-		}, 200)
+		}, 200);
+
+
 	},
-	login: function () {
-		animate.loginBackground();
-		animate.loginTransition();
-	}
 }

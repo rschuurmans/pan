@@ -16,6 +16,37 @@ var db = {
 			})
 		})
 	},
+	createNewGroup: function (username,res ,  cb) {
+		db.createGroup(function (group) {
+			db.createUser(username, group, function (user) {
+				db.updateRole(user, group, function (user, group) {
+					res.cookie('userId', user._id.toString());
+					res.cookie('groupId', group._id.toString());
+					
+
+					cb(user, group, '/role/sequencer')
+				})
+			})
+		})
+	},
+	joinGroup: function (username, groupId, cb) {
+		
+		Group.findById(groupId, function (err, group) {
+			db.createUser(username, group, function (user) {
+			
+				db.updateRole(user, group, function (user, group) {
+					cb(user, group);
+				})
+			})
+		})
+	},
+	getAllGroups: function (cb) {
+		Group.find(function(err, groups) {
+			
+			if(err) throw err;
+			cb(groups)
+		})
+	},
 	countGroups: function (cb) {
 		Group.find().count(function (err, count) {
 			cb(count)
@@ -46,6 +77,7 @@ var db = {
 		// })
 	},
 	updateRole: function (user, group, cb) {
+		
 		if(group.sequencer == null) {
 			user.role = 'sequencer';
 			group.sequencer = user;
@@ -130,6 +162,28 @@ var db = {
 					})
 				})
 			}
+		})
+	},
+	createGroup: function (cb) {
+		db.countGroups(function (count) {
+			var melody = db.randomSequenceValues();
+			var source = db.randomSource(melody.length);
+			var sound  = db.randomSound();
+
+			group = new Group({
+				steps       : melody,
+				sources     : source,
+				modulate    : sound,
+				timestamp   : new Date(),
+				sequencer   : null,
+				modulator   : null,
+				groupCounter: count,
+				vca         : false,
+				effects     : false
+			})
+			group.save(function () {
+				cb(group);
+			})
 		})
 	},
 	getDemoGroup: function (cb) {
@@ -269,10 +323,10 @@ var db = {
 		return data;
 	},
 	getData: function (groupId, userId, cb) {
-		console.log('r u here?', groupId, userId);
+		
 		Group.findById(groupId, function (err, group) {
 			User.findById(userId, function (err, user) {
-				cb(group, user)
+				cb({group:group, user:user})
 			})
 		})
 	},

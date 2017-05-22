@@ -73,6 +73,10 @@ io.on('connection', function (socket) {
 
     io.sockets.to(data.room).emit('updateSteps', data.steps);
   })
+  socket.on('holdStep', function(data) {
+
+    io.sockets.to(data.room).emit('holdStep', data);
+  })
   socket.on('updateSound', function (data) {
     io.sockets.to(data.room).emit('updateSound', data);
   })

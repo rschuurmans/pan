@@ -24,21 +24,43 @@ html, body {
 .hide {
   display: none; }
 
+.transperant {
+  opacity: 0; }
+
 .fixed-bottom {
-  position: relative;
-  box-sizing: border-box;
-  top: 0;
-  left: 0;
+  position: fixed;
+  bottom: 21px;
   width: 100%;
-  padding-top: 2em;
-  display: block; }
+  left: 0; }
+
+.margin-top-lg {
+  margin-top: 38px; }
+
+.margin-top-md {
+  margin-top: 21px; }
+
+.margin-top-sm {
+  margin-top: 8px; }
+
+.margin-bottom-lg {
+  margin-bottom: 38px; }
+
+.margin-bottom-md {
+  margin-bottom: 21px; }
+
+.margin-bottom-sm {
+  margin-bottom: 8px; }
 
 .container-padding-lg {
-  padding: 38px; }
+  padding: 38px 21px; }
+
+.container-padding-sm {
+  padding: 8px; }
 
 .container-fixed {
   position: fixed;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   overflow: hidden; }
@@ -48,6 +70,18 @@ html, body {
   top: 50%;
   -webkit-transform: translateY(-50%);
           transform: translateY(-50%); }
+
+.container-scroll {
+  overflow-y: scroll; }
+
+.container-float {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  height: 4em;
+  padding: 8px 21px;
+  z-index: 2; }
 
 .head {
   font-family: "Futura", sans-serif;
@@ -80,6 +114,10 @@ html, body {
 
 .text {
   color: #0FBBA5; }
+  .text-clear {
+    margin: 0 0; }
+  .text-icon {
+    line-height: 20px; }
   .text-turq {
     color: #0FBBA5; }
   .text-black {
@@ -90,6 +128,208 @@ html, body {
     color: white; }
   .text-small {
     font-size: 15px; }
+  .text-condensed {
+    /* Freek + Frank: */
+    font-family: "Futura-CondensedExtraBold", sans-serif; }
+
+.nav-bottom {
+  position: fixed;
+  bottom: 0;
+  text-align: center;
+  width: 100%;
+  left: 0;
+  padding: 21px; }
+  .nav-bottom ul {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between; }
+  .nav-bottom li {
+    display: inline-block;
+    -webkit-box-flex: 33%;
+        -ms-flex: 33%;
+            flex: 33%;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    min-height: 60px;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center; }
+    .nav-bottom li .ic {
+      height: 1.3rem; }
+    .nav-bottom li:nth-of-type(3) {
+      padding-left: 0.25rem; }
+      .nav-bottom li:nth-of-type(3) .ic {
+        margin-left: 1.3rem;
+        margin-right: 0; }
+    .nav-bottom li:nth-of-type(1) {
+      padding-right: 0.25rem; }
+      .nav-bottom li:nth-of-type(1) .ic {
+        margin-right: 1.3rem;
+        margin-left: 0; }
+
+.list-clear {
+  margin: 0 0;
+  padding: 0 0;
+  list-style: none; }
+
+.list-group {
+  margin-bottom: 5em; }
+  .list-group .list-item-group {
+    margin: 12px 0;
+    position: relative; }
+    .list-group .list-item-group .list-content {
+      display: inline-block; }
+
+.list-grid-4 {
+  position: relative; }
+  .list-grid-4 li {
+    float: left;
+    position: relative;
+    width: calc(25% - 18px);
+    padding-bottom: calc(25% - 18px);
+    margin: 18px 18px 0 0;
+    background-position: center center;
+    background-repeat: no-repeat;
+    font-size: 0;
+    background-size: cover; }
+    .list-grid-4 li:nth-of-type(4n) {
+      margin-right: 0; }
+
+.list-grid-pp {
+  display: -ms-grid;
+  display: grid;
+  grid-column-gap: 0.25rem;
+  grid-row-gap: 0.25rem;
+  -ms-grid-columns: 25% 25% 25% 25%;
+      grid-template-columns: 25% 25% 25% 25%;
+  -ms-grid-rows: 11% 11% 11% 11% 11% 11% 11% 11% 11% 11%;
+      grid-template-rows: 11% 11% 11% 11% 11% 11% 11% 11% 11% 11%;
+  border: 1px solid white; }
+  .list-grid-pp-item {
+    background: red; }
+    .list-grid-pp-item[pp-index="0"] {
+      grid-column: 1 / 3;
+      grid-row: 1 / 3;
+      position: relative; }
+      .list-grid-pp-item[pp-index="0"]:before {
+        content: ' ';
+        background: #e1e1e1;
+        opacity: 0.4;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="1"] {
+      grid-column: 3/5;
+      grid-row: 1/5;
+      position: relative; }
+      .list-grid-pp-item[pp-index="1"]:before {
+        content: ' ';
+        background: #e1e1e1;
+        opacity: 0.3;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="2"] {
+      grid-column: 1/2;
+      grid-row: 3 / 6;
+      position: relative; }
+      .list-grid-pp-item[pp-index="2"]:before {
+        content: ' ';
+        background: #e1e1e1;
+        opacity: 0.2;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="3"] {
+      grid-column: 2/3;
+      grid-row: 3/6;
+      position: relative; }
+      .list-grid-pp-item[pp-index="3"]:before {
+        content: ' ';
+        background: #e1e1e1;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="4"] {
+      grid-column: 2/4;
+      grid-row: 6/7;
+      position: relative; }
+      .list-grid-pp-item[pp-index="4"]:before {
+        content: ' ';
+        background: black;
+        opacity: 0.2;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="5"] {
+      grid-column: 1/2;
+      grid-row: 6/8;
+      position: relative; }
+      .list-grid-pp-item[pp-index="5"]:before {
+        content: ' ';
+        background: black;
+        opacity: 0.3;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="6"] {
+      grid-column: 3/5;
+      grid-row: 5/6;
+      position: relative; }
+      .list-grid-pp-item[pp-index="6"]:before {
+        content: ' ';
+        background: black;
+        opacity: 0.4;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
+    .list-grid-pp-item[pp-index="7"] {
+      grid-column: 4/5;
+      grid-row: 6/8;
+      position: relative; }
+      .list-grid-pp-item[pp-index="7"]:before {
+        content: ' ';
+        background: black;
+        opacity: 0.5;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+        height: 100%; }
 
 .form-login {
   display: -webkit-box;
@@ -117,11 +357,31 @@ html, body {
   font-weight: bold;
   border: none;
   background: none;
+  text-decoration: none;
   font-size: 18px; }
   .btn-submit {
     background-image: url(./images/ic_enter.svg); }
   .btn-turq {
     background-color: #0FBBA5; }
+  .btn-sequencer {
+    box-shadow: 0px 0px 0px 0px #FFFF00;
+    transition: .05s ease-in-out; }
+    .btn-sequencer:not(.active) {
+      opacity: .5; }
+    .btn-sequencer.highlight {
+      box-shadow: 0px 0px 9px 2px #FFFF00; }
+  .btn-grid-item {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #3038F2;
+    border-radius: 100%;
+    top: 0%;
+    left: 0%;
+    transition: -webkit-transform .05s ease-in-out;
+    transition: transform .05s ease-in-out;
+    transition: transform .05s ease-in-out, -webkit-transform .05s ease-in-out;
+    background: radial-gradient(transparent 50%, #3038F2 50%); }
   .btn-ic {
     background-size: 1.3rem 1.3rem;
     background-repeat: no-repeat;
@@ -129,11 +389,19 @@ html, body {
   .btn-lg {
     padding: 14px;
     display: block;
-    width: 100%;
-    border: none; }
+    width: 100%; }
+  .btn-md {
+    padding: 14px 24px;
+    -webkit-transform: translateX(0);
+            transform: translateX(0);
+    transition: .2s ease-in-out;
+    opacity: 1; }
+    .btn-md.active {
+      -webkit-transform: translateY(10px);
+              transform: translateY(10px);
+      opacity: .7; }
   .btn-round {
-    border: 10px solid #3038F2;
-    border-radius: 100%; }
+    border-radius: 100px; }
   .btn-rect {
     width: 20vw;
     height: 20vw; }
@@ -187,6 +455,1514 @@ html, body {
     background: #FFFF00; }
   .input-range-purple::-webkit-slider-thumb {
     background: #56009C; }
+
+.ic {
+  width: 1.3rem;
+  height: 100%;
+  min-height: 1.3rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+  display: inline-block; }
+  .ic-notification {
+    border-radius: 100%;
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    height: 100%;
+    width: 8px;
+    top: 0; }
+    .ic-notification:before {
+      background: #3038F2;
+      height: 8px;
+      content: ' ';
+      position: absolute;
+      width: 100%;
+      top: calc(50% - 4px);
+      border-radius: 100%; }
+    .ic-notification + .list-content {
+      margin-left: 24px; }
+  .ic_back {
+    background-image: url(./images/ic_back.svg); }
+  .ic_forward {
+    background-image: url(./images/ic_back.svg);
+    -webkit-transform: rotate(180deg);
+            transform: rotate(180deg); }
+  .ic_text {
+    display: inline-block;
+    vertical-align: middle; }
+  .ic-next {
+    position: absolute;
+    right: 0;
+    height: 1.3rem;
+    top: calc(50% - 0.65rem);
+    background-image: url(./images/ic_back.svg); }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-3 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-3 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.26667s;
+          animation-delay: 0.26667s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-3 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.43333s;
+          animation-delay: 0.43333s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-3 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6s;
+          animation-delay: 0.6s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.1625s;
+          animation-delay: 0.1625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.225s;
+          animation-delay: 0.225s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.2875s;
+          animation-delay: 0.2875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(4) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.35s;
+          animation-delay: 0.35s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(5) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.4125s;
+          animation-delay: 0.4125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(6) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.475s;
+          animation-delay: 0.475s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(7) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.5375s;
+          animation-delay: 0.5375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-8 > *:nth-of-type(8) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6s;
+          animation-delay: 0.6s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.13125s;
+          animation-delay: 0.13125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.1625s;
+          animation-delay: 0.1625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.19375s;
+          animation-delay: 0.19375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(4) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.225s;
+          animation-delay: 0.225s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(5) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.25625s;
+          animation-delay: 0.25625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(6) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.2875s;
+          animation-delay: 0.2875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(7) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.31875s;
+          animation-delay: 0.31875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(8) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.35s;
+          animation-delay: 0.35s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(9) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.38125s;
+          animation-delay: 0.38125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(10) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.4125s;
+          animation-delay: 0.4125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(11) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.44375s;
+          animation-delay: 0.44375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(12) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.475s;
+          animation-delay: 0.475s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(13) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.50625s;
+          animation-delay: 0.50625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(14) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.5375s;
+          animation-delay: 0.5375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(15) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.56875s;
+          animation-delay: 0.56875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-16 > *:nth-of-type(16) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6s;
+          animation-delay: 0.6s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.11563s;
+          animation-delay: 0.11563s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.13125s;
+          animation-delay: 0.13125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.14688s;
+          animation-delay: 0.14688s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(4) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.1625s;
+          animation-delay: 0.1625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(5) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.17813s;
+          animation-delay: 0.17813s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(6) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.19375s;
+          animation-delay: 0.19375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(7) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.20938s;
+          animation-delay: 0.20938s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(8) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.225s;
+          animation-delay: 0.225s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(9) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.24063s;
+          animation-delay: 0.24063s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(10) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.25625s;
+          animation-delay: 0.25625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(11) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.27187s;
+          animation-delay: 0.27187s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(12) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.2875s;
+          animation-delay: 0.2875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(13) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.30312s;
+          animation-delay: 0.30312s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(14) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.31875s;
+          animation-delay: 0.31875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(15) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.33437s;
+          animation-delay: 0.33437s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(16) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.35s;
+          animation-delay: 0.35s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(17) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.36562s;
+          animation-delay: 0.36562s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(18) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.38125s;
+          animation-delay: 0.38125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(19) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.39687s;
+          animation-delay: 0.39687s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(20) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.4125s;
+          animation-delay: 0.4125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(21) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.42812s;
+          animation-delay: 0.42812s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(22) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.44375s;
+          animation-delay: 0.44375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(23) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.45937s;
+          animation-delay: 0.45937s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(24) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.475s;
+          animation-delay: 0.475s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(25) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.49062s;
+          animation-delay: 0.49062s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(26) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.50625s;
+          animation-delay: 0.50625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(27) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.52187s;
+          animation-delay: 0.52187s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(28) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.5375s;
+          animation-delay: 0.5375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(29) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.55312s;
+          animation-delay: 0.55312s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(30) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.56875s;
+          animation-delay: 0.56875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(31) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.58437s;
+          animation-delay: 0.58437s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-fast.stagger-kids-32 > *:nth-of-type(32) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6s;
+          animation-delay: 0.6s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-3 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-3 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.36667s;
+          animation-delay: 0.36667s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-3 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.53333s;
+          animation-delay: 0.53333s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-3 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.7s;
+          animation-delay: 0.7s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.2625s;
+          animation-delay: 0.2625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.325s;
+          animation-delay: 0.325s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.3875s;
+          animation-delay: 0.3875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(4) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.45s;
+          animation-delay: 0.45s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(5) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.5125s;
+          animation-delay: 0.5125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(6) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.575s;
+          animation-delay: 0.575s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(7) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6375s;
+          animation-delay: 0.6375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-8 > *:nth-of-type(8) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.7s;
+          animation-delay: 0.7s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.23125s;
+          animation-delay: 0.23125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.2625s;
+          animation-delay: 0.2625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.29375s;
+          animation-delay: 0.29375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(4) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.325s;
+          animation-delay: 0.325s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(5) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.35625s;
+          animation-delay: 0.35625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(6) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.3875s;
+          animation-delay: 0.3875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(7) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.41875s;
+          animation-delay: 0.41875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(8) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.45s;
+          animation-delay: 0.45s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(9) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.48125s;
+          animation-delay: 0.48125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(10) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.5125s;
+          animation-delay: 0.5125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(11) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.54375s;
+          animation-delay: 0.54375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(12) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.575s;
+          animation-delay: 0.575s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(13) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.60625s;
+          animation-delay: 0.60625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(14) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6375s;
+          animation-delay: 0.6375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(15) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.66875s;
+          animation-delay: 0.66875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-16 > *:nth-of-type(16) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.7s;
+          animation-delay: 0.7s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > * {
+  opacity: 0; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(1) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.21563s;
+          animation-delay: 0.21563s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(2) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.23125s;
+          animation-delay: 0.23125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(3) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.24688s;
+          animation-delay: 0.24688s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(4) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.2625s;
+          animation-delay: 0.2625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(5) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.27813s;
+          animation-delay: 0.27813s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(6) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.29375s;
+          animation-delay: 0.29375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(7) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.30938s;
+          animation-delay: 0.30938s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(8) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.325s;
+          animation-delay: 0.325s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(9) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.34063s;
+          animation-delay: 0.34063s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(10) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.35625s;
+          animation-delay: 0.35625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(11) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.37188s;
+          animation-delay: 0.37188s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(12) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.3875s;
+          animation-delay: 0.3875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(13) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.40313s;
+          animation-delay: 0.40313s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(14) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.41875s;
+          animation-delay: 0.41875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(15) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.43438s;
+          animation-delay: 0.43438s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(16) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.45s;
+          animation-delay: 0.45s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(17) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.46563s;
+          animation-delay: 0.46563s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(18) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.48125s;
+          animation-delay: 0.48125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(19) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.49688s;
+          animation-delay: 0.49688s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(20) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.5125s;
+          animation-delay: 0.5125s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(21) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.52812s;
+          animation-delay: 0.52812s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(22) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.54375s;
+          animation-delay: 0.54375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(23) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.55937s;
+          animation-delay: 0.55937s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(24) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.575s;
+          animation-delay: 0.575s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(25) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.59062s;
+          animation-delay: 0.59062s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(26) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.60625s;
+          animation-delay: 0.60625s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(27) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.62187s;
+          animation-delay: 0.62187s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(28) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.6375s;
+          animation-delay: 0.6375s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(29) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.65312s;
+          animation-delay: 0.65312s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(30) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.66875s;
+          animation-delay: 0.66875s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(31) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.68437s;
+          animation-delay: 0.68437s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+.animate-stagger.animate-stagger-in-slow.stagger-kids-32 > *:nth-of-type(32) {
+  -webkit-animation-name: animate-sequencer-in;
+          animation-name: animate-sequencer-in;
+  -webkit-animation-delay: 0.7s;
+          animation-delay: 0.7s;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards; }
+
+@-webkit-keyframes animate-sequencer-in {
+  0% {
+    -webkit-transform: translateY(20px);
+            transform: translateY(20px);
+    opacity: 0; }
+  80% {
+    -webkit-transform: translateY(-5px);
+            transform: translateY(-5px); }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    opacity: 1; } }
+
+@keyframes animate-sequencer-in {
+  0% {
+    -webkit-transform: translateY(20px);
+            transform: translateY(20px);
+    opacity: 0; }
+  80% {
+    -webkit-transform: translateY(-5px);
+            transform: translateY(-5px); }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+    opacity: 1; } }
 
 .animate-shape {
   position: fixed;
@@ -392,3 +2168,19 @@ body[splash='finished'] .animate-wrapper .animate-stagger-4 {
     opacity: 1;
     -webkit-transform: translateY(0);
             transform: translateY(0); } }
+
+.animate-page {
+  -webkit-transform: translateX(0);
+          transform: translateX(0);
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%; }
+  .animate-page-login {
+    transition: -webkit-transform .2s ease-in;
+    transition: transform .2s ease-in;
+    transition: transform .2s ease-in, -webkit-transform .2s ease-in; }
+  .animate-page[active='false'] {
+    -webkit-transform: translateX(100%);
+            transform: translateX(100%); }

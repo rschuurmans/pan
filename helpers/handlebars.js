@@ -20,11 +20,58 @@ function hbsHelpers(hbs) {
 
 
 			},
+			eachNumber: function (number, options) {
+				 var ret = "";
+
+				  for(var i=0;  i<number; i++) {
+				    ret = ret + options.fn(i, {data:{index : i}});
+				  }
+				  
+			  return ret;
+			},
+			groupOpen : function (modulator, sequencer) {
+				var returntext = '';
+
+				if (modulator && !sequencer || !modulator && sequencer) {
+					returntext = 'list-group-active'
+				} 
+				return returntext
+			},
+			groupText: function (modulator, sequencer) {
+				var returntext = 'vol';
+
+				if(modulator && sequencer) {
+					returntext == 'vol';
+				} else if (modulator && !sequencer) {
+					returntext = modulator + ' zoekt een sequencer';
+				} else if (!modulator && sequencer) {
+					returntext = sequencer + ' zoekt een modulator';
+				} else {
+					returntext = 'shit is leeg';
+				}
+				return returntext
+			},
 			arrayLength: function (arr) {
 				return arr.length;
 			},
 			prettyDate: function (timestamp) {
 				 return timeago().format(timestamp)
+			},
+			openGroup: function (modulator, sequencer, options) {
+
+				if (modulator && !sequencer || !modulator && sequencer) {
+					return options.fn(this);
+				}  else {
+					return options.inverse(this);
+				}
+				
+			},
+			groupMembers: function (modulator, sequencer) {
+				var text1 = modulator ? modulator + ' + ' : '?? + ';
+				var text2 = sequencer ? sequencer : '??';
+				
+				return text1 + text2;
+				
 			},
 
 			ifCond: function (v1, operator, v2, options) {

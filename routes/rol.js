@@ -15,30 +15,46 @@ router.get('/', function (req, res, next) {
 
 // clearInterval(interval);
 
-router.get('/sequencer/:groupid/:userid', function(req, res, next) {
-	db.getData(req.params.groupid, req.params.userid , function (group, user) {
-		var data = {
-			group: group
-		}
+router.get('/sequencer/:userid/:groupid', function(req, res, next) {
+	
+
+	// db.getData(req.params.groupid, req.params.userid , function (group, user) {
+	// 	var data = {
+	// 		group: group
+	// 	}
 		
 
-		res.render('rol/sequencer', group)
+	// 	res.render('rol/sequencer', group)
+	// })
+	// res.render('rol/sequencer', {})
+
+	db.getData(req.params.groupid, req.params.userid, function (data) {
+		data.pp =  [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+		res.render('rol/sequencer', data)
 	})
-	
+
 
 })
-router.get('/modulator/:groupid/:userid', function (req, res, next) {
+router.get('/modulator/:userid/:groupid', function(req, res, next) {
 	
-	// socketModule.joinDuo(req.cookies.groupId);
-	db.getData(req.params.groupid, req.params.userid , function (group, user) {
-	
-		var data = {
-			group: group
-		}
-		res.render('rol/modulator', group)
-	})
-})
 
+	// db.getData(req.params.groupid, req.params.userid , function (group, user) {
+	// 	var data = {
+	// 		group: group
+	// 	}
+		
+
+	// 	res.render('rol/sequencer', group)
+	// })
+	// res.render('rol/sequencer', {})
+
+	db.getData(req.params.groupid, req.params.userid, function (data) {
+		
+		res.render('rol/modulator', data)
+	})
+
+
+})
 router.post('/data', function (req, res, next) {
 	// console.log('from post:',req.body);
 	var newGroup = req.body;

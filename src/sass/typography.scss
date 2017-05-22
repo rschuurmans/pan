@@ -39,6 +39,12 @@
 }
 .text {
 	color:$color-turq;
+	&-clear {
+		margin: 0 0;	
+	}
+	&-icon {
+		line-height:20px;
+	}
 	&-turq {
 		color:$color-turq;
 	}
@@ -53,6 +59,10 @@
 	}
 	&-small {
 		font-size:$font-size-small;
+	}
+	&-condensed {
+		/* Freek + Frank: */
+		font-family: $font-family-display-condensed;
 	}
 }
 

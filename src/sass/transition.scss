@@ -1,0 +1,27 @@
+
+
+
+.animate-page {
+	transform:translateX(0);
+	height:100%;
+	position:fixed;
+	top:0;
+	left:0;
+	
+	width:100%;
+
+	// position:absolute;
+	// top:0;
+	// left:0;
+	// width:100%;
+	&-login {
+		transition:transform .2s ease-in;
+	}
+	&[active='false'] {
+		transform:translateX(100%);
+	}
+	
+
+}
+
+
