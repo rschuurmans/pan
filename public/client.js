@@ -277,8 +277,25 @@ var holdTone = false;
 var setOsc = {
 	frequency: 220,
 	type:'SINE',
-	create:function (options) {
-		var _oscillator = audioContext.createOscillator();
+	create:function (type) {
+		// var _oscillator = audioContext.createOscillator();
+		// var _oscillator = new Tone.Oscillator(frequency, type).toMaster().start();
+		// var _oscillator = new Tone.Oscillator(frequency, type).toMaster();
+		var _oscillator = new Tone.Synth({
+	oscillator : {
+  	type : type,
+    modulationType : 'sawtooth',
+    modulationIndex : 3,
+    harmonicity: 3.4
+  },
+  envelope : {
+  	attack : 0.001,
+    decay : 0.1,
+    sustain: 1,
+    release: 0.1
+  }
+}).chain(Tone.Master)
+			
 		return _oscillator;
 	},
 	setWavetype(osc, type) {
@@ -326,13 +343,18 @@ var setVca = {
 };
 
 var activeSound = {
-	running: false,
+	stopped: true,
 	currentStepIndex:0,
 	createOscillator: function () {
 		return oscillator;
 	},
 	setup: function () {
-		
+		// tone.js supports multiple oscillators and shit. check this out.
+		audioData.sources.forEach(function(source) {
+			source.audio = setOsc.create(source.type);
+			
+			// source.audio.triggerAttackRelease(440, '4n', 0)
+		});
 		// audioData.vca = setVca.create()
 
 		// audioData.sources.forEach(function(source) {
@@ -377,18 +399,20 @@ var activeSound = {
 		// });
 		// activeSound.beforeUnload();
 
-		// socket.on('startSequence', function (fulldelay) {
-		// 	activeSound.startNormalSequence(fulldelay);
-		// })
+		socket.on('startSequence', function (fulldelay) {
+			console.log('received');
+			if(activeSound.stopped) {
+				activeSound.startNormalSequence(fulldelay);
+			}
+		})
 	},
 	holdTone: function(start, freq) {
-		var t0       = audioContext.currentTime;
+		audioData.sources[0].audio.triggerAttack('c4');
 		if(start) {
 			holdTone = true;
 			
 			freq ? freq : audioData.steps[activeSound.currentStepIndex].frequency
-			setOsc.setFrequency(audioData.sources[0].audio ,freq);
-			setVca.setValueAtTime(audioData.vca, .5, t0)
+			audioData.sources[0].audio.triggerAttack(freq);
 		} else {
 			holdTone = false;
 			// setOsc.setFrequency(audioData.sources[0].audio ,880);
@@ -396,34 +420,71 @@ var activeSound = {
 		}
 
 	},
-	startNormalSequence(fulldelay) {
-		var steps       = audioData.steps.length;
-		var maxDelay    = fulldelay;
-		var perStep     = maxDelay / (steps+1);
-		
-		var loop = function () {
-			
-			if(!holdTone) {
-				activeSound.currentStep(activeSound.currentStepIndex, perStep/1000);
-			}
-
-			setTimeout(function() {
-
-				activeSound.currentStepIndex++;
-				if(activeSound.currentStepIndex == steps) {
-					console.log('restart', activeSound.currentStepIndex);
-					activeSound.currentStepIndex = 0;
-					console.log('restart', activeSound.currefmodulntStepIndex);
-					
-				} else {
-					loop();
-				}
-			}, perStep)
+	calculateDelay(length) {
+		switch(length) {
+			case 8:
+				return '4n';
+				break;
+			case 16:
+				return '8n'	;
+				break;
+			case 32:
+				return '16n';
+				break;
 		}
-		loop();
+
+	},
+	startNormalSequence(fulldelay) {
+		console.log('start a normal sequence');
+		activeSound.stopped = false;
+		var delay = activeSound.calculateDelay(audioData.steps.length);
+
+		var loop = new Tone.Loop(function(time){
+			
+			
+			
+			var step = audioData.steps[activeSound.currentStepIndex];
+			if(step.active && !holdTone) {
+				audioData.sources[0].audio.triggerAttackRelease(step.frequency, "8n", time)
+			}
+			activeSound.highlightStep(activeSound.currentStepIndex);
+			activeSound.currentStepIndex++;
+			if(activeSound.currentStepIndex == audioData.steps.length) {
+				activeSound.currentStepIndex = 0;
+			}
+		}, delay)
+
+		loop.start(0)
+		Tone.Transport.start('+0.1');
+
+		// var steps       = audioData.steps.length;
+		// var maxDelay    = fulldelay;
+		// var perStep     = maxDelay / (steps+1);
+		
+		// var loop = function () {
+			
+		// 	if(!holdTone) {
+		// 		activeSound.currentStep(activeSound.currentStepIndex, perStep/1000);
+		// 	}
+
+		// 	setTimeout(function() {
+
+		// 		activeSound.currentStepIndex++;
+		// 		if(activeSound.currentStepIndex == steps) {
+		// 			console.log('restart', activeSound.currentStepIndex);
+		// 			activeSound.currentStepIndex = 0;
+		// 			console.log('restart', activeSound.currefmodulntStepIndex);
+					
+		// 		} else {
+		// 			loop();
+		// 		}
+		// 	}, perStep)
+		// }
+		// loop();
 	},
 	currentStep: function (index, perStep, osc) {
-		console.log(activeSound.currentStepIndex, index);
+		// can be removed because of the implementation of tone.js
+		
 		setOsc.setFrequency(audioData.sources[0].audio ,audioData.steps[index].frequency);
 		var t0       = audioContext.currentTime;
 		var duration = (audioData.steps[index].duration * perStep)/100
@@ -503,7 +564,7 @@ var modulateRole = {
 		modulateRole.modulateEvents();
 		activeSound.setup();
 		// activeSound.pressStart();
-		activeSound.autoPress();
+		// activeSound.autoPress();
 		modulateRole.updateSteps();
 	},
 	updateSteps: function () {
@@ -625,7 +686,7 @@ var sequencerRole = {
 		sequencerRole.clickActive();
 		activeSound.setup();
 		// activeSound.pressStart();
-		activeSound.autoPress();
+		// activeSound.autoPress();
 		sequencerRole.updateSound();
 		sequencerRole.shEvent();
 		sequencerRole.ppEvent();
@@ -652,57 +713,53 @@ var sequencerRole = {
 		})
 	},
 	ppEvent:function () {
+		console.log('pp event');
 		var buttons = document.querySelectorAll('.fn-pp-button');
+		console.log(buttons);
 		buttons.forEach(function(button) {
-			button.addEventListener('touchstart', function (e) {
-				console.log('touchstart');
+			var openGate = function (e) {
 				activeSound.holdTone(true, e.currentTarget.getAttribute('pp-value'));
-				button.classList.add('active');
+				e.currentTarget.classList.add('active');
 				socket.emit('holdStep', {
 					room: audioData._id,
 					frequency: e.currentTarget.getAttribute('pp-value'),
 					start:true
 				});
-			})
-			button.addEventListener('touchend', function (e) {
-				console.log('touchend');
-				button.classList.remove('active');
+			};
+			var closeGate = function (button) {
+				e.currentTarget.classList.remove('active');
 				activeSound.holdTone(false);
+
 				socket.emit('holdStep', {
 					room: audioData._id,
 					frequency: e.currentTarget.getAttribute('pp-value'),
 					start:false
-				});
-			})
-			button.addEventListener('touchcancel', function (e) {
-				console.log('touchend');
-				button.classList.remove('active');
-				activeSound.holdTone(false);
-				socket.emit('holdStep', {
-					room: audioData._id,
-					frequency: e.currentTarget.getAttribute('pp-value'),
-					start:false
-				});
-			})
+				})
+			}
+			button.addEventListener('touchstart',openGate)
+			button.addEventListener('touchend',closeGate)
+			button.addEventListener('touchcancel', closeGate)
 		});
 	},
 	shEvent: function () {
 		var button = document.querySelector('.fn-seq-sh');
-		button.addEventListener('touchstart', function (e) {
+		var openGate = function () {
 			console.log('touchstart');
 			activeSound.holdTone(true);
 			button.classList.add('active');
-		})
-		button.addEventListener('touchend', function (e) {
+		}
+		var closeGate = function () {
 			console.log('touchend');
 			button.classList.remove('active');
 			activeSound.holdTone(false);
-		})
-		button.addEventListener('touchcancel', function (e) {
-			console.log('touchend');
-			button.classList.remove('active');
-			activeSound.holdTone(false);
-		})
+		}
+		// this could be replaced by hammer.js
+		button.addEventListener('touchstart', openGate)
+		button.addEventListener('moousedown', openGate)
+		button.addEventListener('mouseup', openGate)
+		button.addEventListener('touchend', closeGate)
+		button.addEventListener('touchcancel', closeGate)
+		
 	},
 	isTouching: function (arr, val) {
 		if(arr.indexOf(val) !== -1) {
@@ -936,32 +993,51 @@ var tone = {
   },
   envelope : {
   	attack : 0.001,
-    decay : 0.1,
+    decay : 1,
     sustain: 1,
     release: 0.1
   }
 }).chain(distortion, Tone.Master)
-
-		var tones = [220,'B1','D1','E1','C2','B4','D2','E3']
-var event = [
+		var index = 0;
+		var event = [
 	{ time: 0, note : 220, dur : '4n'},
 	{ time: '4n + 8n', note : 440, dur : '8n'},
 	{ time: '2n', note : 550, dur : '16n'},
 	{ time: '2n + 8t', note : 880, dur : '4n'}
 ]
-var part = new Tone.Part(function(time, event){
-	console.log('here');
-	//the events will be given to the callback with the time they occur
 
-	synth.triggerAttackRelease(event.note, event.dur, time)
-}, event)
+		var loop = new Tone.Loop(function(time){
+			console.log(time);
+			
+			console.log(index);
+			synth.triggerAttackRelease(event[index].note, "8n", time)
+			index++;
+			if(index >3) {
+				index = 0;
+			}
+		}, "4n")
+		loop.start(0)
 
-//start the part at the beginning of the Transport's timeline
-part.start(0)
+// 		var tones = [220,'B1','D1','E1','C2','B4','D2','E3']
+// var event = [
+// 	{ time: 0, note : 220, dur : '4n'},
+// 	{ time: '4n + 8n', note : 440, dur : '8n'},
+// 	{ time: '2n', note : 550, dur : '16n'},
+// 	{ time: '2n + 8t', note : 880, dur : '4n'}
+// ]
+// var part = new Tone.Part(function(time, event){
+// 	console.log('here');
+// 	//the events will be given to the callback with the time they occur
 
-//loop the part 3 times
-part.loop = 3
-part.loopEnd = '1m'
+// 	synth.triggerAttackRelease(event.note, event.dur, time)
+// }, event)
+
+// //start the part at the beginning of the Transport's timeline
+// part.start(0)
+
+// //loop the part 3 times
+// part.loop = 3
+// part.loopEnd = '1m'
 
 		var playing = false;
 		document.querySelector('.fn-seq-sh').addEventListener('click', function(e){
@@ -977,13 +1053,16 @@ part.loopEnd = '1m'
 		document.querySelector('.fn-demo').addEventListener('click', function (e) {
 			// console.log(synth.);
 			synth.envelope.sustain = 0.001;
+			for(var i = 0; i < event.length;i++) {
+				event[i].note += 200;
+			}
 			
 		})
 
 	}
 }
 
-tone.init();
+// tone.init();
 var tools = {
 	autoSubmit: function () {
 		var form = document.querySelector('.fn-post-radio');
