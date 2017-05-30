@@ -1,27 +1,26 @@
-@import '_variables';
-@import '_mixins';
-@import 'base';
+@import 'abstract/_variables';
+@import 'abstract/_mixins';
+@import 'abstract/_placeholders';
+@import 'abstract/animation';
+@import 'abstract/positioning';
+@import 'abstract/transition';
 
-@import 'positioning';
-@import 'containers';
-@import 'typography';
-@import 'navigation';
-@import 'header';
+@import 'base/base';
+@import 'base/containers';
+@import 'base/typography';
 
+@import 'components/forms';
+@import 'components/list';
+@import 'components/navigation';
+@import 'components/block';
+@import 'components/pages';
 
-@import 'list';
-@import 'forms';
+@import 'elements/buttons';
+@import 'elements/icons';
+@import 'elements/input';
+@import 'elements/label';
+@import 'elements/links';
+@import 'elements/media';
+@import 'elements/sliders';
+
 @import 'margin';
-@import 'buttons';
-@import 'label';
-@import 'links';
-@import 'input';
-@import 'icons';
-@import 'media';
-@import 'plugins';
-@import 'sliders';
-@import 'animation';
-@import 'pages';
-
-@import 'new';
-@import 'transition';

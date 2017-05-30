@@ -20,6 +20,10 @@ function hbsHelpers(hbs) {
 
 
 			},
+			rotatePercentage: function (value, min, max) {
+				return (value * 360) / max;
+
+			},
 			eachNumber: function (number, options) {
 				 var ret = "";
 

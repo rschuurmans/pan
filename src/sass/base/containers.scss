@@ -1,0 +1,24 @@
+// container container-padding-lg text-center container-center container-black
+
+.container {
+	&-padding-lg {
+		padding:$padding-page-lg $padding-page-md $padding-page-md !important;
+	}
+	&-padding-sm {
+		padding:$padding-page-sm;
+	}
+
+	&-fixed {
+		@extend %fixed-full;
+	}
+	&-center {
+		@extend %position-center;
+	}
+	&-scroll {
+		overflow-y:scroll;
+	}
+	&-bottom {
+		@extend %fixed-bottom;
+		
+	}
+}

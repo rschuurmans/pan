@@ -34,6 +34,16 @@ var tools = {
 	    
 	    return decodeURIComponent(results[2].replace(/\+/g, " "));
 	},
+	eachDomElement: function (selector,callback) {
+		var items   = document.querySelectorAll(selector);
+
+		for(var i = 0; i < items.length;i++) {
+			callback(items[i])
+		}
+	},
+	getPercentage: function (value, max) {
+		return (value*100)/max;
+	},
 	get: function (name) {
 		name = name + '=';
 		var decodedCookie = decodeURIComponent(document.cookie);

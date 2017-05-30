@@ -1,68 +1,72 @@
-<div class="animate-page animate-page-sequencer fn-animate-page" current-page='sequencer' active='true'>
+<div class="animate-page animate-page-sequencer fn-animate-page" current-page='sequencer' active='true' origin='left'>
 	<div class="container container-padding-lg container-fixed ">
-		<ul class='list list-grid list-grid-4 list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength group.steps}}'>
+	<h2 class='fn-info'></h2>
+	<button id='playButton'>test</button>
+		<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength group.steps}}'>
 			
 			{{#each group.steps}}
-				<li class='grid-item'>
-					<span  class='btn btn-round btn-grid-item btn-sequencer {{#if active}}active{{/if}} fn-sequencer-item' style='background:radial-gradient(rgba(0,0,0,0) {{{percentageRadial frequency min max}}}%,  #3038F2 {{{percentageRadial frequency min max}}}% )' sequence-index={{@index}}>
-						
+				<li class='list-grid-item list-grid-item-25 btn-rectangle'>
+					<span  class='btn btn-round btn-grid-item btn-sequencer {{#if active}}active{{/if}} fn-sequencer-item' sequence-index={{@index}} frequency={{frequency}} max={{max}}>
+						<span class="rotate-extra-circle"></span>
 					</span>
 				</li>
 			{{/each}}
 		</ul>
 
-		
-		
-
-
-		<nav class='nav nav-bottom'>
-			<ul class='list list-clear fn-nav fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-3'>
-				<li class='text text-icon text-white fn-nav-buttons' target-page='adsr'><div><span class='ic ic_forward ic_text'></span>ADSR</div></li>
-				<li class=' text-black'><div class=' btn btn-yellow btn-round  btn-md fn-seq-sh'>S&H</div></li>
-				<li class='text text-icon text-white fn-nav-buttons'  target-page='pp'><div>PP <span class='ic ic_back ic_text'></span></div></li>
-			</ul>
-		</nav>
 	</div>
 </div>
 
-<div class="animate-page animate-page-sequencer fn-animate-page" current-page='pp' active='false'>
+<div class="animate-page animate-page-sequencer fn-animate-page" current-page='pp' active='false' origin='right'>
 
 	<ul class='list-grid list-grid-pp list-clear container-fixed fn-start-animation animate-stagger animate-stagger-in-slow stagger-kids-8'>
 		{{#each pp}}
 			
-			<li class='list-grid-pp-item text-white fn-pp-button' pp-index={{@index}} pp-value={{this}}>
-				{{@index}}
+			<li class='block-pp text-white fn-pp-button' pp-index={{@index}} pp-value={{this}}>
+				
 			</li>
 		{{/each}}
 	</ul>
 
-	<nav class='nav nav-bottom '>
-		<ul class='list list-clear fn-nav  fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-3'>
+	
+</div>
+
+<div class="animate-page animate-page-sequencer fn-animate-page" current-page='adsr' active='false' origin='left'>
+	
+	<ul class='list list-adsr list-clear container-padding-md '>
+		{{#each adsr}}
+			<li class='list-adsr-item btn-'>
+				<div class="list-adsr-item-inner  btn btn-adsr"  type={{type}} value={{value}}><span class='btn-label'>{{type}}</span></div>
+			</li>
+		{{/each}}
+	</ul>
+	
+	
+		
+</div>
+<nav class='nav nav-bottom' >
+<ul class='list list-clear fn-nav animate-nav' nav='pp'>
 			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>
 				<span class='ic ic_forward ic_text'></span>
 				SEQ
 			</li>
-			<li class='btn btn-yellow btn-round  btn-md text-black'>S&H</li>
+			<li></li>
 			<li></li>
 			
 		</ul>
-	</nav>
-</div>
-
-<div class="animate-page animate-page-sequencer fn-animate-page" current-page='adsr' active='false'>
-	<h2>this is adsr</h2>
-
-		<nav class='nav nav-bottom'>
-			<ul class='list list-clear fn-nav fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-3'>
+			<ul class='list list-clear fn-nav animate-nav 'nav='adsr'>
 				<li></li>
 				<li></li>
 				<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>SEQ <span class='ic ic_back ic_text' ></span></li>
 			</ul>
+			<ul class='list list-clear fn-nav animate-nav' nav='sequencer'>
+				<li class='text text-icon text-white fn-nav-buttons' target-page='adsr'><div><span class='ic ic_forward ic_text'></span>ADSR</div></li>
+				<li class=' text-black'><div class=' btn btn-yellow btn-rounded  btn-md fn-seq-sh'>S&H</div></li>
+				<li class='text text-icon text-white fn-nav-buttons'  target-page='pp'><div>PP <span class='ic ic_back ic_text'></span></div></li>
+			</ul>
 		</nav>
-</div>
-
 <script>
 	var audioData  = {{{json group}}};
+	console.log(audioData);
 	
 </script>
 

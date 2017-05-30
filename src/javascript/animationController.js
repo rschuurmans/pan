@@ -80,7 +80,7 @@ var animate = {
 
 		window.setTimeout(function () {
 			body.setAttribute('splash', 'finished');
-		}, 200);
+		}, 2000);
 
 
 	},

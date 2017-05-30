@@ -1,3 +1,16 @@
+@mixin pp-grid($column-left, $column-right, $row-top, $row-bottom) {
+	grid-column-start:$column-left;
+	grid-column-end:$column-right;
+	grid-row-start:$row-top;
+	grid-row-end:$row-bottom;
+}
+
+@mixin rectangle($width, $margin) {
+	width: calc(#{$width} - #{$margin*2});
+	padding-bottom: calc(#{$width} - #{$margin*2});
+	margin:$margin;
+}
+
 
 @mixin stagger-in-animation($length, $delay) {
 	& > * {
@@ -25,6 +38,7 @@
 @mixin dark-overlay($amount) {
 	position:relative;
 	&:before {	
+		transition:.2s ease-in-out;
 		content:' ';
 		background:rgba(0,0,0,1);
 		opacity:#{$amount/10};
@@ -40,6 +54,7 @@
 @mixin light-overlay($amount) {
 	position:relative;
 	&:before {	
+		transition:.2s ease-in-out;
 		content:' ';
 		background:rgba(225,225,225,1);
 		opacity:#{$amount/10};

@@ -1,0 +1,60 @@
+.block {
+	margin:$gutter 0;
+	&:first-of-type {
+		margin-top:$gutter-lg;
+	}
+	&:last-of-type {
+		margin-bottom:$gutter-lg;
+	}
+	&-notification {
+		position:relative;
+	}
+	&-pp {
+		background:$color-blue;
+		margin: 0 0;
+		transition:.05s ease-in-out;
+
+		&.active {
+			transform:translateY(20px);
+			z-index:2;
+			background-color:$color-yellow;
+			margin:20px 0 -20px 5px;
+
+			&:before {
+				opacity:0 !important;
+			}
+		}
+		&[pp-index="0"] {
+			@include pp-grid(1,3,1,3);
+			@include light-overlay(4);
+		}
+		&[pp-index="1"] {
+			@include pp-grid(3,5,1,5);
+			@include light-overlay(3);
+		}
+		&[pp-index="2"] {
+			@include pp-grid(1,2,3,6);
+			@include light-overlay(2);
+		}
+		&[pp-index="3"] {
+			@include pp-grid(2,3,3,6);
+			@include light-overlay(0);
+		}
+		&[pp-index="4"] {
+			@include pp-grid(2,4,6,7);
+			@include dark-overlay(2);
+		}
+		&[pp-index="5"] {
+			@include pp-grid(1,2,6,8);
+			@include dark-overlay(3);
+		}
+		&[pp-index="6"] {
+			@include pp-grid(3,5,5,6);
+			@include dark-overlay(4);
+		}
+		&[pp-index="7"] {
+			@include pp-grid(4,5,6,8)
+			@include dark-overlay(5);
+		}
+	}
+}

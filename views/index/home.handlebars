@@ -1,33 +1,35 @@
 
-<div class="animate-page animate-page-login fn-animate-page" current-page='login' active='true'>
+<div class="animate-page animate-page-login fn-animate-page" current-page='login' active='true' origin='left'>
 	<div class="container container-padding-lg container-fixed ">
 		<div class="container-center animate-wrapper login fn-animate-wrapper" >
 			<h1 class='head h1 h1-logo text-white'>
+			
 			{{title}}
+
 			</h1>
+<span class='ic-logo-stripes'></span>
+			<p class='text text-intro text-white animate-stagger animate-stagger-1  animate-collapse margin-top-lg margin-bottom-lg'>Welkom bij de demo van Pan. Sluit je aan bij de groep door je hier onder voor te stellen en ontdek de wereld van de modulaire muziek.</p>
 
-			<p class='text text-intro text-white animate-stagger animate-stagger-1 margin-top-lg margin-bottom-lg'>Welkom bij de demo van Pan. Sluit je aan bij de groep door je hier onder voor te stellen en ontdek de wereld van de modulaire muziek.</p>
-
-			<form action="" class='form form-login animate-stagger  animate-stagger-2 fn-form' method="post">
-				<input type="text" class='input input-text input-lg fn-username ' placeholder='Mijn naam is ...'>
-				<input type="submit" value='' class='btn btn-ic btn-submit btn-blue btn-lg '>
+			<form action="" class='form form-login animate-stagger animate-collapse   animate-stagger-2 fn-form' method="post">
+				<input type="text" class='input input-text input-lg col col-80 fn-username ' placeholder='Mijn naam is ...' required>
+				<input type="submit" value='' class='input btn btn-ic btn-submit col col-20 btn-blue btn-lg '>
 			</form>
 		</div>
 	</div>
-	<a class="link text-white link-underline text-center text-small fixed-bottom">Ik wil alleen maar luisteren</a>
+	<a class="link text-white link-underline text-center text-small container-bottom container-padding-lg transperant">Ik wil alleen maar luisteren</a>
 </div>
 
 
-<div class="animate-page  animate-page-login fn-animate-page" current-page='group-list' active='false'>
-	<div class="container container-padding-lg container-fixed  container-scroll">
+<div class="animate-page  animate-page-login fn-animate-page" current-page='group-list' active='false' origin='right'>
+	<div class="container container-padding-lg container-padding-bottom container-fixed  container-scroll">
 		<h4 class='head h4 text-white'>Pan wordt gespeeld in duo's. Kies een leuke uit</h4>
 
 
 
 
-		<ul class='list list-clear list-group'>
+		<ul class='list list-clear list-margin-bottom'>
 			{{#each groups}}
-				<li class='list-item list-item-group 
+				<li class='block block-notification block
 					{{#openGroup modulator.username sequencer.username}}fn-grouplist-item
 					{{/openGroup}}' group-id='{{_id}}'>
 
@@ -49,7 +51,7 @@
 				</li>
 			{{/each}}
 		</ul>
-		<div class="container-float">
+		<div class="container-bottom container-padding-lg">
 			<a href="/create" class='btn btn-lg btn-blue text-white text-center fn-random'>Willekeurig</a>
 		</div>
 

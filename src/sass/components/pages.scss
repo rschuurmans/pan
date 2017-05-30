@@ -1,0 +1,18 @@
+body {
+	&[rotate-active="true"] {
+		border:2px solid blue;
+		.grid-item {
+			&, * {
+				opacity:.5 !important;
+			}
+		}
+		.rotate-active {
+			&, * {
+				opacity:1 !important;
+			}
+			z-index: 2;
+
+		}
+		
+	}
+}

@@ -3,6 +3,7 @@ var app          = express();
 var server       = require('http').Server(app);
 var io           = require('./socket.js').listen(server);
 var indexRouter  = require('./routes/index');
+var testRouter  = require('./routes/test');
 var rolRouter    = require('./routes/rol');
 
 var exphbs       = require('express-handlebars');
@@ -89,6 +90,7 @@ io.on('connection', function (socket) {
 
 app.use('/', indexRouter);
 app.use('/role', rolRouter);
+app.use('/test', testRouter);
 
 
 // 404 page

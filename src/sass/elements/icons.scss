@@ -1,3 +1,5 @@
+
+
 .ic {
 	width:$icon-width;
 	height:100%;
@@ -6,6 +8,38 @@
 	background-repeat:no-repeat;
 	background-position:center center;
 	display:inline-block;
+	&-value {
+		// background:white;
+			position:absolute;
+			top:0;
+			left:0;
+			width:100%;
+			height:100%;
+			border-radius:100%;
+			
+			&:before {
+				content: ' ';
+				width:20px;
+				height:20px;
+				left:calc(50% - 10px);
+				top:-5px;
+				border-radius:100%;
+				position:absolute;
+				background:white;
+			}
+	}
+	&-logo-stripes {
+		height: $icon-width/2;
+		width: $icon-width;
+		display:inline-block;
+		margin-left:.12em;
+		// position:absolute;
+		// bottom:-8px;
+		// left:.05em;
+
+		border-top:3px solid $color-blue;
+		border-bottom:3px solid $color-blue;
+	}
 	&-notification {
 		border-radius:100%;
 		display:inline-block;

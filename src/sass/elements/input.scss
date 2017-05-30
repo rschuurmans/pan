@@ -1,6 +1,10 @@
 // input
 
 .input {
+	-webkit-appearance: none;
+	border-radius:0;
+	// border:none;
+	border-color:$color-white;
 	&-text {
 		background:$color-white;
 		font-size:$font-size-base;

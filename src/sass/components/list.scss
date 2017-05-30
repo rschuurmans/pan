@@ -1,0 +1,90 @@
+
+.list {
+	&-clear {
+		margin:0 0;
+		padding: 0 0;
+		list-style:none;
+	}
+	&-margin-bottom {
+		margin-bottom:$padding-page-lg*2;
+	}
+	
+	&-adsr {
+		padding-top:$padding-page-md;
+		display:flex;
+		flex-direction:column;
+		align-items:stretch;
+		&-item {
+			flex:100%;
+			padding:.25rem 3rem;
+			&:nth-of-type(odd) .btn-adsr {
+					float:right;
+			}
+		}
+		
+	}
+	&-selector {
+		text-align:center;
+		
+		&-item {
+			display:inline-block;
+			width:30%;
+			&.active {
+				// border-bottom:1px solid $color-yellow;
+			}
+		}
+		.active-bar-container {
+			
+			display:block;
+			height:1px;
+			position:relative;
+			width:100%;
+			background-color:rgba(225,225,225,.3);
+			
+			.active-bar {
+				background:$color-yellow;
+				width:33%;
+				position:absolute;
+				left:0;
+				top:0;
+				height:100%;
+				transition:.2s ease-in;
+			}
+			&[active="0"] .active-bar {
+				left:0%;
+			}
+			&[active="1"] .active-bar {
+				left:33%;
+			}
+			&[active="2"] .active-bar {
+				left:66%;
+			}
+		}
+
+	}
+	&-grid {
+		position:relative;
+		&-item {
+			float:left;
+			position: relative;
+			&-25 {
+				@include rectangle(25%, $gutter*2);
+			    &:nth-of-type(4n) {
+			    	margin-right:0;
+			    }
+			}
+			&-50 {
+				@include rectangle(50%, $gutter);
+			}
+		}
+		&-pp {
+			@extend %grid-container;
+			grid-template-columns: 25% 25% 25% 25%; 
+			grid-template-rows:11% 11% 11% 11% 11% 11% 11% 11% 11% 11%; 
+
+		}
+	}
+}
+
+
+

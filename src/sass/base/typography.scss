@@ -1,0 +1,57 @@
+// typography
+.head {
+	font-family:$font-family-display;
+	font-weight:bold;
+	margin: 0 0;
+}
+.h1 {
+	font-size: $font-size-h1;
+
+	&-logo {
+		text-transform:uppercase;
+		position:relative;
+		line-height:$font-size-h1/1.2;
+	}
+
+}
+
+.h2 {
+	font-size:$font-size-h2;
+	
+}
+.h3 {
+	font-size: $font-size-h3;
+	
+}
+.h4 {
+	font-size:$font-size-base;
+	
+}
+.text {
+	color:$color-turq;
+	&-clear {
+		margin: 0 0;	
+	}
+	&-icon {
+		line-height:20px;
+	}
+	&-turq {
+		color:$color-turq;
+	}
+	&-black {
+		color:$color-black;
+	}
+	&-blue {
+		color:$color-blue;
+	}
+	&-white {
+		color:$color-white;
+	}
+	&-small {
+		font-size:$font-size-small;
+	}
+	&-condensed {
+		font-family: $font-family-display-condensed;
+	}
+}
+

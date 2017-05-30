@@ -1,0 +1,117 @@
+.nav {
+	ul {
+		position:fixed;
+		bottom:0;
+		text-align:center;
+		width:100%;
+		left:0;
+		padding:$padding-page-md;
+		display:flex;
+			justify-content: space-between;
+		li {
+			display:inline-block;
+			flex:33%;
+			display:flex;
+			min-height:60px;
+			justify-content: center;
+			flex-direction:row;
+			align-items:center;
+			.ic {
+				height:$icon-width;
+			}
+			&:nth-of-type(3) {
+				padding-left:$gutter;
+				.ic {
+					margin-left:$icon-width/2;
+					margin-right:0;
+				}
+			}
+			&:nth-of-type(1) {
+				padding-right:$gutter;
+				.ic {
+					margin-right:$icon-width/2;
+					margin-left:0;
+				}
+			}
+			
+		}
+		li:first-of-type {
+			
+		}
+	}
+}
+
+@mixin animate-in-out($amount, $delay, $animation) {
+	@for $i from 1 through $amount {
+	  li:nth-of-type(#{$i}) {
+	    animation-name:$animation;
+	    animation-fill-mode:forwards;
+	    animation-iteration-count: 1;
+	    animation-delay: $delay + $i/10;
+	    animation-duration: 0.3s;
+	    animation-timing-function: ease-in-out;
+	    
+	  }
+	}
+}
+
+
+
+body[current-page='sequencer'] .nav {
+	ul[nav='adsr'] {
+		display:none;
+	}
+	ul[nav='sequencer'] {
+		@include animate-in-out(3,.2, navinleft);
+	}
+	ul[nav='pp'] {
+		max-width:0;
+		@include animate-in-out(3,.2, navleft)
+	}
+}
+body[current-page='pp'] .nav {
+	ul[nav='adsr'] {
+		display:none;
+	}
+	ul[nav='pp'] {
+		@include animate-in-out(3,.2, navinleft);
+	}
+	ul[nav='sequencer'] {
+		max-width:0;
+		@include animate-in-out(3,.2, navleft)
+	}
+
+}
+body[current-page='adsr'] .nav {
+	ul[nav='adsr'] {
+		
+		@include animate-in-out(3,.2, navinright);
+	}
+	ul[nav='pp'] {
+		display:none;
+	}
+	ul[nav='sequencer'] {
+		max-width:0;
+		@include animate-in-out(3,.2, navright)
+	}
+
+}
+
+@keyframes navleft {
+	0%{transform:translateX(0)};
+	100%{transform:translateX(-400px)};
+}
+@keyframes navright {
+	0%{transform:translateX(0)};
+	100%{transform:translateX(400px)};
+}
+@keyframes navinleft {
+	0%{transform:translateX(-400px)};
+	100%{transform:translateX(0)};
+
+}
+@keyframes navinright {
+	0%{transform:translateX(400px)};
+	100%{transform:translateX(0)};
+
+}

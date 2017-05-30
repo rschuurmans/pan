@@ -1,4 +1,5 @@
-var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+var audioContext = Tone.context;
 var tuna         = new Tuna(audioContext);	
 var sched        = new WebAudioScheduler({ context: audioContext });
 var holdTone = false;
@@ -78,7 +79,9 @@ var activeSound = {
 	},
 	setup: function () {
 		// tone.js supports multiple oscillators and shit. check this out.
-		audioData.sources.forEach(function(source) {
+		StartAudioContext(Tone.context, "#playButton").then(function (e) {
+			console.log('click');
+			audioData.sources.forEach(function(source) {
 			source.audio = setOsc.create(source.type);
 			
 			// source.audio.triggerAttackRelease(440, '4n', 0)
@@ -128,11 +131,16 @@ var activeSound = {
 		// activeSound.beforeUnload();
 
 		socket.on('startSequence', function (fulldelay) {
-			console.log('received');
 			if(activeSound.stopped) {
 				activeSound.startNormalSequence(fulldelay);
 			}
 		})
+		});
+		window.setTimeout(function () {
+			$('#playButton').trigger('touchstart');
+		$('#playButton').trigger('touchend');
+	}, 2000)
+
 	},
 	holdTone: function(start, freq) {
 		audioData.sources[0].audio.triggerAttack('c4');
@@ -163,12 +171,11 @@ var activeSound = {
 
 	},
 	startNormalSequence(fulldelay) {
-		console.log('start a normal sequence');
+		
 		activeSound.stopped = false;
 		var delay = activeSound.calculateDelay(audioData.steps.length);
 
 		var loop = new Tone.Loop(function(time){
-			
 			
 			
 			var step = audioData.steps[activeSound.currentStepIndex];
@@ -185,30 +192,7 @@ var activeSound = {
 		loop.start(0)
 		Tone.Transport.start('+0.1');
 
-		// var steps       = audioData.steps.length;
-		// var maxDelay    = fulldelay;
-		// var perStep     = maxDelay / (steps+1);
-		
-		// var loop = function () {
-			
-		// 	if(!holdTone) {
-		// 		activeSound.currentStep(activeSound.currentStepIndex, perStep/1000);
-		// 	}
-
-		// 	setTimeout(function() {
-
-		// 		activeSound.currentStepIndex++;
-		// 		if(activeSound.currentStepIndex == steps) {
-		// 			console.log('restart', activeSound.currentStepIndex);
-		// 			activeSound.currentStepIndex = 0;
-		// 			console.log('restart', activeSound.currefmodulntStepIndex);
-					
-		// 		} else {
-		// 			loop();
-		// 		}
-		// 	}, perStep)
-		// }
-		// loop();
+	
 	},
 	currentStep: function (index, perStep, osc) {
 		// can be removed because of the implementation of tone.js
@@ -286,7 +270,6 @@ var activeSound = {
 	
 }
 
-
 var modulateRole = {
 	init: function () {
 		modulateRole.modulateEvents();
@@ -300,7 +283,6 @@ var modulateRole = {
 			audioData.steps = newSteps;
 		})
 		socket.on('holdStep', function (data) {
-			console.log('received a holdstep', data);
 			activeSound.holdTone(data.start, data.frequency)
 		})
 	},
@@ -386,11 +368,9 @@ var modulateRole = {
 						sendData.feedback = audioData.modulate[i].feedback = audioData.effects.chorus.feedback = percentage/100;
 					} else if(audioData.modulate[i].type == 'tremelo') {
 						var value = percentage / 10;
-						console.log(audioData.effects);
 						sendData.intensity = sendData.rate = audioData.effects.tremelo.rate = audioData.effects.tremelo.intensity = value;
 					} else if(audioData.modulate[i].type == 'wahwah') {
 						var value = percentage / 100;
-						console.log(audioData.effects);
 						sendData.baseFrequency = audioData.effects.wahwah.baseFrequency = value;
 					}
 				} 
@@ -411,29 +391,165 @@ var body        = document.querySelector('body');
 var sequencerRole = {
 	init: function () {
 		
-		sequencerRole.clickActive();
+		// sequencerRole.clickActive();
+		// sequencerRole.seqEvents();
+		
 		activeSound.setup();
 		// activeSound.pressStart();
 		// activeSound.autoPress();
 		sequencerRole.updateSound();
+		sequencerRole.steps.setup();
 		sequencerRole.shEvent();
-		sequencerRole.ppEvent();
+		sequencerRole.pp.setup();
+		deviceRotation.start();
 	},
+	steps : {
+		setup:function () {
+			console.log('steps init');
+			tools.eachDomElement('.fn-sequencer-item', function (item) {
+				var hammertime = new Hammer(item, {})
+				sequencerRole.steps.changeFrequency(hammertime);
+				sequencerRole.steps.toggleActive(hammertime)
+			})
+
+
+
+
+
+		},
+		toggleActive: function (hammertime) {
+			
+			hammertime.on('tap', function (e) {
+				var index = e.target.getAttribute('sequence-index');
+				audioData.steps[index].active = !audioData.steps[index].active;
+				
+				e.target.classList.toggle('active');
+
+				socket.emit('updateSteps', {
+					room: audioData._id,
+					steps: audioData.steps
+				});
+			});
+		},
+		updateFrequency: function(item, newfrequency) {
+			
+
+			var freq = parseInt(item.getAttribute('frequency')) + newfrequency;
+			freq < 0 ? freq = 0 : false;
+			item.setAttribute('frequency', freq)
+			activeSound.holdTone(false);
+			sequencerRole.steps.updateStepBorder(item);
+
+		},
+		changeFrequency: function (hammertime) {
+			var item = null;
+			var closeFreq = function () {
+				deviceRotation.stopListen(function (value) {
+
+					sequencerRole.steps.updateFrequency(item, value)
+				});
+				sequencerRole.steps.visual(false, item);
+			}
+			var openFreq = function (e) {
+				e.preventDefault();
+				item = e.target;
+				// deviceRotation.start(e.target);
+				deviceRotation.listen(item);
+				sequencerRole.steps.visual(true, item);
+				e.target.addEventListener('touchend', closeFreq)
+				e.target.addEventListener('touchcancel', closeFreq)
+			}
+			hammertime.on('press', function (e) {
+				openFreq(e);
+			})
+	
+
+		},
+		visualStep: function (item, value) {
+			var number      = parseInt(item.getAttribute('frequency'))  +value;
+
+
+			var percentage  = (tools.getPercentage(number, 1200) * 70) / 100;
+			var circleSize  = percentage / 10;
+			var extraCircle = deviceRotation.currentItem.querySelector('.rotate-extra-circle');
+			 
+			 extraCircle.style.transform='scale( '+ circleSize*2 +')';
+			 extraCircle.style.borderWidth = percentage/2 + 'px';
+		},
+		updateStepBorder: function (item) {
+			console.log(item);
+			var percentage = 70 * parseInt(item.getAttribute('frequency'));
+			percentage = percentage / parseInt(item.getAttribute('max'));
+			
+			item.style.background = "-moz-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
+			item.style.background = "-webkit-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
+		},
+		visual: function (start, item) {
+			var body = document.querySelector('body');
+			activeSound.holdTone(true, parseInt(item.getAttribute('frequency')));
+			if(start) {
+				body.setAttribute('rotate-active', true);
+				// document.querySelector('.grid-item:nth-of-type(' + item.getAttribute('sequence-index') + ')').classList.add('rotate-active');
+				item.parentNode.classList.add('rotate-active');
+				// deviceRotation.currentItem.classList.add('rotate-active');
+				sequencerRole.steps.visualStep(item, 0)
+				
+			} else {
+				body.removeAttribute('rotate-active');
+				item.parentNode.classList.remove('rotate-active');
+				item.querySelector('.rotate-extra-circle').style.borderWidth = item.querySelector('.rotate-extra-circle').style.transform = null;
+				
+
+
+			}
+		},
+		
+
+
+	},
+	pp: {
+		setup: function () {
+			tools.eachDomElement('.fn-pp-button', function (button) {
+				button.addEventListener('touchstart',sequencerRole.pp.openGate)
+				button.addEventListener('touchend',sequencerRole.pp.closeGate)
+				button.addEventListener('touchcancel', sequencerRole.pp.closeGate)
+			});
+		},
+		openGate: function (e) {
+			var value = e.currentTarget.getAttribute('pp-value');
+			activeSound.holdTone(true, value);
+			e.currentTarget.classList.add('active');
+			sequencerRole.pp.sendSocket(true);
+		},
+		closeGate: function(e) {
+			var value = e.currentTarget.getAttribute('pp-value');
+			e.currentTarget.classList.remove('active');
+			activeSound.holdTone(false);
+			sequencerRole.pp.sendSocket(false, value)
+		},
+		sendSocket: function (start, value) {
+			socket.emit('holdStep', {
+				room: audioData._id,
+				frequency: value,
+				start:start
+			});
+		}
+	},
+	
 	updateSound: function () {
 		socket.on('updateSound', function (newData) {
 			
-			console.log(newData);
 			if(newData.effect.type == 'chorus') {
 				audioData.effects.chorus.rate = newData.effect.rate;
 				audioData.effects.chorus.feedback = newData.effect.feedback;
 			} else if (newData.effect.type == 'pingpong') {
 				audioData.effects.pingpong.delayTimeLeft = newData.effect.delayTimeLeft
 			} else if (newData.effect.type == 'tremelo') {
-				console.log(newData.effect, audioData.effects.tremelo);
+				
 				audioData.effects.tremelo.rate = newData.effect.intensity;
 				audioData.effects.tremelo.intensity = newData.effect.intensity;
 			} else if (newData.effect.type == 'wahwah') {
-				console.log(newData.effect, audioData.effects.wahwah);
+				
 				audioData.effects.wahwah.baseFrequency = newData.effect.baseFrequency;
 			} else {
 				console.log('not created yet');
@@ -441,43 +557,17 @@ var sequencerRole = {
 		})
 	},
 	ppEvent:function () {
-		console.log('pp event');
-		var buttons = document.querySelectorAll('.fn-pp-button');
-		console.log(buttons);
-		buttons.forEach(function(button) {
-			var openGate = function (e) {
-				activeSound.holdTone(true, e.currentTarget.getAttribute('pp-value'));
-				e.currentTarget.classList.add('active');
-				socket.emit('holdStep', {
-					room: audioData._id,
-					frequency: e.currentTarget.getAttribute('pp-value'),
-					start:true
-				});
-			};
-			var closeGate = function (button) {
-				e.currentTarget.classList.remove('active');
-				activeSound.holdTone(false);
 
-				socket.emit('holdStep', {
-					room: audioData._id,
-					frequency: e.currentTarget.getAttribute('pp-value'),
-					start:false
-				})
-			}
-			button.addEventListener('touchstart',openGate)
-			button.addEventListener('touchend',closeGate)
-			button.addEventListener('touchcancel', closeGate)
-		});
 	},
 	shEvent: function () {
 		var button = document.querySelector('.fn-seq-sh');
 		var openGate = function () {
-			console.log('touchstart');
+			
 			activeSound.holdTone(true);
 			button.classList.add('active');
 		}
 		var closeGate = function () {
-			console.log('touchend');
+			
 			button.classList.remove('active');
 			activeSound.holdTone(false);
 		}
@@ -496,29 +586,19 @@ var sequencerRole = {
 			return false;
 		}
 	},
-	clickActive: function () {
+	stepEvents: function () {
+
 		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
 
-		for(var i = 0; i < stepsItem.length; i++) {
-			$(stepsItem[i]).on('click', function (e) {
+		for(var i = 0; i < stepsItem.length;i++) {
 
-				var index = e.target.getAttribute('sequence-index');
-				
-				if(!e.target.classList.contains('fn-sequencer-item')) {
-					index = e.target.parentNode.getAttribute('sequence-index')
-				}
-				audioData.steps[index].active = !audioData.steps[index].active;
-				e.target.classList.toggle('active');
-				
-				socket.emit('updateSteps', {
-					room: audioData._id,
-					steps: audioData.steps
-				});
-			})
+			var hammertime = new Hammer(stepsItem[i], {})
+			sequencerRole.holdFrequency(hammertime);
+			sequencerRole.clickActive(hammertime);
 		}
-		
-
 	},
+	
+	
 	events: function () {
 		var stepsItem   = document.querySelectorAll('.fn-sequencer-item');
 		var inputSlider = document.querySelector('.fn-frequency-input');
@@ -571,4 +651,5 @@ var sequencerRole = {
 		})
 	}	
 }
+
 

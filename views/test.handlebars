@@ -1,0 +1,97 @@
+<p class='text-white'>start compass: 300</p>
+<p class='text-white'>currentRotation: <span class='fn-currentRotation'></span></p>
+<p class='text-white'>difference: <span class='fn-count'></span></p>
+<p class='text-white'>rotated: <span class='fn-rotated'></span></p>
+<p class='text-white'>totalvalue: <span class='fn-total'></span></p>
+
+<div class="btn btn-yellow fn-up">up</div>
+<br>
+<div class="btn btn-yellow fn-down">down</div>
+
+
+<script>
+	var differenceDOM = document.querySelector('.fn-count');
+	var currentRotationDOM = document.querySelector('.fn-currentRotation');
+	var rotatedDOM = document.querySelector('.fn-rotated');
+	var totalDOM   = document.querySelector('.fn-total');
+	var upButton   = document.querySelector('.fn-up');
+	var downButton = document.querySelector('.fn-down');
+
+	var rotation = 300;
+	var startCompass = 300;
+	var rotated    = 0;
+	var up = true;
+
+	var loop = function () {
+		window.setTimeout(function () {
+			if(up) {
+				rotation++;
+			} else {
+				rotation--
+			}
+
+			
+
+			if(rotation > 360) {
+				rotation = 0;
+				rotated++;
+			} else if (rotation < 0) {
+				rotation = 360;
+				rotated--;
+			}
+			var difference = (rotated * 360) + rotation - startCompass;
+			currentRotationDOM.innerHTML = rotation;
+			differenceDOM.innerHTML = difference;
+			loop();
+		}, 50)
+	}
+	loop();
+
+	// console.log(counterDOM);
+	// var up = true;
+
+	// var uselessIndex= 0;
+	// var loop = function () {
+	// 	uselessIndex++;
+	// 	if(up) {
+	// 		difference++;
+	// 	} else {
+	// 		difference--;
+	// 	}
+		
+		
+	// 	counterDOM.innerHTML = difference;
+	// 	rotatedDOM.innerHTML = rotated;
+
+	// 	if(difference > 360) {
+	// 		rotated ++;
+	// 		difference = 0;
+	// 	}
+	// 	if(difference < -360) {
+	// 		rotated--;
+	// 		difference = 0;
+	// 	}
+
+	// 	var amount = (rotated * 360) + difference;
+	// 	totalDOM.innerHTML = amount;
+	// 	window.setTimeout(function () {
+	// 		if(uselessIndex > 200) {
+	// 			uselessIndex = 0;
+	// 		} loop();
+	// 	}, 50)
+	// }
+	// loop();
+
+
+	upButton.addEventListener('click', function () {
+		up = true;
+	})
+	downButton.addEventListener('click', function () {
+		up = false;
+	})
+
+
+
+
+
+</script>
