@@ -7,8 +7,11 @@ var onLoad = function () {
 	if(path.indexOf('/role/modulator') !== -1) {
 
 		modulateRole.init();
-		changePage.swipePages();
+		changePage.swipePages('osc');
 		changePage.selector();
+		inputEvent.slider();
+
+		inputEvent.radioSlider();
 
 	} else if(path.indexOf('/role/sequencer') !== -1) {
 

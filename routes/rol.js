@@ -29,8 +29,8 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 	// res.render('rol/sequencer', {})
 
 	db.getData(req.params.groupid, req.params.userid, function (data) {
-		data.pp =  [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
-		data.adsr = [{type:'attack', value:0}, {type:'decay', value:0}, {type:'sustain', value:0}, {type:'release', value:0}]
+		// data.pp =  [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+		// data.adsr = [{type:'attack', value:0}, {type:'decay', value:0}, {type:'sustain', value:0}, {type:'release', value:0}]
 		res.render('rol/sequencer', data)
 	})
 
@@ -50,25 +50,25 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 	// res.render('rol/sequencer', {})
 
 	db.getData(req.params.groupid, req.params.userid, function (data) {
-		data.group.sources = [{
-			newObj:true,
-			type:'sine',
-			detune:50,
-			active:true
-		},
-		{
-			newObj:true,
-			type:'sine',
-			detune:20,
-			active:true
-		},
-		{
-			newObj:true,
-			type:'sine',
-			detune:70,
-			active:true
-		}
-		]
+		// data.group.sources = [{
+		// 	newObj:true,
+		// 	type:'sine',
+		// 	detune:50,
+		// 	active:true
+		// },
+		// {
+		// 	newObj:true,
+		// 	type:'sine',
+		// 	detune:20,
+		// 	active:true
+		// },
+		// {
+		// 	newObj:true,
+		// 	type:'sine',
+		// 	detune:70,
+		// 	active:true
+		// }
+		// ]
 		res.render('rol/modulator', data)
 	})
 

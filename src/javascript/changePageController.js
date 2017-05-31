@@ -1,13 +1,11 @@
 var changePage = {
 	showPage: function (page)  {
-		console.log(page);
-		var allPages = document.querySelectorAll('.fn-animate-page');
+		
+		var allPages = document.querySelectorAll('.fn-transition-page');
 		var body     = document.querySelector('body');
 
 		body.setAttribute('current-page', page)
 		for(var i = 0; i < allPages.length ; i++) {
-			console.log(allPages[i]);
-			// allPages[i].setAttribute('active', '')
 			if(allPages[i].getAttribute('current-page') == page) {
 				allPages[i].setAttribute('active', true);
 			} else {
@@ -29,11 +27,11 @@ var changePage = {
 			})
 		};
 	},
-	swipePages: function () {
-		changePage.showPage('osc');
-		var body = document.querySelector('body');
-		var hammertime = new Hammer(body, {			
-		});
+	swipePages: function (startPage) {
+		changePage.showPage(startPage);
+		
+		var body       = document.querySelector('body');
+		var hammertime = new Hammer(body, {});
 		hammertime.on('swipeleft', function(ev) {
 			changePage.showPage('osc');
 		});

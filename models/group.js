@@ -25,7 +25,10 @@ var groupSchema = new Schema({
 	modulator: Object,
 	groupCounter: Number,
 	vca: Boolean,
-	effects: Boolean
+	effects: Boolean,
+	pp: Array,
+	adsr: Array,
+	wavetypes: Array
 })
 
 

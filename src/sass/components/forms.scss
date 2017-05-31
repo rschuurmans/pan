@@ -2,5 +2,18 @@
 	&-login {
 	
 	}
-}
+	&-osc {
+		h5 { 
+			display:inline-block;
+			vertical-align: middle;
 
+		}
+		.col {
+			line-height:2;
+		}
+		.input-switch {
+			vertical-align:text-top;
+			margin:  0 0 0 $gutter-lg;
+		}
+	}
+}

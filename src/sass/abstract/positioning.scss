@@ -1,6 +1,9 @@
 .text-center {
 	text-align:center;
 }
+.text-right {
+	text-align:right;
+}
 
 .hide {
 	display:none;
@@ -28,7 +31,10 @@
 	position: relative;
 	top: 50%;
 	transform: translateY(-50%);
+	overflow:auto;
 }
+
+
 .right {
 	float:right;
 }
@@ -51,6 +57,9 @@
     &-80 {
         max-width:80%;
     }
+    &-50 {
+        max-width:50%;
+    }
     &-20 {
         max-width:20%;
     }
@@ -68,4 +77,10 @@
 	left:0;
 	width:100%;
 	text-align:center;
+}
+
+.position-behind {
+	z-index:-1;
+	position:fixed;
+
 }

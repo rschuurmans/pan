@@ -47,11 +47,17 @@
 	&-white {
 		color:$color-white;
 	}
+	&-yellow {
+		color:$color-yellow;
+	}
 	&-small {
 		font-size:$font-size-small;
 	}
 	&-condensed {
 		font-family: $font-family-display-condensed;
+	}
+	&-uppercase {
+		text-transform:uppercase;
 	}
 }
 

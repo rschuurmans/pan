@@ -9,6 +9,14 @@
 	&-notification {
 		position:relative;
 	}
+	&-confetti {
+		position:fixed;
+		transition:30s linear;
+		animation: .8s shake infinite linear, 2s shape-in infinite linear;
+		.place-color, .place-stroke {
+			transition:.2s ease-in-out;
+		}
+	}
 	&-pp {
 		background:$color-blue;
 		margin: 0 0;
@@ -55,6 +63,12 @@
 		&[pp-index="7"] {
 			@include pp-grid(4,5,6,8)
 			@include dark-overlay(5);
+		}
+	}
+	&-osc {
+		padding-top:$padding-page-md;
+		h5 {
+			margin-bottom:$padding-page-sm;
 		}
 	}
 }

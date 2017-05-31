@@ -1,3 +1,32 @@
+var inputEvent = {
+	slider: function () {
+		var slider = document.querySelector('.fn-slider');
+		var sliderBg = document.querySelector('.fn-slider-bg');
+		console.log(slider);
+		slider.addEventListener('input', function (e) {
+			console.log('log');
+			var value = e.currentTarget.value;
+			console.log(value);
+			sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)'
+			
+		})
+	},
+	radioSlider: function () {
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+		var inputs = radioWrapper.querySelectorAll('.fn-input');
+		console.log(radioWrapper);
+		inputs.forEach(function(element) {
+			if(element.checked) {
+				radioWrapper.setAttribute('active-radio', element.id);
+			}
+			element.addEventListener('change', function (e) {
+				console.log(e.currentTarget.id);
+				radioWrapper.setAttribute('active-radio', e.currentTarget.id);
+			})
+		});
+	}
+}
+
 var deviceRotation = {
 		firstTime   : null,
 		startCompass: null,
@@ -58,6 +87,7 @@ var deviceRotation = {
 				}
 			}
 		},
+
 		event: function (e) {
 			if(deviceRotation.calibrated(e.timeStamp) && deviceRotation.currentItem) {
 				if(!deviceRotation.startCompass) {

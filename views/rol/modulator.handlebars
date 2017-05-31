@@ -1,19 +1,18 @@
-<div class="container container-fixed animate-page animate-page-modulate fn-animate-page" current-page='filters' active='false' origin='left'>
-
-<ul class='list list-clear list-grid container-bottom container-padding-lg'>
+<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" origin='left' active='true' current-page='filters'>
+	<div class='container-bottom container-padding-lg'>
+	<ul class='list list-clear list-grid '>
 	{{#each group.modulate}}
 		<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type="{{type}}" modulate-value={{value}}>
 			<span class="ic-value" style="transform:rotate({{{rotatePercentage 50 min max}}}deg)"></span>
-			<span class='text-blue btn-label-abs'>{{type}}</span>
-		</li>
-	{{/each}}
-</ul>
-
+				<span class='text-blue btn-label-abs'>{{type}}</span>
+			</li>
+		{{/each}}
+	</ul>
+	</div>
 </div>
-
-<div class="container animate-page animate-page-modulate fn-animate-page container-padding-lg" current-page='osc' active='true' origin='right'>
+<div class="container container-fixed container-padding-lg pagetransition pagetransition-slide fn-transition-page" origin='right' active='false' current-page='osc'>
 	
-	 <ul class='list list-clear list-selector'>
+	<ul class='list list-clear list-selector'>
 		{{#each group.sources}}
 			<li class='list-selector-item btn-selector fn-selector-buttons' target-element={{@index}}>
 				<h5>OSC{{@index}}</h5>
@@ -24,61 +23,48 @@
 		</div>
 	 	
 	 </ul>
-	 <div class="animate-element-container">
+
+	 <div class="elementtransition">
+		D
 	 	{{#each group.sources}}
-		 <div class='animate-element fn-element' current-element={{@index}} active="false">
-		 	<h2>element {{@index}}</h2>
-		 </div>
+		 <form class='form form-osc elementtransition-element fn-element fn-form-radio' current-element={{@index}} active="false">
+
+			<label for="range" class='text-yellow col col-50'><h5>DETUNE</h5></label>
+			<div class='col col-50 text-right'>
+				<label for="active" class='text-yellow'>
+					<h5>ACTIVE</h5>
+				</label>
+				<input type="checkbox" id='active' class='input-switch' {{#if active}}checked{{/if}}>
+				
+			</div>
+
+			  <div class="input-range-wrapper col col-100">
+			  	<input class='input input-range fn-slider' id='range' type="range" name="points" min="0" max="100" value='{{detune}}'>
+			  <div class="input-bg fn-slider-bg" style="clip-path: polygon(0 0, {{detune}}% 0, {{detune}}% 100%, 0% 100%);">
+			  </div>
+			  	
+			  </div>
+			
+			<div class="list-meter-wrapper col col-100">
+				<ul class='list list-clear list-meter text-right fn-radio-slider'>
+				{{#each ../group.wavetypes}}
+					<li>
+						
+						<input type="radio" name='wavetype'  id='{{@index}}' class='input-radio fn-input' value='0' {{#ifCond ../this.type '==' this}} checked{{/ifCond}}>
+						<label for="{{@index}}" class='input-radio-label'><h5 class='text-yellow text-uppercase' >{{this}}</h5></label>
+					</li>
+				{{/each}}
+				
+			</ul>
+
+
+
+		 </form>
 		 {{/each}}
 	 </div>
+
 </div>
 
-
-
-
-{{!-- 
-
-<div class="container container-fullsize container-default">
-	<div class="slider-step fn-stepslider">
-		<div class="slider-step-inner fn-stepslider-inner"></div>
-	</div>
-
-	<div class="slider-fullpage fn-fullpage-slider container-padding">
-		<div class="slide slide-left slide-active fn-fullpage-slide" swipe-direction='right'>
-			<h2>Hey {{user.username}}, {{group.groupCounter}}</h2>
-			<div class="container-center">
-				<ul class="list list-twogrid ">
-					{{#each group.modulate}}
-						<li class='btn btn-modulate fn-modulate-btn' data-index={{@index}} data-type="{{type}}" data-value={{value}} >
-							<div class="content-wrapper">
-								
-							<p class="content">{{type}}</p>
-						</li>
-						
-					{{/each}}
-				</ul>
-				<div class="press-overlay fn-overlay">
-					<h1 class='fn-modulate-value'>value</h1>
-				</div>
-			</div>
-		</div>
-
-		<div class="slide slide-right fn-fullpage-slide" swipe-direction='left'>
-			<h2>change the stuff here</h2>
-		</div>
-	</div>
-	
-</div>
-
-<div class="overlay overlay-pressplay">
-	<p>Ben je er klaar voor?</p>
-	<div class="btn btn-cta btn-cta-black fn-press-play">Beginnen!</div>
-</div>
-
-
-
-
- --}}
 <script>
 	var audioData  = {{{json group}}};
 	console.log({{{json this}}});

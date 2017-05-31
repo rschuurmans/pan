@@ -7,8 +7,11 @@ var onLoad = function () {
 	if(path.indexOf('/role/modulator') !== -1) {
 
 		modulateRole.init();
-		changePage.swipePages();
+		changePage.swipePages('osc');
 		changePage.selector();
+		inputEvent.slider();
+
+		inputEvent.radioSlider();
 
 	} else if(path.indexOf('/role/sequencer') !== -1) {
 
@@ -56,6 +59,8 @@ socket.on('connect', function () {
 var body = document.querySelector('body');
 
 var animate = {
+	splashDelay:100,
+	shapeDelay:300,
 	restartAnimations: function () {
 		var animations = document.querySelectorAll('.fn-start-animation');
 		
@@ -71,41 +76,35 @@ var animate = {
 
 	},
 	loginBackground: function() {
-		console.log('login');
-		
 		var confettiWrapper = document.querySelector('.fn-confetti');
-		var colors = ["#56009C", "#DF1977", "#3038F2","#FFFF00", "#FF5500"];
-		var amount = Math.floor(Math.random() * 12) + 8;  
-		console.log(amount);
+		var colors          = ["#56009C", "#DF1977", "#3038F2","#FFFF00", "#FF5500"];
+		var amount          = Math.floor(Math.random() * 32) + 20;  
+
+		
 		var randomLocation = function (item) {
 			item.style.left            = Math.floor(Math.random() * 90) + 0 + 'vw';
 			item.style.top             = Math.floor(Math.random() * 100) + 0 + '%';
 		}
+
 		var createShape = function () {
-			var color        = colors[Math.floor(Math.random()*colors.length)];
+			var color        = colors[Math.floor(Math.random() * colors.length)];
 			var shapes       = ['<svg width="34px" height="31px" viewBox="0 0 34 31" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">    <!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch -->    <desc>Created with Sketch.</desc>    <defs></defs>    <g id="design-v2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">        <g id="iPhone-7-Copy-68" transform="translate(-172.000000, -33.000000)" class="place-color">            <g id="bg">                <g id="animated" transform="translate(10.000000, 33.000000)">                    <polygon id="Polygon" points="179 0 195.167961 11.7467111 188.992349 30.7532889 169.007651 30.7532889 162.832039 11.7467111"></polygon>                </g></g></g></g></svg>', '<svg width="62px" height="64px" viewBox="0 0 62 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch --><desc>Created with Sketch.</desc><defs></defs><g id="design-v2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="iPhone-7-Copy-68" transform="translate(-34.000000, -162.000000)" stroke-width="8" class="place-stroke"><g id="bg"><g id="animated" transform="translate(10.000000, 33.000000)"><path d="M43,134.408029 L69.6816418,176 L16.3183582,176 L43,134.408029 Z" id="Triangle-2" transform="translate(43.000000, 153.500000) rotate(-27.000000) translate(-43.000000, -153.500000) "></path></g></g></g></g></svg>', '<svg width="66px" height="66px" viewBox="0 0 66 66" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><!-- Generator: Sketch 43.2 (39069) - http://www.bohemiancoding.com/sketch --><desc>Created with Sketch.</desc><defs></defs><g id="design-v2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="iPhone-7-Copy-68" transform="translate(-45.000000, -45.000000)" stroke-width="14" class="place-stroke" ><g id="bg"><g id="animated" transform="translate(10.000000, 33.000000)"><circle id="Oval-22" cx="68" cy="45" r="26"></circle></g></g></g></g></svg>']
 			var item         = document.createElement('div');
 
-			item.innerHTML   = shapes[Math.floor(Math.random()*shapes.length)];;
+			item.innerHTML   = shapes[Math.floor(Math.random() * shapes.length)];;
 
 			var svg          = item.querySelector('svg');
 			var size         = Math.floor(Math.random() * 50) + 25;
 
-			item.className   += "animate-shape animate-shape-in ";
+			item.className   += "block-confetti";
 			svg.style.width  = size + 'px';
 			svg.style.height = size + 'px';
-			var fill = svg.querySelector('.place-color');
+
+			var fill   = svg.querySelector('.place-color');
 			var stroke = svg.querySelector('.place-stroke');
-			if(fill) {
-				fill.style.fill = color;
-			} else {
-				stroke.style.fill = color;
-			}
-		
-			// svg.setAttribute('transform', 'rotate('+Math.floor(Math.random() * 180) + 5 +')');
-
+			fill ? fill.style.fill = color : stroke.style.fyll = color;
+			
 			randomLocation(item);
-
 
 			confettiWrapper.appendChild(item);
 			window.setTimeout(function () {
@@ -116,8 +115,8 @@ var animate = {
 			}, 20000)
 		}
 
-
 		var index = 0;
+
 		var loop = function () {
 			window.setTimeout(function () {
 				createShape();
@@ -126,16 +125,19 @@ var animate = {
 				if(index < amount) {
 					loop();
 				}
-			}, 500)
+			}, animate.shapeDelay)
 		}
 		loop();
 
 	},
 	loginTransition: function () {
+		var container = document.querySelector('.fn-splash');
 
 		window.setTimeout(function () {
-			body.setAttribute('splash', 'finished');
-		}, 2000);
+			container.classList.remove('splashtransition-active');
+			body.setAttribute('splash', 'finished')
+			animate.shapeDelay = 1000;
+		}, animate.splashDelay);
 
 
 	},
@@ -799,14 +801,12 @@ var sequencerRole = {
 
 var changePage = {
 	showPage: function (page)  {
-		console.log(page);
-		var allPages = document.querySelectorAll('.fn-animate-page');
+		
+		var allPages = document.querySelectorAll('.fn-transition-page');
 		var body     = document.querySelector('body');
 
 		body.setAttribute('current-page', page)
 		for(var i = 0; i < allPages.length ; i++) {
-			console.log(allPages[i]);
-			// allPages[i].setAttribute('active', '')
 			if(allPages[i].getAttribute('current-page') == page) {
 				allPages[i].setAttribute('active', true);
 			} else {
@@ -828,11 +828,11 @@ var changePage = {
 			})
 		};
 	},
-	swipePages: function () {
-		changePage.showPage('osc');
-		var body = document.querySelector('body');
-		var hammertime = new Hammer(body, {			
-		});
+	swipePages: function (startPage) {
+		changePage.showPage(startPage);
+		
+		var body       = document.querySelector('body');
+		var hammertime = new Hammer(body, {});
 		hammertime.on('swipeleft', function(ev) {
 			changePage.showPage('osc');
 		});
@@ -874,6 +874,35 @@ var changePage = {
 
 			})
 		};
+	}
+}
+
+var inputEvent = {
+	slider: function () {
+		var slider = document.querySelector('.fn-slider');
+		var sliderBg = document.querySelector('.fn-slider-bg');
+		console.log(slider);
+		slider.addEventListener('input', function (e) {
+			console.log('log');
+			var value = e.currentTarget.value;
+			console.log(value);
+			sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)'
+			
+		})
+	},
+	radioSlider: function () {
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+		var inputs = radioWrapper.querySelectorAll('.fn-input');
+		console.log(radioWrapper);
+		inputs.forEach(function(element) {
+			if(element.checked) {
+				radioWrapper.setAttribute('active-radio', element.id);
+			}
+			element.addEventListener('change', function (e) {
+				console.log(e.currentTarget.id);
+				radioWrapper.setAttribute('active-radio', e.currentTarget.id);
+			})
+		});
 	}
 }
 
@@ -937,6 +966,7 @@ var deviceRotation = {
 				}
 			}
 		},
+
 		event: function (e) {
 			if(deviceRotation.calibrated(e.timeStamp) && deviceRotation.currentItem) {
 				if(!deviceRotation.startCompass) {

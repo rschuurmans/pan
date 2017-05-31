@@ -10,6 +10,10 @@ function hbsHelpers(hbs) {
 			inc: function (value, options) {
 				return parseInt(value) +1;
 			},
+			indexArray: function (index, array) {
+				console.log(index, array);
+				return array.split(',')[index];
+			},
 			json: function (context) {
 				return JSON.stringify(context)
 			},

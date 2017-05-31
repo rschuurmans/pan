@@ -29,7 +29,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/createGroup', function (req, res, next) {
 	// if(req.body.newGroup)
-	console.log(req.body.newGroup);
+	
 	if(req.body.newGroup) {
 		db.createNewGroup(req.body.username, res, function (user, group) {
 
