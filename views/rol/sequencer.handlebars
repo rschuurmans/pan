@@ -1,4 +1,4 @@
-<div class="animate-page animate-page-sequencer fn-animate-page" current-page='sequencer' active='true' origin='left'>
+<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='sequencer' active='true' origin='left'>
 	<div class="container container-padding-lg container-fixed ">
 	<h2 class='fn-info'></h2>
 	<button id='playButton'>test</button>
@@ -16,10 +16,10 @@
 	</div>
 </div>
 
-<div class="animate-page animate-page-sequencer fn-animate-page" current-page='pp' active='false' origin='right'>
+<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='pp' active='false' origin='right'>
 
 	<ul class='list-grid list-grid-pp list-clear container-fixed fn-start-animation animate-stagger animate-stagger-in-slow stagger-kids-8'>
-		{{#each pp}}
+		{{#each group.pp}}
 			
 			<li class='block-pp text-white fn-pp-button' pp-index={{@index}} pp-value={{this}}>
 				
@@ -30,12 +30,12 @@
 	
 </div>
 
-<div class="animate-page animate-page-sequencer fn-animate-page" current-page='adsr' active='false' origin='left'>
+<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='adsr' active='false' origin='left'>
 	
 	<ul class='list list-adsr list-clear container-padding-md '>
-		{{#each adsr}}
+		{{#each group.adsr}}
 			<li class='list-adsr-item btn-'>
-				<div class="list-adsr-item-inner  btn btn-adsr"  type={{type}} value={{value}}><span class='btn-label'>{{type}}</span></div>
+				<div class="list-adsr-item-inner btn btn-adsr"  type={{@key}} value={{this}} max="3"><span class='btn-label'>{{@key}}</span></div>
 			</li>
 		{{/each}}
 	</ul>
@@ -65,8 +65,8 @@
 			</ul>
 		</nav>
 <script>
-	var audioData  = {{{json group}}};
-	console.log(audioData);
+	var data  = {{{json group}}};
+	console.log(data);
 	
 </script>
 

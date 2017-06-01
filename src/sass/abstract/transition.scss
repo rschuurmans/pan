@@ -31,6 +31,7 @@
 		transition:.2s ease-in;
 		max-height:0;
 		overflow:hidden;
+		padding:$padding-page-sm;
 		&[active='true'] {
 			opacity:1;
 			transform:translateY(0);

@@ -27,7 +27,7 @@ var groupSchema = new Schema({
 	vca: Boolean,
 	effects: Boolean,
 	pp: Array,
-	adsr: Array,
+	adsr: Object,
 	wavetypes: Array
 })
 

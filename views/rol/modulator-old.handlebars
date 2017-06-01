@@ -24,32 +24,33 @@
 	 	
 	 </ul>
 
+	 <div class="elementtransition">
 		
-	 	
-		 <form class='form form-osc fn-element fn-form-radio fn-form-modulate' active="false">
-			
+	 	{{#each group.sources}}
+		 <form class='form form-osc elementtransition-element fn-element fn-form-radio fn-form-modulate' current-element={{@index}} active="false">
+
 			<label for="range" class='text-yellow col col-50'><h5>DETUNE</h5></label>
 			<div class='col col-50 text-right'>
 				<label for="active" class='text-yellow'>
 					<h5>ACTIVE</h5>
 				</label>
-				<input type="checkbox" id='active' class='input-switch fn-active'>
+				<input type="checkbox" id='active' class='input-switch fn-active' {{#if active}}checked{{/if}}>
 				
 			</div>
 
 			  <div class="input-range-wrapper col col-100">
-			  	<input class='input input-range fn-slider fn-input' id='range' type="range" name="points" min="0" max="100" value='0'>
-			  <div class="input-bg fn-slider-bg">
+			  	<input class='input input-range fn-slider fn-input' id='range' type="range" name="points" min="0" max="100" value='{{detune}}'>
+			  <div class="input-bg fn-slider-bg" style="clip-path: polygon(0 0, {{detune}}% 0, {{detune}}% 100%, 0% 100%);">
 			  </div>
 			  	
 			  </div>
 			
 			<div class="list-meter-wrapper col col-100">
-			
 				<ul class='list list-clear list-meter text-right fn-radio-slider fn-wavetype' index={{@index}}>
-				{{#each group.wavetypes}}
+				{{#each ../group.wavetypes}}
 					<li>
-						<input type="radio" name='wavetype'  id='{{@index}}' class='input-radio fn-input' value='0' wavetype="{{this}}">
+						
+						<input type="radio" name='wavetype'  id='{{@index}}' class='input-radio fn-input' value='0' {{#ifCond ../this.type '==' this}} checked{{/ifCond}}>
 						<label for="{{@index}}" class='input-radio-label'><h5 class='text-yellow text-uppercase' >{{this}}</h5></label>
 					</li>
 				{{/each}}
@@ -59,6 +60,8 @@
 
 			</div>
 		 </form>
+		 {{/each}}
+	 </div>
 
 </div>
 

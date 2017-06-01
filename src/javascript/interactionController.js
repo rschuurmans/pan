@@ -1,29 +1,35 @@
 var inputEvent = {
 	slider: function () {
 		var slider = document.querySelector('.fn-slider');
-		var sliderBg = document.querySelector('.fn-slider-bg');
-		console.log(slider);
+		
+		
 		slider.addEventListener('input', function (e) {
-			console.log('log');
-			var value = e.currentTarget.value;
-			console.log(value);
-			sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)'
-			
+			console.log(e.currentTarget);
+			inputEvent.setSliderBg(e.currentTarget.value);
 		})
+	},
+	setSliderBg: function (value) {
+		var sliderBg = document.querySelector('.fn-slider-bg');
+		sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
 	},
 	radioSlider: function () {
 		var radioWrapper = document.querySelector('.fn-radio-slider');
 		var inputs = radioWrapper.querySelectorAll('.fn-input');
-		console.log(radioWrapper);
+		
 		inputs.forEach(function(element) {
-			if(element.checked) {
-				radioWrapper.setAttribute('active-radio', element.id);
-			}
-			element.addEventListener('change', function (e) {
-				console.log(e.currentTarget.id);
-				radioWrapper.setAttribute('active-radio', e.currentTarget.id);
-			})
+			inputEvent.radioSliderEvent(element, radioWrapper)
 		});
+	},
+	radioSliderEvent: function (element, radioWrapper) {
+		if(element.checked) {
+			radioWrapper.setAttribute('active-radio', element.id);
+		}
+		element.addEventListener('change', function (e) {
+			console.log('--change');
+			console.log(e.currentTarget);
+			radioWrapper.setAttribute('active-radio', e.currentTarget.id);
+			modulate.changeWavetype(e.currentTarget.getAttribute('wavetype'))
+		})
 	}
 }
 
@@ -96,26 +102,13 @@ var deviceRotation = {
 					deviceRotation.checkAroundCompass(e.webkitCompassHeading);
 					deviceRotation.newValue    = (deviceRotation.timesRotated * 360) + (e.webkitCompassHeading - deviceRotation.startCompass);;
 					deviceRotation.lastCompass = e.webkitCompassHeading;
-					sequencerRole.steps.visualStep(deviceRotation.currentItem, deviceRotation.newValue);
+					var frequency = parseInt(deviceRotation.currentItem.getAttribute('frequency')) + deviceRotation.newValue;
+					events.sizeRotate(frequency)
 				}
 
 
 			}
 
-
-
-			// if(deviceRotation.calibrated(e.timeStamp)) {
-			// 	if(!deviceRotation.startCompass) {
-			// 		deviceRotation.startCompass = e.webkitCompassHeading;
-			// 	} else {
-			// 		if(deviceRotation.lastCompass) {
-			// 			deviceRotation.checkAroundCompass(e.webkitCompassHeading);
-			// 		}
-			// 		deviceRotation.newValue = (deviceRotation.timesRotated * 360) + (e.webkitCompassHeading - deviceRotation.startCompass);;
-			// 		sequencerRole.steps.visualStep(deviceRotation.currentItem, deviceRotation.newValue);
-			// 		deviceRotation.lastCompass = e.webkitCompassHeading;
-			// 	}
-			// }
 
 
 		}

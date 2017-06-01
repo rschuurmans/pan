@@ -15,13 +15,12 @@ var changePage = {
 	},
 	sequencerNavigation: function () {
 		var buttons = document.querySelectorAll('.fn-nav-buttons');
-		changePage.showPage('adsr');
+		changePage.showPage('sequencer');
 		animate.restartAnimations();
 		
 		for(var i = 0; i < buttons.length; i++) {
 
 			buttons[i].addEventListener('click', function (e) {
-				console.log('going to: ', e.currentTarget, e.currentTarget.getAttribute('target-page'));
 				changePage.showPage(e.currentTarget.getAttribute('target-page'));
 				animate.restartAnimations();
 			})
@@ -40,34 +39,57 @@ var changePage = {
 		});
 	},
 	showElement: function (index, button) {
-		var allElements = document.querySelectorAll('.fn-element');
-		var body        = document.querySelector('body');
+		changePage.updateData(index);
+
 		var buttons     = document.querySelectorAll('.fn-selector-buttons');
 
 		body.setAttribute('current-element', index)
 		document.querySelector('.fn-active-bar-container').setAttribute('active', index);
-		for(var i = 0; i < allElements.length ; i++) {
-			console.log(allElements[i]);
-			// allPages[i].setAttribute('active', '')
-			if(allElements[i].getAttribute('current-element') == index) {
-				allElements[i].setAttribute('active', true);
+		for(var i = 0; i < buttons.length ; i++) {
+			if(i == index) {
 				buttons[i].classList.add('active');
-				
 			} else {
-				allElements[i].setAttribute('active', false);
 				buttons[i].classList.remove('active');
 			}
+			
 		}
+		
+		
+
+	},
+	updateData: function (index) {
+		console.log('updating the data');
+		var elementData = data.sources[parseInt(index)]
+		var form        = document.querySelector('.fn-form-modulate');
+		var wavetypes   = form.querySelectorAll('.fn-wavetype .fn-input'); 
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+		form.setAttribute('active-index', index);
+		form.querySelector('.fn-slider').value = elementData.detune;
+		form.querySelector('.fn-active').checked = elementData.active;
+		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
+
+		wavetypes.forEach(function(wavetype) {
+			console.log(wavetype.getAttribute('wavetype') , elementData.type, wavetype.getAttribute('wavetype') == elementData.type);
+			if(wavetype.getAttribute('wavetype') == elementData.type) {
+				wavetype.checked = true;
+			} else {
+				wavetype.checked = false;
+			}
+			inputEvent.radioSliderEvent(wavetype, radioWrapper)
+		});
+		
+
+		inputEvent.setSliderBg(elementData.detune);
+
 	},
 	selector: function (){
 		var buttons = document.querySelectorAll('.fn-selector-buttons');
 		changePage.showElement('0');
-		console.log(buttons);
+		console.log('e');
 		
 		for(var i = 0; i < buttons.length; i++) {
 
 			buttons[i].addEventListener('click', function (e) {
-				console.log('going to: ', e.currentTarget, e.currentTarget.getAttribute('target-element'));
 				changePage.showElement(e.currentTarget.getAttribute('target-element'));
 
 

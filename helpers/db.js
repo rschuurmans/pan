@@ -176,8 +176,13 @@ var db = {
 	},
 	randomADSR: function () {
 		// random values
-		var data = [{type:'attack', value:0}, {type:'decay', value:0}, {type:'sustain', value:0}, {type:'release', value:0}];
-		console.log(data);
+		var data = {
+			atack : 0.005,
+			decay: 0.1,
+			release:1,
+			sustain:0.3
+		}
+		
 		return data
 	},
 	createGroup: function (cb) {
@@ -338,6 +343,7 @@ var db = {
 		for(var i = 0; i < 3; i++) {
 			var active = i == 0? true : false;
 			data.push({
+				id: i,
 				type:wavetypes[Math.floor(Math.random()*wavetypes.length)],
 				newObj: true,
 				active: active,

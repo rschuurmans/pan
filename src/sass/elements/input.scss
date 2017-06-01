@@ -93,13 +93,15 @@
 		-webkit-appearance:none;
 		width:100%;
 		height:$button-height-sm;
-		background:transparent;
+		// background:transparent;
+		background:url('/images/bg-slider-grey.png');
+		background-size:contain;
 		background-position:center;
 		background-repeat:no-repeat;
 		margin: auto;
 		position:absolute;
 		top:0;
-
+		
 		& + .input-bg {
 			width:100%;
 			height:$button-height-sm;

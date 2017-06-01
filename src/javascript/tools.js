@@ -44,6 +44,15 @@ var tools = {
 	getPercentage: function (value, max) {
 		return (value*100)/max;
 	},
+	valueInObject: function (obj,param,  value) {
+		var match = null;
+		obj.forEach(function(elem) {
+			if(elem[param] == value) {
+				match = elem
+			}
+		});
+		return match;
+	},
 	get: function (name) {
 		name = name + '=';
 		var decodedCookie = decodeURIComponent(document.cookie);

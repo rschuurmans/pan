@@ -24,6 +24,9 @@ function hbsHelpers(hbs) {
 
 
 			},
+			withArray: function (array, num, options) {
+				return options.fn(array[num]);
+			},
 			rotatePercentage: function (value, min, max) {
 				return (value * 360) / max;
 
@@ -83,7 +86,7 @@ function hbsHelpers(hbs) {
 			},
 
 			ifCond: function (v1, operator, v2, options) {
-				
+				console.log(options.fn(this) , options.inverse(this), this);
 				switch (operator) {
 			        case '==':
 			            return (v1 == v2) ? options.fn(this) : options.inverse(this);
@@ -111,28 +114,3 @@ function hbsHelpers(hbs) {
 	})
 }
 module.exports = hbsHelpers;
-
-// Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
-//     switch (operator) {
-//         case '==':
-//             return (v1 == v2) ? options.fn(this) : options.inverse(this);
-//         case '===':
-//             return (v1 === v2) ? options.fn(this) : options.inverse(this);
-//         case '!==':
-//             return (v1 !== v2) ? options.fn(this) : options.inverse(this);
-//         case '<':
-//             return (v1 < v2) ? options.fn(this) : options.inverse(this);
-//         case '<=':
-//             return (v1 <= v2) ? options.fn(this) : options.inverse(this);
-//         case '>':
-//             return (v1 > v2) ? options.fn(this) : options.inverse(this);
-//         case '>=':
-//             return (v1 >= v2) ? options.fn(this) : options.inverse(this);
-//         case '&&':
-//             return (v1 && v2) ? options.fn(this) : options.inverse(this);
-//         case '||':
-//             return (v1 || v2) ? options.fn(this) : options.inverse(this);
-//         default:
-//             return options.inverse(this);
-//     }
-// });
