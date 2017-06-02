@@ -1,3 +1,42 @@
+var adsr = {
+	update: function (type, value) {
+		// usage: adsr.update('sustain', 0.1);
+		
+		data.adsr[type] = value;
+		var string = '[envelope][' + type + ']';
+		for(var i in audio.sources) {
+			audio.sources[i].envelope[type] = value;
+		}
+	},
+	changeEvent: function () {
+		tools.eachDomElement('.fn-adsr-button', function (item) {
+			var closeRotate = function () {
+				deviceRotation.stopListen(function (value) {
+					console.log('done with rotating, new value is', value);
+				});
+			}
+			var hammertime = new Hammer(item, {})
+			hammertime.on('press', function (e) {
+				e.preventDefault();
+				item = e.target;
+				console.log(item);
+				var value = 0.3;
+				var max = 3;
+				var percentage = (value *100)/max;
+
+				console.log('start percentage = ', percentage);
+				deviceRotation.listen(item, 'adsr', percentage);
+
+				e.target.addEventListener('mouseup', closeRotate)
+				e.target.addEventListener('touchend', closeRotate)
+				e.target.addEventListener('touchcancel', closeRotate)
+			})
+		})
+		
+	},
+
+}
+
 var inputEvent = {
 	slider: function () {
 		var slider = document.querySelector('.fn-slider');
@@ -39,8 +78,9 @@ var deviceRotation = {
 		lastCompass : null,
 		timesRotated: 0,
 		newValue    : null,
-		callback: null,
+		type:null,
 		currentItem: null,
+		startPerc: null,
 		start: function (item) {
 			window.addEventListener('deviceorientation', deviceRotation.event);
 			
@@ -56,18 +96,24 @@ var deviceRotation = {
 			deviceRotation.lastCompass  = null;
 			
 		},
-		listen:function (item) {
+		listen:function (item, type, perc) {
+			console.log('start listening', item, type);
 			deviceRotation.currentItem = item;
+			deviceRotation.type = type;
+			deviceRotation.startPerc = perc;
 		},
 		stopListen:function (callback) {
+			console.log('stop listen');
 			callback(deviceRotation.newValue)
 
 			deviceRotation.startCompass = null;
-			deviceRotation.lastCompass = null;
+			deviceRotation.lastCompass  = null;
 			deviceRotation.currentItem  = null;
 			deviceRotation.timesRotated = 0;
+			deviceRotation.type         = null;
 			deviceRotation.newValue     = null;
-
+			deviceRotation.currentItem  = null;
+			deviceRotation.startPerc    = null;;
 			
 		},
 		calibrated: function (timestamp) {
@@ -93,17 +139,36 @@ var deviceRotation = {
 				}
 			}
 		},
-
+		sendValues: function (value) {
+			if(deviceRotation.type == 'frequency') {
+				sequencer.receiveNewValue(value, deviceRotation.currentItem);
+			}
+		},
+		getValue: function (currentCompass) {
+			var value = (deviceRotation.timesRotated * 360) + (currentCompass - deviceRotation.startCompass);
+			
+			if(value > 50) {
+				value = 50;
+			} else if (value < -50) {
+				value = -50;
+			}
+			value = value + 50;
+			var difference = 50 - deviceRotation.startPerc ;
+			value = value - difference;
+			console.log();
+			return value;
+		},
 		event: function (e) {
 			if(deviceRotation.calibrated(e.timeStamp) && deviceRotation.currentItem) {
 				if(!deviceRotation.startCompass) {
 					deviceRotation.startCompass = e.webkitCompassHeading;
 				} else {
 					deviceRotation.checkAroundCompass(e.webkitCompassHeading);
-					deviceRotation.newValue    = (deviceRotation.timesRotated * 360) + (e.webkitCompassHeading - deviceRotation.startCompass);;
+					var value =deviceRotation.newValue = deviceRotation.getValue(e.webkitCompassHeading);
+					
+
+					deviceRotation.sendValues(value);
 					deviceRotation.lastCompass = e.webkitCompassHeading;
-					var frequency = parseInt(deviceRotation.currentItem.getAttribute('frequency')) + deviceRotation.newValue;
-					events.sizeRotate(frequency)
 				}
 
 
@@ -111,7 +176,8 @@ var deviceRotation = {
 
 
 
-		}
+		},
+		
 		
 		
 	}

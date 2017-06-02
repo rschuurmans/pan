@@ -1,7 +1,20 @@
-<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='sequencer' active='true' origin='left'>
+<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='load' active='true' origin='up' full='true'>
+	<div class="container container-padding-lg container-fixed ">
+	<h2 class='fn-info'>
+		dit is de tutorial
+	</h2>
+	{{!-- <button id='playButton'>test</button> --}}
+	<div class='btn btn-yellow fn-start-sequece'>
+		start
+	</div>
+</div>
+</div>
+
+
+<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='sequencer' active='false' origin='left'>
 	<div class="container container-padding-lg container-fixed ">
 	<h2 class='fn-info'></h2>
-	<button id='playButton'>test</button>
+	
 		<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength group.steps}}'>
 			
 			{{#each group.steps}}
@@ -34,8 +47,8 @@
 	
 	<ul class='list list-adsr list-clear container-padding-md '>
 		{{#each group.adsr}}
-			<li class='list-adsr-item btn-'>
-				<div class="list-adsr-item-inner btn btn-adsr"  type={{@key}} value={{this}} max="3"><span class='btn-label'>{{@key}}</span></div>
+			<li class='list-adsr-item '>
+				<div class="list-adsr-item-inner btn btn-adsr fn-adsr-button"  type={{@key}} value={{this}} max="3"><span class='btn-label'>{{@key}}</span></div>
 			</li>
 		{{/each}}
 	</ul>

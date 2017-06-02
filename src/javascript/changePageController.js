@@ -1,6 +1,6 @@
 var changePage = {
 	showPage: function (page)  {
-		
+		console.log(page);
 		var allPages = document.querySelectorAll('.fn-transition-page');
 		var body     = document.querySelector('body');
 
@@ -15,7 +15,7 @@ var changePage = {
 	},
 	sequencerNavigation: function () {
 		var buttons = document.querySelectorAll('.fn-nav-buttons');
-		changePage.showPage('sequencer');
+		
 		animate.restartAnimations();
 		
 		for(var i = 0; i < buttons.length; i++) {
@@ -25,6 +25,17 @@ var changePage = {
 				animate.restartAnimations();
 			})
 		};
+	},
+	tutorial: function () {
+		changePage.showPage('load');
+		var button = document.querySelector('.fn-start-sequece');
+		button.addEventListener('click', function () {
+			audio.setup();
+			changePage.showPage('adsr')
+		})
+		// audio.setup();
+		// changePage.showPage('sequencer')
+
 	},
 	swipePages: function (startPage) {
 		changePage.showPage(startPage);
@@ -41,7 +52,7 @@ var changePage = {
 	showElement: function (index, button) {
 		changePage.updateData(index);
 
-		var buttons     = document.querySelectorAll('.fn-selector-buttons');
+		var buttons = document.querySelectorAll('.fn-selector-buttons');
 
 		body.setAttribute('current-element', index)
 		document.querySelector('.fn-active-bar-container').setAttribute('active', index);
@@ -53,9 +64,6 @@ var changePage = {
 			}
 			
 		}
-		
-		
-
 	},
 	updateData: function (index) {
 		console.log('updating the data');

@@ -5,14 +5,15 @@ var onLoad = function () {
 	var path = window.location.pathname;
 
 	if(path.indexOf('/role') !== -1) {
-		audio.setup();
+		changePage.tutorial();
+		deviceRotation.start();
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();
 			changePage.sequencerNavigation();
 		} else {
 			changePage.swipePages('osc');
-			
+			modulateSocket();
 			changePage.selector();
 			inputEvent.slider();
 			modulate.events();

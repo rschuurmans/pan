@@ -72,7 +72,7 @@ io.on('connection', function (socket) {
   
   socket.on('updateSteps', function(data) {
 
-    io.sockets.to(data.room).emit('updateSteps', data.steps);
+    io.sockets.to(data.room).emit('updateSteps', data);
   })
   socket.on('holdStep', function(data) {
 

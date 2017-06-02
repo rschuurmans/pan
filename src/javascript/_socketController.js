@@ -9,13 +9,20 @@ socket.on('connect', function () {
 	
 	}
 
-	socket.on('updateSources', function (data) {
-		console.log('received a socket', data);
-		sources.update(data);
+	socket.on('updateSources', function (received) {
+		console.log('received a socket', received);
+		sources.update(received);
 	})
+	
 
 	
 	
 })
 
 
+var modulateSocket = function () {
+	socket.on('updateSteps', function (received) {
+		console.log('received a socket', received);
+		data.steps[received.index] = received.step;
+	})
+}

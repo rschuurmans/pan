@@ -5,14 +5,15 @@ var onLoad = function () {
 	var path = window.location.pathname;
 
 	if(path.indexOf('/role') !== -1) {
-		audio.setup();
+		changePage.tutorial();
+		deviceRotation.start();
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();
 			changePage.sequencerNavigation();
 		} else {
 			changePage.swipePages('osc');
-			
+			modulateSocket();
 			changePage.selector();
 			inputEvent.slider();
 			modulate.events();
@@ -68,17 +69,23 @@ socket.on('connect', function () {
 	
 	}
 
-	socket.on('updateSources', function (data) {
-		console.log('received a socket', data);
-		sources.update(data);
+	socket.on('updateSources', function (received) {
+		console.log('received a socket', received);
+		sources.update(received);
 	})
+	
 
 	
 	
 })
 
 
-
+var modulateSocket = function () {
+	socket.on('updateSteps', function (received) {
+		console.log('received a socket', received);
+		data.steps[received.index] = received.step;
+	})
+}
 var body = document.querySelector('body');
 
 var animate = {
@@ -190,8 +197,7 @@ var animate = {
 // also: sample and hold doesnt work if step is not active - problem?
 
 
-var audioContext = Tone.context;
-
+var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 var audio = {
 	sources:[],
 	envelope:null,
@@ -203,6 +209,7 @@ var audio = {
 		// loop.startWithoutSocket();
 	},
 	triggerAttack: function (freq, time) {
+		audio.triggerRelease();
 		for(var i in audio.sources) {
 			if(time) {
 				audio.sources[i].triggerAttackRelease(freq, audio.defTime, time )
@@ -211,16 +218,57 @@ var audio = {
 			}
 		}
 	},
-	testValues: function() {
-		data.adsr = {
-			atack : 0.5,
-			decay: 0.9,
-			release:1,
-			sustain:2
+	triggerRelease: function () {
+		for(var i in audio.sources) {
+			audio.sources[i].triggerRelease()
 		}
+	},
+
+	testValues: function() {
+		
 		
 	}
 }
+
+var adsr = {
+	update: function (type, value) {
+		// usage: adsr.update('sustain', 0.1);
+		
+		data.adsr[type] = value;
+		var string = '[envelope][' + type + ']';
+		for(var i in audio.sources) {
+			audio.sources[i].envelope[type] = value;
+		}
+	},
+	changeEvent: function () {
+		tools.eachDomElement('.fn-adsr-button', function (item) {
+			var closeRotate = function () {
+				deviceRotation.stopListen(function (value) {
+					console.log('done with rotating, new value is', value);
+				});
+			}
+			var hammertime = new Hammer(item, {})
+			hammertime.on('press', function (e) {
+				e.preventDefault();
+				item = e.target;
+				console.log(item);
+				var value = 0.3;
+				var max = 3;
+				var percentage = (value *100)/max;
+
+				console.log('start percentage = ', percentage);
+				deviceRotation.listen(item, 'adsr', percentage);
+
+				e.target.addEventListener('mouseup', closeRotate)
+				e.target.addEventListener('touchend', closeRotate)
+				e.target.addEventListener('touchcancel', closeRotate)
+			})
+		})
+		
+	},
+
+}
+
 
 var events = {
 	showStep: function (index) {
@@ -234,51 +282,88 @@ var events = {
 		}
 	},
 	showRotate: function (item) {
-		// this should be somewhere else
-		loop.holdTone(true, parseInt(item.getAttribute('frequency')));
-		// this is fine
 		body.setAttribute('rotate-active', true);
 		item.parentNode.classList.add('rotate-active');
-		events.sizeRotate(parseInt(item.getAttribute('frequency')))
+		events.sizeRotate(sequencer.getItemStep(item).frequency);
 	},
-	sizeRotate: function (value) {
-		var percentage  = (tools.getPercentage(value, 1200) * 70) / 100;
-		var circleSize  = percentage / 10;
-		var extraCircle = deviceRotation.currentItem.querySelector('.rotate-extra-circle');
-		 
-		 extraCircle.style.transform='scale( '+ circleSize*2 +')';
-		 extraCircle.style.borderWidth = percentage/2 + 'px';
+	sizeRotate: function (value, item) {
+		if(item) {
+			var percentage  = (tools.getPercentage(value, 1200) * 70) / 100;
+			var circleSize  = percentage / 10;
+
+			var extraCircle = item.querySelector('.rotate-extra-circle');
+			 extraCircle.style.transform='scale( '+ circleSize*2 +')';
+			 extraCircle.style.borderWidth = percentage/2 + 'px';
+		} else {
+			var circles = document.querySelectorAll('.rotate-extra-circle');
+			for(var i = 0;i < circles.length;i++) {
+				circles[i].style.transform = 'scale(0)';
+				circles[i].style.borderWidth = '0px';
+
+			}
+
+		}
 	},
 	hideRotate: function (item) {
+		
 		body.removeAttribute('rotate-active');
 		item.parentNode.classList.remove('rotate-active');
 		item.querySelector('.rotate-extra-circle').style.borderWidth = item.querySelector('.rotate-extra-circle').style.transform = null;
 	},
 	updateStepBorder: function(item) {
-		var percentage = 70 * parseInt(item.getAttribute('frequency'));
-		percentage = percentage / parseInt(item.getAttribute('max'));
+		var step = sequencer.getItemStep(item);
+
+		var percentage = 70 * step.frequency;
+
+		percentage = percentage / step.max;
 		
 		item.style.background = "-moz-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
 		item.style.background = "-webkit-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
 	},
 	
 }
-
+console.log(data);
 var sequencer = {
 	init: function() {
 
 		tools.eachDomElement('.fn-sequencer-item', function (item) {
+			events.updateStepBorder(item)
 			var hammertime = new Hammer(item, {})
 			sequencer.changeFrequency(hammertime);
 			sequencer.toggleActive(hammertime)
 		})
 		sequencer.sampleHold();
+		adsr.changeEvent();
+	},
+	getItemStep : function (item) {
+		var step = data.steps[parseInt(item.getAttribute('sequence-index'))];
+		return step;
+	},	
+	
+	receiveNewValue: function (newValue, item) {
+		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
+		
+		loop.holdTone(true, frequency)
+
+	},
+	calculateFrequency: function (perc, max) {
+
+		var value = (perc * max) / 100;
+		return value;
+	
+	},
+	calculatePercentage: function (item) {
+		var step = sequencer.getItemStep(item);
+		console.log(step);
+		var perc = (step.frequency * 100) / step.max;
+		console.log('percentage is ', perc);
+		
+		return perc;
+	
 	},
 	sampleHold: function () {
 		var button = document.querySelector('.fn-seq-sh');
-
 		var openGate = function () {
-			
 			loop.holdTone(true);
 			button.classList.add('active');
 		}
@@ -289,7 +374,7 @@ var sequencer = {
 		}
 		button.addEventListener('touchstart', openGate)
 		button.addEventListener('moousedown', openGate)
-		button.addEventListener('mouseup', openGate)
+		button.addEventListener('mouseup', closeGate)
 		button.addEventListener('touchend', closeGate)
 		button.addEventListener('touchcancel', closeGate)
 	},
@@ -297,17 +382,22 @@ var sequencer = {
 		var item = null;
 		var closeFreq = function () {
 			deviceRotation.stopListen(function (value) {
-
 				sequencer.updateFrequency(item, value)
 			});
-			events.showRotate(item);
+
+			events.hideRotate(item);
 		}
 		var openFreq = function (e) {
 			e.preventDefault();
 			item = e.target;
-			deviceRotation.listen(item);
-			events.hideRotate(item);
+			var percentage = sequencer.calculatePercentage(item);
+			console.log(e.target);
+			deviceRotation.listen(item, 'frequency', percentage);
+			
+			events.showRotate(item);
+			loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
 
+			e.target.addEventListener('mouseup', closeFreq)
 			e.target.addEventListener('touchend', closeFreq)
 			e.target.addEventListener('touchcancel', closeFreq)
 		}
@@ -322,26 +412,36 @@ var sequencer = {
 			data.steps[index].active = !data.steps[index].active;
 			
 			e.target.classList.toggle('active');
-
-			socket.emit('updateSteps', {
-				room: data._id,
-				steps: data.steps
-			});
+			sequencer.sendSocket(data.steps[index], index)
+		
 		});
 	},
 	
-	updateFrequency: function(item, newfrequency) {
-		var freq = parseInt(item.getAttribute('frequency')) + newfrequency;
+	updateFrequency: function(item, newValue) {
+		var frequency = sequencer.calculateFrequency(newValue, sequencer.getItemStep(item).max);
+		events.updateStepBorder(item);
+
+		var step = sequencer.getItemStep(item);
+		step.frequency = frequency;
+
+		sequencer.sendSocket(step, parseInt(item.getAttribute('sequence-index')))
 		
-		freq < 0 ? freq = 0 : false;
 		
-		item.setAttribute('frequency', freq)
+		item.setAttribute('frequency', frequency)
 		loop.holdTone(false);
 
-		events.updateStepBorder(item);
+		// 
 	},
-		
+	sendSocket: function (step, index) {
+		console.log(step);
+		socket.emit('updateSteps', {
+			room: data._id,
+			step: data.steps[index],
+			index: index
+		});
+	}
 }
+
 
 var loop = {
 	stopped: true,
@@ -349,15 +449,21 @@ var loop = {
 	hold:false,
 	holdTone: function(start, freq) {
 		if(start) {
-			loop.hold = true;
-			
-			freq ? freq : data.steps[loop.index].frequency;
-			
-			audio.triggerAttack(freq);
-		} else {
-			loop.hold = false;
-		}
+			if(loop.hold) {
+				for(var i = 0; i < audio.sources.length;i++) {
+					audio.sources[i].setNote(freq);
 
+				}
+				
+			} else {
+				loop.hold = true;
+				audio.triggerAttack(freq);
+			}
+		} else {
+			loop.hold=false;
+			audio.triggerRelease();
+
+		}
 	},
 	waitSocket: function () {
 		socket.on('startSequence', function (fulldelay) {
@@ -372,8 +478,13 @@ var loop = {
 	},
 	playStep: function (active, frequency, time) {
 		if(active && !loop.hold) {
-			audio.triggerAttack(frequency, time)
-		}
+
+			audio.triggerAttack(frequency);
+			window.setTimeout(function () {
+				audio.triggerRelease();
+			}, time)
+
+		} 
 	},
 	increaseIndex: function () {
 		loop.index++;
@@ -416,17 +527,7 @@ var loop = {
 		}
 	}
 }
-var adsr = {
-	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		
-		data.adsr[type] = value;
-		var string = '[envelope][' + type + ']';
-		for(var i in audio.sources) {
-			audio.sources[i].envelope[type] = value;
-		}
-	}
-}
+
 
 var pp = {
 	setup: function () {
@@ -468,20 +569,20 @@ var sources = {
 	setup:function () {
 		sources.createSources();
 		sources.setDetune();
-	
+
 	},
 	createSources: function () {
 		
 		for(var i in data.sources) {
 			if(data.sources[i].active) {
 				sources.create(i);
+
 			}
 
 		};
 	},
 	update: function (received) {
-		console.log('updating this', received);
-		console.log();
+
 		data.sources[received.id][received.type] == received.value;
 		if(received.type == 'active') {
 
@@ -502,15 +603,13 @@ var sources = {
 	},
 	changeWavetype: function (id, value) {
 		for(var i in audio.sources) {
-			console.log(audio.sources[i].id == id, audio.sources[i].id , id);
+
 			if(audio.sources[i].id == id) {
 				audio.sources[i].oscillator.type = value;
-				console.log(audio.sources[i].oscillator.type ,value);
 			}
 		}
 	},
 	toggleActive: function (id, active) {
-		console.log('acitve?', active);
 		if(active) {
 			sources.create(id);
 		} else {
@@ -519,7 +618,6 @@ var sources = {
 	},
 	updateDetune: function (id, value) {
 		for(var i in audio.sources) {
-			console.log(audio.sources[i].id == id, audio.sources[i].id , id);
 			if(audio.sources[i].id == id) {
 				audio.sources[i].detune.input.value = value;
 			}
@@ -538,24 +636,22 @@ var sources = {
 			}
 		}).toMaster();
 		synth.id = id;
-		console.log(synth, id);
+
 		audio.sources.push(synth)
 	},
 	remove: function (id) {
-		console.log('removing this');
 		for(var i in audio.sources) {
-			console.log(audio.sources[i] == id, audio.sources[i] , id);
+			
 			if(audio.sources[i].id == id) {
-				console.log('removing:', audio.sources[i]);
 				audio.sources.splice(i, 1);
-				console.log('after:', audio.sources);
 			}
 		}
 	},
 	setDetune: function () {
-		for(var i in audio.sources) {
-			audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
-		};
+		// use the data.set method as used in sequencer.holdtone
+		// for(var i in audio.sources) {
+		// 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
+		// };
 			
 	},
 	setSingleDetune: function (index, value) {
@@ -572,7 +668,7 @@ var modulate = {
 		
 		form.querySelector('.fn-active').addEventListener('change', function (e) {
 			var currentData = modulate.getCurrentData();
-			console.log('e', e.currentTarget.checked, currentData);
+			
 			currentData.active = e.currentTarget.checked;
 
 			modulate.sendSocket({value: currentData.active, type: 'active', id: currentData.id});
@@ -589,7 +685,6 @@ var modulate = {
 		
 	},
 	sendSocket: function (newdata) {
-		console.log('sending this socket', newdata);
 		
 		socket.emit('updateSources', {
 			room: data._id,
@@ -609,7 +704,6 @@ var modulate = {
 	getCurrentData : function () {
 		var form = document.querySelector('.fn-form-modulate');
 		var thisdata = data.sources[parseInt(form.getAttribute('active-index'))];
-		console.log('thisdata', thisdata);
 		return thisdata
 	},
 	waveType: function () {
@@ -621,7 +715,7 @@ var modulate = {
 
 var changePage = {
 	showPage: function (page)  {
-		
+		console.log(page);
 		var allPages = document.querySelectorAll('.fn-transition-page');
 		var body     = document.querySelector('body');
 
@@ -636,7 +730,7 @@ var changePage = {
 	},
 	sequencerNavigation: function () {
 		var buttons = document.querySelectorAll('.fn-nav-buttons');
-		changePage.showPage('sequencer');
+		
 		animate.restartAnimations();
 		
 		for(var i = 0; i < buttons.length; i++) {
@@ -646,6 +740,17 @@ var changePage = {
 				animate.restartAnimations();
 			})
 		};
+	},
+	tutorial: function () {
+		changePage.showPage('load');
+		var button = document.querySelector('.fn-start-sequece');
+		button.addEventListener('click', function () {
+			audio.setup();
+			changePage.showPage('adsr')
+		})
+		// audio.setup();
+		// changePage.showPage('sequencer')
+
 	},
 	swipePages: function (startPage) {
 		changePage.showPage(startPage);
@@ -662,7 +767,7 @@ var changePage = {
 	showElement: function (index, button) {
 		changePage.updateData(index);
 
-		var buttons     = document.querySelectorAll('.fn-selector-buttons');
+		var buttons = document.querySelectorAll('.fn-selector-buttons');
 
 		body.setAttribute('current-element', index)
 		document.querySelector('.fn-active-bar-container').setAttribute('active', index);
@@ -674,9 +779,6 @@ var changePage = {
 			}
 			
 		}
-		
-		
-
 	},
 	updateData: function (index) {
 		console.log('updating the data');
@@ -717,6 +819,45 @@ var changePage = {
 			})
 		};
 	}
+}
+
+var adsr = {
+	update: function (type, value) {
+		// usage: adsr.update('sustain', 0.1);
+		
+		data.adsr[type] = value;
+		var string = '[envelope][' + type + ']';
+		for(var i in audio.sources) {
+			audio.sources[i].envelope[type] = value;
+		}
+	},
+	changeEvent: function () {
+		tools.eachDomElement('.fn-adsr-button', function (item) {
+			var closeRotate = function () {
+				deviceRotation.stopListen(function (value) {
+					console.log('done with rotating, new value is', value);
+				});
+			}
+			var hammertime = new Hammer(item, {})
+			hammertime.on('press', function (e) {
+				e.preventDefault();
+				item = e.target;
+				console.log(item);
+				var value = 0.3;
+				var max = 3;
+				var percentage = (value *100)/max;
+
+				console.log('start percentage = ', percentage);
+				deviceRotation.listen(item, 'adsr', percentage);
+
+				e.target.addEventListener('mouseup', closeRotate)
+				e.target.addEventListener('touchend', closeRotate)
+				e.target.addEventListener('touchcancel', closeRotate)
+			})
+		})
+		
+	},
+
 }
 
 var inputEvent = {
@@ -760,8 +901,9 @@ var deviceRotation = {
 		lastCompass : null,
 		timesRotated: 0,
 		newValue    : null,
-		callback: null,
+		type:null,
 		currentItem: null,
+		startPerc: null,
 		start: function (item) {
 			window.addEventListener('deviceorientation', deviceRotation.event);
 			
@@ -777,18 +919,24 @@ var deviceRotation = {
 			deviceRotation.lastCompass  = null;
 			
 		},
-		listen:function (item) {
+		listen:function (item, type, perc) {
+			console.log('start listening', item, type);
 			deviceRotation.currentItem = item;
+			deviceRotation.type = type;
+			deviceRotation.startPerc = perc;
 		},
 		stopListen:function (callback) {
+			console.log('stop listen');
 			callback(deviceRotation.newValue)
 
 			deviceRotation.startCompass = null;
-			deviceRotation.lastCompass = null;
+			deviceRotation.lastCompass  = null;
 			deviceRotation.currentItem  = null;
 			deviceRotation.timesRotated = 0;
+			deviceRotation.type         = null;
 			deviceRotation.newValue     = null;
-
+			deviceRotation.currentItem  = null;
+			deviceRotation.startPerc    = null;;
 			
 		},
 		calibrated: function (timestamp) {
@@ -814,17 +962,36 @@ var deviceRotation = {
 				}
 			}
 		},
-
+		sendValues: function (value) {
+			if(deviceRotation.type == 'frequency') {
+				sequencer.receiveNewValue(value, deviceRotation.currentItem);
+			}
+		},
+		getValue: function (currentCompass) {
+			var value = (deviceRotation.timesRotated * 360) + (currentCompass - deviceRotation.startCompass);
+			
+			if(value > 50) {
+				value = 50;
+			} else if (value < -50) {
+				value = -50;
+			}
+			value = value + 50;
+			var difference = 50 - deviceRotation.startPerc ;
+			value = value - difference;
+			console.log();
+			return value;
+		},
 		event: function (e) {
 			if(deviceRotation.calibrated(e.timeStamp) && deviceRotation.currentItem) {
 				if(!deviceRotation.startCompass) {
 					deviceRotation.startCompass = e.webkitCompassHeading;
 				} else {
 					deviceRotation.checkAroundCompass(e.webkitCompassHeading);
-					deviceRotation.newValue    = (deviceRotation.timesRotated * 360) + (e.webkitCompassHeading - deviceRotation.startCompass);;
+					var value =deviceRotation.newValue = deviceRotation.getValue(e.webkitCompassHeading);
+					
+
+					deviceRotation.sendValues(value);
 					deviceRotation.lastCompass = e.webkitCompassHeading;
-					var frequency = parseInt(deviceRotation.currentItem.getAttribute('frequency')) + deviceRotation.newValue;
-					events.sizeRotate(frequency)
 				}
 
 
@@ -832,7 +999,8 @@ var deviceRotation = {
 
 
 
-		}
+		},
+		
 		
 		
 	}

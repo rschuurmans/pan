@@ -5,19 +5,29 @@
 	&-slide {
 		transition:.2s ease-in;
 	}
+
 	&[active='false'] {
 
 		&[origin='left'] {
-			transform:translateX(-100%);
+			transform:translate(-100%,0);
 		}
 		&[origin='right'] {
-			transform:translateX(100%);
-				
+			transform:translate(100%,0);
+		}
+		&[origin='up'] {
+			transform:translate(0,-100%);
 		}
 	}
 	&[active='true'] {
-		transform:translateX(0);
+		transform:translate(0,0);
+
+		&[full='true'] {
+			border:1px solid red;
+			background:$color-black;
+			z-index:2;
+		}
 	}
+
 }
 
 
