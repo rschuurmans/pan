@@ -1,41 +1,4 @@
-var adsr = {
-	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		
-		data.adsr[type] = value;
-		var string = '[envelope][' + type + ']';
-		for(var i in audio.sources) {
-			audio.sources[i].envelope[type] = value;
-		}
-	},
-	changeEvent: function () {
-		tools.eachDomElement('.fn-adsr-button', function (item) {
-			var closeRotate = function () {
-				deviceRotation.stopListen(function (value) {
-					console.log('done with rotating, new value is', value);
-				});
-			}
-			var hammertime = new Hammer(item, {})
-			hammertime.on('press', function (e) {
-				e.preventDefault();
-				item = e.target;
-				console.log(item);
-				var value = 0.3;
-				var max = 3;
-				var percentage = (value *100)/max;
 
-				console.log('start percentage = ', percentage);
-				deviceRotation.listen(item, 'adsr', percentage);
-
-				e.target.addEventListener('mouseup', closeRotate)
-				e.target.addEventListener('touchend', closeRotate)
-				e.target.addEventListener('touchcancel', closeRotate)
-			})
-		})
-		
-	},
-
-}
 
 var inputEvent = {
 	slider: function () {
@@ -43,7 +6,6 @@ var inputEvent = {
 		
 		
 		slider.addEventListener('input', function (e) {
-			console.log(e.currentTarget);
 			inputEvent.setSliderBg(e.currentTarget.value);
 		})
 	},
@@ -64,8 +26,6 @@ var inputEvent = {
 			radioWrapper.setAttribute('active-radio', element.id);
 		}
 		element.addEventListener('change', function (e) {
-			console.log('--change');
-			console.log(e.currentTarget);
 			radioWrapper.setAttribute('active-radio', e.currentTarget.id);
 			modulate.changeWavetype(e.currentTarget.getAttribute('wavetype'))
 		})
@@ -88,7 +48,7 @@ var deviceRotation = {
 		stop:function (callback) {
 			window.removeEventListener('deviceorientation', deviceRotation.event);
 			
-			callback(deviceRotation.newValue)
+			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
 			deviceRotation.firstTime    = null;
 			
@@ -104,7 +64,7 @@ var deviceRotation = {
 		},
 		stopListen:function (callback) {
 			console.log('stop listen');
-			callback(deviceRotation.newValue)
+			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
 			deviceRotation.startCompass = null;
 			deviceRotation.lastCompass  = null;
@@ -142,6 +102,8 @@ var deviceRotation = {
 		sendValues: function (value) {
 			if(deviceRotation.type == 'frequency') {
 				sequencer.receiveNewValue(value, deviceRotation.currentItem);
+			} else if (deviceRotation.type == 'adsr') {
+				adsr.receiveNewValue(value, deviceRotation.currentItem);
 			}
 		},
 		getValue: function (currentCompass) {
@@ -155,7 +117,6 @@ var deviceRotation = {
 			value = value + 50;
 			var difference = 50 - deviceRotation.startPerc ;
 			value = value - difference;
-			console.log();
 			return value;
 		},
 		event: function (e) {

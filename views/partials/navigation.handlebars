@@ -1,0 +1,33 @@
+<nav class='nav nav-bottom'>
+	{{#each this}}
+	<ul class='list list-clear fn-nav animate-nav' nav={{current}}>
+		{{#each links}}
+		
+			{{#ifCond this '==' 'null'}}
+			<li></li>
+			{{/ifCond}}
+			{{#ifCond this '==' 'pp'}}
+			<li class='text text-icon text-white fn-nav-buttons'  target-page='pp'>
+				<div>PP <span class='ic ic_back ic_text'></span></div>
+			</li>
+			{{/ifCond}}
+
+			{{#ifCond this '==' 'rec'}}
+	 		<li class=' text-black'><div class=' btn btn-yellow btn-rounded  btn-md fn-seq-rec'>rec</div></li>
+	 		{{/ifCond}}
+
+			{{#ifCond this '==' 'sequencer'}}
+			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>SEQ <span class='ic ic_back ic_text' ></span></li>
+			{{/ifCond}}
+
+			{{#ifCond this '==' 'sequencerLeft'}}
+			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'><span class='ic ic_back ic_text' ></span>SEQ </li>
+			{{/ifCond}}
+			{{#ifCond this '==' 'adsr'}}
+			<li class='text text-icon text-white fn-nav-buttons' target-page='adsr'><div><span class='ic ic_forward ic_text'></span>ADSR</div></li>
+			{{/ifCond}}
+
+		{{/each}}
+	</ul>
+	{{/each}}
+</nav>

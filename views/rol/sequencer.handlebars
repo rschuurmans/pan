@@ -1,26 +1,22 @@
-<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='load' active='true' origin='up' full='true'>
-	<div class="container container-padding-lg container-fixed ">
-	<h2 class='fn-info'>
-		dit is de tutorial
-	</h2>
-	{{!-- <button id='playButton'>test</button> --}}
-	<div class='btn btn-yellow fn-start-sequece'>
-		start
-	</div>
-</div>
-</div>
+{{> alert alert}}
 
+<div class='fn-page-container hide'>
+	
 
 <div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='sequencer' active='false' origin='left'>
 	<div class="container container-padding-lg container-fixed ">
-	<h2 class='fn-info'></h2>
+	<div class='fn-info-wrapper block-info-wrapper'> <p class='fn-info block-info'>{{tips.0.text}}</p> </div>
+
 	
 		<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength group.steps}}'>
 			
 			{{#each group.steps}}
 				<li class='list-grid-item list-grid-item-25 btn-rectangle'>
 					<span  class='btn btn-round btn-grid-item btn-sequencer {{#if active}}active{{/if}} fn-sequencer-item' sequence-index={{@index}} frequency={{frequency}} max={{max}}>
-						<span class="rotate-extra-circle"></span>
+						<span class="rotate-extra-circle unclickable"></span>
+							<span class="ic-value  unclickable" style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
+							
+						</li>
 					</span>
 				</li>
 			{{/each}}
@@ -47,8 +43,21 @@
 	
 	<ul class='list list-adsr list-clear container-padding-md '>
 		{{#each group.adsr}}
-			<li class='list-adsr-item '>
-				<div class="list-adsr-item-inner btn btn-adsr fn-adsr-button"  type={{@key}} value={{this}} max="3"><span class='btn-label'>{{@key}}</span></div>
+
+			<li class='list-adsr-item'>
+				{{#ifCond type '==' 'sustain'}}				
+				<label for="active" class='text-yellow right' >
+					<h5>SUSTAIN</h5>
+				</label>
+				<input type="checkbox" id='sustain' class='input-switch fn-sustain right' {{#if value}} checked{{/if}}>
+				{{else}}
+				<div class="list-adsr-item-inner btn btn-adsr fn-adsr-button "style="transform:rotate({{{rotatePercentage value 0 max}}}deg)"  type={{type}} value={{value}} max={{max}}>
+					<span class='btn-label  unclickable'>{{type}}</span>
+					
+					<span class="ic-value" ></span>
+					</div>
+
+				{{/ifCond}}
 			</li>
 		{{/each}}
 	</ul>
@@ -56,29 +65,12 @@
 	
 		
 </div>
-<nav class='nav nav-bottom' >
-<ul class='list list-clear fn-nav animate-nav' nav='pp'>
-			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>
-				<span class='ic ic_forward ic_text'></span>
-				SEQ
-			</li>
-			<li></li>
-			<li></li>
-			
-		</ul>
-			<ul class='list list-clear fn-nav animate-nav 'nav='adsr'>
-				<li></li>
-				<li></li>
-				<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>SEQ <span class='ic ic_back ic_text' ></span></li>
-			</ul>
-			<ul class='list list-clear fn-nav animate-nav' nav='sequencer'>
-				<li class='text text-icon text-white fn-nav-buttons' target-page='adsr'><div><span class='ic ic_forward ic_text'></span>ADSR</div></li>
-				<li class=' text-black'><div class=' btn btn-yellow btn-rounded  btn-md fn-seq-sh'>S&H</div></li>
-				<li class='text text-icon text-white fn-nav-buttons'  target-page='pp'><div>PP <span class='ic ic_back ic_text'></span></div></li>
-			</ul>
-		</nav>
+
+{{> navigation this.navigation}}
+</div>
 <script>
-	var data  = {{{json group}}};
+	var data  = {{{json this}}};
+	
 	console.log(data);
 	
 </script>

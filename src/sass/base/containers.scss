@@ -21,4 +21,7 @@
 		@extend %fixed-bottom;
 		
 	}
+	&-yellow {
+		background-color:$color-yellow;
+	}
 }

@@ -84,7 +84,9 @@ body[current-page='pp'] .nav {
 }
 body[current-page='adsr'] .nav {
 	ul[nav='adsr'] {
-		
+		width:30%;
+		right:$padding-page-md;
+		left:auto;
 		@include animate-in-out(3,.2, navinright);
 	}
 	ul[nav='pp'] {

@@ -25,6 +25,7 @@
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 var audio = {
 	sources:[],
+	scale: [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
 	envelope:null,
 	defTime: "8n",
 	setup: function () {
@@ -37,7 +38,7 @@ var audio = {
 		audio.triggerRelease();
 		for(var i in audio.sources) {
 			if(time) {
-				audio.sources[i].triggerAttackRelease(freq, audio.defTime, time )
+				audio.sources[i].triggerAttackRelease(freq, time )
 			} else {
 				audio.sources[i].triggerAttack(freq)
 			}
@@ -54,219 +55,87 @@ var audio = {
 		
 	}
 }
+var recording = {
+	buttons: null,
+	isRecording: false,
+	melody:[],
+	startButton: null,
+	setup: function () {
+		recording.startButton = document.querySelector('.fn-seq-rec');
+		recording.buttons = document.querySelectorAll('.btn-sequencer');
 
-var adsr = {
-	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		
-		data.adsr[type] = value;
-		var string = '[envelope][' + type + ']';
-		for(var i in audio.sources) {
-			audio.sources[i].envelope[type] = value;
-		}
-	},
-	changeEvent: function () {
-		tools.eachDomElement('.fn-adsr-button', function (item) {
-			var closeRotate = function () {
-				deviceRotation.stopListen(function (value) {
-					console.log('done with rotating, new value is', value);
+		recording.startButton.addEventListener('click', function (e) {
+			recording.isRecording = !recording.isRecording;
+
+			if(recording.isRecording) {
+				
+				e.currentTarget.classList.add('active');
+				body.setAttribute('recording', 'true');
+				
+				tips.textboxContent('rec: 0/8');
+				
+				recording.buttons.forEach(function(button) {
+					button.addEventListener('click', recording.event)
 				});
+			} else {
+				recording.finishRecording(e);
 			}
-			var hammertime = new Hammer(item, {})
-			hammertime.on('press', function (e) {
-				e.preventDefault();
-				item = e.target;
-				console.log(item);
-				var value = 0.3;
-				var max = 3;
-				var percentage = (value *100)/max;
-
-				console.log('start percentage = ', percentage);
-				deviceRotation.listen(item, 'adsr', percentage);
-
-				e.target.addEventListener('mouseup', closeRotate)
-				e.target.addEventListener('touchend', closeRotate)
-				e.target.addEventListener('touchcancel', closeRotate)
-			})
 		})
-		
 	},
+	event: function (e) {
+		var index = e.currentTarget.getAttribute('sequence-index');
 
-}
+		recording.melody.push(audio.scale[index]);
+		audio.triggerAttack(audio.scale[index], '8n');
+		
 
+		tips.textboxContent('rec: ' + recording.melody.length + '/8');
 
-var events = {
-	showStep: function (index) {
-		var steps   = document.querySelectorAll('.fn-sequencer-item');
-
-		if(steps.length) {
-			steps.forEach(function(step) {
-				step.classList.remove('highlight');
-			});
-			steps[index].classList.add('highlight')
+		if(recording.melody.length == 8) {
+			recording.finishRecording(e);
 		}
 	},
-	showRotate: function (item) {
-		body.setAttribute('rotate-active', true);
-		item.parentNode.classList.add('rotate-active');
-		events.sizeRotate(sequencer.getItemStep(item).frequency);
-	},
-	sizeRotate: function (value, item) {
-		if(item) {
-			var percentage  = (tools.getPercentage(value, 1200) * 70) / 100;
-			var circleSize  = percentage / 10;
+	finishRecording: function (e) {
+		recording.startButton.classList.remove('active');
+		body.removeAttribute('recording', 'true');
+		recording.isRecording = false;
 
-			var extraCircle = item.querySelector('.rotate-extra-circle');
-			 extraCircle.style.transform='scale( '+ circleSize*2 +')';
-			 extraCircle.style.borderWidth = percentage/2 + 'px';
+		if(recording.melody.length == 0) {
+			console.log('didnt record anything');
 		} else {
-			var circles = document.querySelectorAll('.rotate-extra-circle');
-			for(var i = 0;i < circles.length;i++) {
-				circles[i].style.transform = 'scale(0)';
-				circles[i].style.borderWidth = '0px';
-
+			recording.updateMelody(recording.melody);
+			
+			recording.melody = [];
+		}
+		tips.textboxContent(false);
+		
+		recording.buttons.forEach(function(button) {
+			button.removeEventListener('click', recording.event)
+		});
+	},
+	updateMelody: function (melody) {
+		var newMelody = recording.fillMelody(melody)
+		for(var i in newMelody) {
+			data.group.steps[i].active = true;
+			data.group.steps[i].frequency = newMelody[i];
+		}
+		console.log('new steps:', data.group.steps);
+		sequencer.updateActive();
+	},
+	fillMelody: function (melody) {
+		var actualMeldoy = [];
+		var n = i = 0;
+		while(i < 8) {
+			actualMeldoy.push(melody[n])
+			i++;n++;
+			if(n == melody.length) {
+				n = 0;
 			}
-
 		}
-	},
-	hideRotate: function (item) {
-		
-		body.removeAttribute('rotate-active');
-		item.parentNode.classList.remove('rotate-active');
-		item.querySelector('.rotate-extra-circle').style.borderWidth = item.querySelector('.rotate-extra-circle').style.transform = null;
-	},
-	updateStepBorder: function(item) {
-		var step = sequencer.getItemStep(item);
-
-		var percentage = 70 * step.frequency;
-
-		percentage = percentage / step.max;
-		
-		item.style.background = "-moz-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
-		item.style.background = "-webkit-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
-	},
-	
-}
-console.log(data);
-var sequencer = {
-	init: function() {
-
-		tools.eachDomElement('.fn-sequencer-item', function (item) {
-			events.updateStepBorder(item)
-			var hammertime = new Hammer(item, {})
-			sequencer.changeFrequency(hammertime);
-			sequencer.toggleActive(hammertime)
-		})
-		sequencer.sampleHold();
-		adsr.changeEvent();
-	},
-	getItemStep : function (item) {
-		var step = data.steps[parseInt(item.getAttribute('sequence-index'))];
-		return step;
-	},	
-	
-	receiveNewValue: function (newValue, item) {
-		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
-		
-		loop.holdTone(true, frequency)
-
-	},
-	calculateFrequency: function (perc, max) {
-
-		var value = (perc * max) / 100;
-		return value;
-	
-	},
-	calculatePercentage: function (item) {
-		var step = sequencer.getItemStep(item);
-		console.log(step);
-		var perc = (step.frequency * 100) / step.max;
-		console.log('percentage is ', perc);
-		
-		return perc;
-	
-	},
-	sampleHold: function () {
-		var button = document.querySelector('.fn-seq-sh');
-		var openGate = function () {
-			loop.holdTone(true);
-			button.classList.add('active');
-		}
-		var closeGate = function () {
-			
-			button.classList.remove('active');
-			loop.holdTone(false);
-		}
-		button.addEventListener('touchstart', openGate)
-		button.addEventListener('moousedown', openGate)
-		button.addEventListener('mouseup', closeGate)
-		button.addEventListener('touchend', closeGate)
-		button.addEventListener('touchcancel', closeGate)
-	},
-	changeFrequency: function (hammertime) {
-		var item = null;
-		var closeFreq = function () {
-			deviceRotation.stopListen(function (value) {
-				sequencer.updateFrequency(item, value)
-			});
-
-			events.hideRotate(item);
-		}
-		var openFreq = function (e) {
-			e.preventDefault();
-			item = e.target;
-			var percentage = sequencer.calculatePercentage(item);
-			console.log(e.target);
-			deviceRotation.listen(item, 'frequency', percentage);
-			
-			events.showRotate(item);
-			loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
-
-			e.target.addEventListener('mouseup', closeFreq)
-			e.target.addEventListener('touchend', closeFreq)
-			e.target.addEventListener('touchcancel', closeFreq)
-		}
-		hammertime.on('press', function (e) {
-			openFreq(e);
-		})
-	},
-	toggleActive: function (hammertime) {
-		hammertime.on('tap', function (e) {
-			var index = e.target.getAttribute('sequence-index');
-
-			data.steps[index].active = !data.steps[index].active;
-			
-			e.target.classList.toggle('active');
-			sequencer.sendSocket(data.steps[index], index)
-		
-		});
-	},
-	
-	updateFrequency: function(item, newValue) {
-		var frequency = sequencer.calculateFrequency(newValue, sequencer.getItemStep(item).max);
-		events.updateStepBorder(item);
-
-		var step = sequencer.getItemStep(item);
-		step.frequency = frequency;
-
-		sequencer.sendSocket(step, parseInt(item.getAttribute('sequence-index')))
-		
-		
-		item.setAttribute('frequency', frequency)
-		loop.holdTone(false);
-
-		// 
-	},
-	sendSocket: function (step, index) {
-		console.log(step);
-		socket.emit('updateSteps', {
-			room: data._id,
-			step: data.steps[index],
-			index: index
-		});
+		return actualMeldoy
 	}
-}
 
+}
 
 var loop = {
 	stopped: true,
@@ -277,10 +146,9 @@ var loop = {
 			if(loop.hold) {
 				for(var i = 0; i < audio.sources.length;i++) {
 					audio.sources[i].setNote(freq);
-
 				}
-				
 			} else {
+				console.log('triggering holdtone attack', start, freq);
 				loop.hold = true;
 				audio.triggerAttack(freq);
 			}
@@ -302,7 +170,7 @@ var loop = {
 		loop.start(4000);
 	},
 	playStep: function (active, frequency, time) {
-		if(active && !loop.hold) {
+		if(active && !loop.hold && !recording.isRecording) {
 
 			audio.triggerAttack(frequency);
 			window.setTimeout(function () {
@@ -313,18 +181,18 @@ var loop = {
 	},
 	increaseIndex: function () {
 		loop.index++;
-		if(loop.index == data.steps.length) {
+		if(loop.index == data.group.steps.length) {
 			loop.index = 0;
 		}
 	},
 	start: function () {
 		loop.stopped = false;
 
-		var delay = loop.calculateDelay(data.steps.length);
+		var delay = loop.calculateDelay(data.group.steps.length);
 
 		var toneLoop = new Tone.Loop(function (time) {
 			
-			loop.playStep(data.steps[loop.index].active, data.steps[loop.index].frequency, time)
+			loop.playStep(data.group.steps[loop.index].active, data.group.steps[loop.index].frequency, time)
 
 			events.showStep(loop.index);
 			loop.increaseIndex();
@@ -354,37 +222,6 @@ var loop = {
 }
 
 
-var pp = {
-	setup: function () {
-		tools.eachDomElement('.fn-pp-button', function (button) {
-			button.addEventListener('touchstart',pp.openGate)
-			button.addEventListener('touchend',pp.closeGate)
-			button.addEventListener('touchcancel', pp.closeGate)
-		});
-	},
-	openGate: function (e) {
-		var value = e.currentTarget.getAttribute('pp-value');
-
-		loop.holdTone(true, value);
-		e.currentTarget.classList.add('active');
-		pp.sendSocket(true);
-	},
-	closeGate: function(e) {
-		var value = e.currentTarget.getAttribute('pp-value');
-
-		e.currentTarget.classList.remove('active');
-		loop.holdTone(false);
-		pp.sendSocket(false, value)
-	},
-	sendSocket: function (start, value) {
-		socket.emit('holdStep', {
-			room: data._id,
-			frequency: value,
-			start:start
-		});
-	}
-
-}
 
 var filters = {
 
@@ -398,8 +235,8 @@ var sources = {
 	},
 	createSources: function () {
 		
-		for(var i in data.sources) {
-			if(data.sources[i].active) {
+		for(var i in data.group.sources) {
+			if(data.group.sources[i].active) {
 				sources.create(i);
 
 			}
@@ -408,7 +245,7 @@ var sources = {
 	},
 	update: function (received) {
 
-		data.sources[received.id][received.type] == received.value;
+		data.group.sources[received.id][received.type] == received.value;
 		if(received.type == 'active') {
 
 			sources.toggleActive(received.id, received.value)
@@ -417,7 +254,7 @@ var sources = {
 		} else if (received.type == 'waveType') {
 			sources.changeWavetype(received.id, received.value);
 		}
-		// data.sources = received.sources;
+		// data.group.sources = received.sources;
 		// for(var i in received.sources) {
 		// 	for(var y in audio.sources) {
 		// 		if(audio.sources[y].id == i) {
@@ -449,15 +286,15 @@ var sources = {
 		}
 	},
 	create: function (id) {
-		var sourceData = data.sources[id];
+		var sourceData = data.group.sources[id];
 
 		var synth = new Tone.Synth({
 			type:sourceData.type,
 			envelope: {
-				attack: data.adsr.attack,
-				decay: data.adsr.decay,
-				sustain: data.adsr.sustain,
-				release: data.adsr.release
+				attack: data.group.adsr.attack,
+				decay: data.group.adsr.decay,
+				sustain: data.group.adsr.sustain,
+				release: data.group.adsr.release
 			}
 		}).toMaster();
 		synth.id = id;
@@ -473,7 +310,7 @@ var sources = {
 		}
 	},
 	setDetune: function () {
-		// use the data.set method as used in sequencer.holdtone
+		// use the data.group.set method as used in sequencer.holdtone
 		// for(var i in audio.sources) {
 		// 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
 		// };
@@ -483,57 +320,3 @@ var sources = {
 
 	}
 }
-
-var modulate = {
-	events: function() {
-		var form = document.querySelector('.fn-form-modulate');
-		
-		
-
-		
-		form.querySelector('.fn-active').addEventListener('change', function (e) {
-			var currentData = modulate.getCurrentData();
-			
-			currentData.active = e.currentTarget.checked;
-
-			modulate.sendSocket({value: currentData.active, type: 'active', id: currentData.id});
-		});
-		form.querySelector('.fn-slider').addEventListener('change', function (e){
-			var currentData = modulate.getCurrentData();
-			currentData.detune = e.currentTarget.value;
-			modulate.sendSocket({value: currentData.detune, type: 'detune', id: currentData.id});
-		})
-		inputEvent.radioSlider();
-
-		
-	
-		
-	},
-	sendSocket: function (newdata) {
-		
-		socket.emit('updateSources', {
-			room: data._id,
-			data: newdata
-		});
-
-	},
-	changeWavetype: function (newtype) {
-		var currentData = modulate.getCurrentData();
-		currentData.type = newtype;
-		modulate.sendSocket({value: currentData.type, type: 'waveType', id: currentData.id});
-
-	},
-	changeDetune: function (newvalue) {
-		
-	},
-	getCurrentData : function () {
-		var form = document.querySelector('.fn-form-modulate');
-		var thisdata = data.sources[parseInt(form.getAttribute('active-index'))];
-		return thisdata
-	},
-	waveType: function () {
-		var form = document.querySelector('.fn-wavetype');
-		form.querySelector('.fn-input');
-	}
-}
-

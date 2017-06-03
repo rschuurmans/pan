@@ -5,8 +5,9 @@ var onLoad = function () {
 	var path = window.location.pathname;
 
 	if(path.indexOf('/role') !== -1) {
-		changePage.tutorial();
+		changePage.onboarding();
 		deviceRotation.start();
+		tips.init();
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();

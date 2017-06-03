@@ -5,8 +5,9 @@ var onLoad = function () {
 	var path = window.location.pathname;
 
 	if(path.indexOf('/role') !== -1) {
-		changePage.tutorial();
+		changePage.onboarding();
 		deviceRotation.start();
+		tips.init();
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();
@@ -200,6 +201,7 @@ var animate = {
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 var audio = {
 	sources:[],
+	scale: [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
 	envelope:null,
 	defTime: "8n",
 	setup: function () {
@@ -212,7 +214,7 @@ var audio = {
 		audio.triggerRelease();
 		for(var i in audio.sources) {
 			if(time) {
-				audio.sources[i].triggerAttackRelease(freq, audio.defTime, time )
+				audio.sources[i].triggerAttackRelease(freq, time )
 			} else {
 				audio.sources[i].triggerAttack(freq)
 			}
@@ -229,219 +231,87 @@ var audio = {
 		
 	}
 }
+var recording = {
+	buttons: null,
+	isRecording: false,
+	melody:[],
+	startButton: null,
+	setup: function () {
+		recording.startButton = document.querySelector('.fn-seq-rec');
+		recording.buttons = document.querySelectorAll('.btn-sequencer');
 
-var adsr = {
-	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		
-		data.adsr[type] = value;
-		var string = '[envelope][' + type + ']';
-		for(var i in audio.sources) {
-			audio.sources[i].envelope[type] = value;
-		}
-	},
-	changeEvent: function () {
-		tools.eachDomElement('.fn-adsr-button', function (item) {
-			var closeRotate = function () {
-				deviceRotation.stopListen(function (value) {
-					console.log('done with rotating, new value is', value);
+		recording.startButton.addEventListener('click', function (e) {
+			recording.isRecording = !recording.isRecording;
+
+			if(recording.isRecording) {
+				
+				e.currentTarget.classList.add('active');
+				body.setAttribute('recording', 'true');
+				
+				tips.textboxContent('rec: 0/8');
+				
+				recording.buttons.forEach(function(button) {
+					button.addEventListener('click', recording.event)
 				});
+			} else {
+				recording.finishRecording(e);
 			}
-			var hammertime = new Hammer(item, {})
-			hammertime.on('press', function (e) {
-				e.preventDefault();
-				item = e.target;
-				console.log(item);
-				var value = 0.3;
-				var max = 3;
-				var percentage = (value *100)/max;
-
-				console.log('start percentage = ', percentage);
-				deviceRotation.listen(item, 'adsr', percentage);
-
-				e.target.addEventListener('mouseup', closeRotate)
-				e.target.addEventListener('touchend', closeRotate)
-				e.target.addEventListener('touchcancel', closeRotate)
-			})
 		})
-		
 	},
+	event: function (e) {
+		var index = e.currentTarget.getAttribute('sequence-index');
 
-}
+		recording.melody.push(audio.scale[index]);
+		audio.triggerAttack(audio.scale[index], '8n');
+		
 
+		tips.textboxContent('rec: ' + recording.melody.length + '/8');
 
-var events = {
-	showStep: function (index) {
-		var steps   = document.querySelectorAll('.fn-sequencer-item');
-
-		if(steps.length) {
-			steps.forEach(function(step) {
-				step.classList.remove('highlight');
-			});
-			steps[index].classList.add('highlight')
+		if(recording.melody.length == 8) {
+			recording.finishRecording(e);
 		}
 	},
-	showRotate: function (item) {
-		body.setAttribute('rotate-active', true);
-		item.parentNode.classList.add('rotate-active');
-		events.sizeRotate(sequencer.getItemStep(item).frequency);
-	},
-	sizeRotate: function (value, item) {
-		if(item) {
-			var percentage  = (tools.getPercentage(value, 1200) * 70) / 100;
-			var circleSize  = percentage / 10;
+	finishRecording: function (e) {
+		recording.startButton.classList.remove('active');
+		body.removeAttribute('recording', 'true');
+		recording.isRecording = false;
 
-			var extraCircle = item.querySelector('.rotate-extra-circle');
-			 extraCircle.style.transform='scale( '+ circleSize*2 +')';
-			 extraCircle.style.borderWidth = percentage/2 + 'px';
+		if(recording.melody.length == 0) {
+			console.log('didnt record anything');
 		} else {
-			var circles = document.querySelectorAll('.rotate-extra-circle');
-			for(var i = 0;i < circles.length;i++) {
-				circles[i].style.transform = 'scale(0)';
-				circles[i].style.borderWidth = '0px';
-
+			recording.updateMelody(recording.melody);
+			
+			recording.melody = [];
+		}
+		tips.textboxContent(false);
+		
+		recording.buttons.forEach(function(button) {
+			button.removeEventListener('click', recording.event)
+		});
+	},
+	updateMelody: function (melody) {
+		var newMelody = recording.fillMelody(melody)
+		for(var i in newMelody) {
+			data.group.steps[i].active = true;
+			data.group.steps[i].frequency = newMelody[i];
+		}
+		console.log('new steps:', data.group.steps);
+		sequencer.updateActive();
+	},
+	fillMelody: function (melody) {
+		var actualMeldoy = [];
+		var n = i = 0;
+		while(i < 8) {
+			actualMeldoy.push(melody[n])
+			i++;n++;
+			if(n == melody.length) {
+				n = 0;
 			}
-
 		}
-	},
-	hideRotate: function (item) {
-		
-		body.removeAttribute('rotate-active');
-		item.parentNode.classList.remove('rotate-active');
-		item.querySelector('.rotate-extra-circle').style.borderWidth = item.querySelector('.rotate-extra-circle').style.transform = null;
-	},
-	updateStepBorder: function(item) {
-		var step = sequencer.getItemStep(item);
-
-		var percentage = 70 * step.frequency;
-
-		percentage = percentage / step.max;
-		
-		item.style.background = "-moz-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
-		item.style.background = "-webkit-radial-gradient(rgba(0,0,0,5) "+percentage+"%, #3038F2 "+percentage+"%)";
-	},
-	
-}
-console.log(data);
-var sequencer = {
-	init: function() {
-
-		tools.eachDomElement('.fn-sequencer-item', function (item) {
-			events.updateStepBorder(item)
-			var hammertime = new Hammer(item, {})
-			sequencer.changeFrequency(hammertime);
-			sequencer.toggleActive(hammertime)
-		})
-		sequencer.sampleHold();
-		adsr.changeEvent();
-	},
-	getItemStep : function (item) {
-		var step = data.steps[parseInt(item.getAttribute('sequence-index'))];
-		return step;
-	},	
-	
-	receiveNewValue: function (newValue, item) {
-		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
-		
-		loop.holdTone(true, frequency)
-
-	},
-	calculateFrequency: function (perc, max) {
-
-		var value = (perc * max) / 100;
-		return value;
-	
-	},
-	calculatePercentage: function (item) {
-		var step = sequencer.getItemStep(item);
-		console.log(step);
-		var perc = (step.frequency * 100) / step.max;
-		console.log('percentage is ', perc);
-		
-		return perc;
-	
-	},
-	sampleHold: function () {
-		var button = document.querySelector('.fn-seq-sh');
-		var openGate = function () {
-			loop.holdTone(true);
-			button.classList.add('active');
-		}
-		var closeGate = function () {
-			
-			button.classList.remove('active');
-			loop.holdTone(false);
-		}
-		button.addEventListener('touchstart', openGate)
-		button.addEventListener('moousedown', openGate)
-		button.addEventListener('mouseup', closeGate)
-		button.addEventListener('touchend', closeGate)
-		button.addEventListener('touchcancel', closeGate)
-	},
-	changeFrequency: function (hammertime) {
-		var item = null;
-		var closeFreq = function () {
-			deviceRotation.stopListen(function (value) {
-				sequencer.updateFrequency(item, value)
-			});
-
-			events.hideRotate(item);
-		}
-		var openFreq = function (e) {
-			e.preventDefault();
-			item = e.target;
-			var percentage = sequencer.calculatePercentage(item);
-			console.log(e.target);
-			deviceRotation.listen(item, 'frequency', percentage);
-			
-			events.showRotate(item);
-			loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
-
-			e.target.addEventListener('mouseup', closeFreq)
-			e.target.addEventListener('touchend', closeFreq)
-			e.target.addEventListener('touchcancel', closeFreq)
-		}
-		hammertime.on('press', function (e) {
-			openFreq(e);
-		})
-	},
-	toggleActive: function (hammertime) {
-		hammertime.on('tap', function (e) {
-			var index = e.target.getAttribute('sequence-index');
-
-			data.steps[index].active = !data.steps[index].active;
-			
-			e.target.classList.toggle('active');
-			sequencer.sendSocket(data.steps[index], index)
-		
-		});
-	},
-	
-	updateFrequency: function(item, newValue) {
-		var frequency = sequencer.calculateFrequency(newValue, sequencer.getItemStep(item).max);
-		events.updateStepBorder(item);
-
-		var step = sequencer.getItemStep(item);
-		step.frequency = frequency;
-
-		sequencer.sendSocket(step, parseInt(item.getAttribute('sequence-index')))
-		
-		
-		item.setAttribute('frequency', frequency)
-		loop.holdTone(false);
-
-		// 
-	},
-	sendSocket: function (step, index) {
-		console.log(step);
-		socket.emit('updateSteps', {
-			room: data._id,
-			step: data.steps[index],
-			index: index
-		});
+		return actualMeldoy
 	}
-}
 
+}
 
 var loop = {
 	stopped: true,
@@ -452,10 +322,9 @@ var loop = {
 			if(loop.hold) {
 				for(var i = 0; i < audio.sources.length;i++) {
 					audio.sources[i].setNote(freq);
-
 				}
-				
 			} else {
+				console.log('triggering holdtone attack', start, freq);
 				loop.hold = true;
 				audio.triggerAttack(freq);
 			}
@@ -477,7 +346,7 @@ var loop = {
 		loop.start(4000);
 	},
 	playStep: function (active, frequency, time) {
-		if(active && !loop.hold) {
+		if(active && !loop.hold && !recording.isRecording) {
 
 			audio.triggerAttack(frequency);
 			window.setTimeout(function () {
@@ -488,18 +357,18 @@ var loop = {
 	},
 	increaseIndex: function () {
 		loop.index++;
-		if(loop.index == data.steps.length) {
+		if(loop.index == data.group.steps.length) {
 			loop.index = 0;
 		}
 	},
 	start: function () {
 		loop.stopped = false;
 
-		var delay = loop.calculateDelay(data.steps.length);
+		var delay = loop.calculateDelay(data.group.steps.length);
 
 		var toneLoop = new Tone.Loop(function (time) {
 			
-			loop.playStep(data.steps[loop.index].active, data.steps[loop.index].frequency, time)
+			loop.playStep(data.group.steps[loop.index].active, data.group.steps[loop.index].frequency, time)
 
 			events.showStep(loop.index);
 			loop.increaseIndex();
@@ -529,37 +398,6 @@ var loop = {
 }
 
 
-var pp = {
-	setup: function () {
-		tools.eachDomElement('.fn-pp-button', function (button) {
-			button.addEventListener('touchstart',pp.openGate)
-			button.addEventListener('touchend',pp.closeGate)
-			button.addEventListener('touchcancel', pp.closeGate)
-		});
-	},
-	openGate: function (e) {
-		var value = e.currentTarget.getAttribute('pp-value');
-
-		loop.holdTone(true, value);
-		e.currentTarget.classList.add('active');
-		pp.sendSocket(true);
-	},
-	closeGate: function(e) {
-		var value = e.currentTarget.getAttribute('pp-value');
-
-		e.currentTarget.classList.remove('active');
-		loop.holdTone(false);
-		pp.sendSocket(false, value)
-	},
-	sendSocket: function (start, value) {
-		socket.emit('holdStep', {
-			room: data._id,
-			frequency: value,
-			start:start
-		});
-	}
-
-}
 
 var filters = {
 
@@ -573,8 +411,8 @@ var sources = {
 	},
 	createSources: function () {
 		
-		for(var i in data.sources) {
-			if(data.sources[i].active) {
+		for(var i in data.group.sources) {
+			if(data.group.sources[i].active) {
 				sources.create(i);
 
 			}
@@ -583,7 +421,7 @@ var sources = {
 	},
 	update: function (received) {
 
-		data.sources[received.id][received.type] == received.value;
+		data.group.sources[received.id][received.type] == received.value;
 		if(received.type == 'active') {
 
 			sources.toggleActive(received.id, received.value)
@@ -592,7 +430,7 @@ var sources = {
 		} else if (received.type == 'waveType') {
 			sources.changeWavetype(received.id, received.value);
 		}
-		// data.sources = received.sources;
+		// data.group.sources = received.sources;
 		// for(var i in received.sources) {
 		// 	for(var y in audio.sources) {
 		// 		if(audio.sources[y].id == i) {
@@ -624,15 +462,15 @@ var sources = {
 		}
 	},
 	create: function (id) {
-		var sourceData = data.sources[id];
+		var sourceData = data.group.sources[id];
 
 		var synth = new Tone.Synth({
 			type:sourceData.type,
 			envelope: {
-				attack: data.adsr.attack,
-				decay: data.adsr.decay,
-				sustain: data.adsr.sustain,
-				release: data.adsr.release
+				attack: data.group.adsr.attack,
+				decay: data.group.adsr.decay,
+				sustain: data.group.adsr.sustain,
+				release: data.group.adsr.release
 			}
 		}).toMaster();
 		synth.id = id;
@@ -648,7 +486,7 @@ var sources = {
 		}
 	},
 	setDetune: function () {
-		// use the data.set method as used in sequencer.holdtone
+		// use the data.group.set method as used in sequencer.holdtone
 		// for(var i in audio.sources) {
 		// 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
 		// };
@@ -658,6 +496,273 @@ var sources = {
 
 	}
 }
+
+
+
+var events = {
+	showStep: function (index) {
+		var steps   = document.querySelectorAll('.fn-sequencer-item');
+
+		if(steps.length && !recording.isRecording) {
+			steps.forEach(function(step) {
+				step.classList.remove('highlight');
+			});
+			steps[index].classList.add('highlight')
+		} else {
+			steps.forEach(function(step) {
+				step.classList.remove('highlight')
+			});
+		}
+	},
+	showRotate: function (item) {
+		body.setAttribute('rotate-active', true);
+		item.parentNode.classList.add('rotate-active');
+		events.sizeRotate(sequencer.getItemStep(item).frequency);
+	},
+	sizeRotate: function (value, item) {
+		if(item) {
+			var percentage  = (tools.getPercentage(value, 1200) * 70) / 100;
+			var circleSize  = percentage / 10;
+
+			var extraCircle = item.querySelector('.rotate-extra-circle');
+			 extraCircle.style.transform='scale( '+ circleSize*2 +')';
+			 extraCircle.style.borderWidth = percentage/2 + 'px';
+		} else {
+			var circles = document.querySelectorAll('.rotate-extra-circle');
+			for(var i = 0;i < circles.length;i++) {
+				circles[i].style.transform = 'scale(0)';
+				circles[i].style.borderWidth = '0px';
+
+			}
+
+		}
+	},
+	hideRotate: function (item) {
+		
+		body.removeAttribute('rotate-active');
+		item.parentNode.classList.remove('rotate-active');
+		item.querySelector('.rotate-extra-circle').style.borderWidth = item.querySelector('.rotate-extra-circle').style.transform = null;
+	},
+	updateStepLocation: function () {
+		// to be implemented, dot as in filter
+	},
+	
+	
+	
+}
+
+var sequencer = {
+	isRecording: false,
+	newMelody: [],
+	init: function() {
+
+		tools.eachDomElement('.fn-sequencer-item', function (item) {
+			events.updateStepLocation(item)
+			var hammertime = new Hammer(item, {})
+			sequencer.changeFrequency(hammertime);
+			sequencer.toggleActive(hammertime)
+		})
+		recording.setup();
+		adsr.changeEvent();
+	},
+	getItemStep : function (item) {
+		var step = data.group.steps[parseInt(item.getAttribute('sequence-index'))];
+		return step;
+	},	
+	
+	receiveNewValue: function (newValue, item) {
+		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
+		
+		loop.holdTone(true, frequency)
+
+	},
+	calculateFrequency: function (perc, max) {
+
+		var value = (perc * max) / 100;
+		return value;
+	
+	},
+	calculatePercentage: function (item) {
+		var step = sequencer.getItemStep(item);
+		console.log(step);
+		var perc = (step.frequency * 100) / step.max;
+		console.log('percentage is ', perc);
+		
+		return perc;
+	
+	},
+	
+	changeFrequency: function (hammertime) {
+		var item = null;
+		var closeFreq = function () {
+			deviceRotation.stopListen(function (value) {
+				sequencer.updateFrequency(item, value)
+			});
+
+			events.hideRotate(item);
+		}
+		var openFreq = function (e) {
+			e.preventDefault();
+			item = e.target;
+			var percentage = sequencer.calculatePercentage(item);
+			console.log(e.target);
+			deviceRotation.listen(item, 'frequency', percentage);
+			
+			events.showRotate(item);
+			loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
+
+			e.target.addEventListener('mouseup', closeFreq)
+			e.target.addEventListener('touchend', closeFreq)
+			e.target.addEventListener('touchcancel', closeFreq)
+		}
+		hammertime.on('press', function (e) {
+			openFreq(e);
+		})
+	},
+	toggleActive: function (hammertime) {
+		hammertime.on('tap', function (e) {
+			console.log(e.target);
+			if(!recording.isRecording) {
+				var index = e.target.getAttribute('sequence-index');
+				tips.increaseTip('clickActive');
+				console.log(data.group.steps[index], index);
+				data.group.steps[index].active = !data.group.steps[index].active;
+				
+				e.target.classList.toggle('active');
+				sequencer.sendSocket(data.group.steps[index], index)
+			}
+		
+		});
+	},
+	updateActive: function () {
+		var steps = document.querySelectorAll('.btn-sequencer');
+		for(var i = 0; i < steps.length;i++) {
+			if(data.group.steps[i].active) {
+				steps[i].classList.add('active')
+			} else {
+				steps[i].classList.remove('active')
+			}
+		}
+	},
+	updateFrequency: function(item, newValue) {
+		var frequency = sequencer.calculateFrequency(newValue, sequencer.getItemStep(item).max);
+		events.updateStepLocation(item);
+
+		var step = sequencer.getItemStep(item);
+		step.frequency = frequency;
+
+		sequencer.sendSocket(step, parseInt(item.getAttribute('sequence-index')))
+		
+		
+		item.setAttribute('frequency', frequency)
+		loop.holdTone(false);
+
+		// 
+	},
+	sendSocket: function (step, index) {
+		console.log(step);
+		socket.emit('updateSteps', {
+			room: data.group._id,
+			step: data.group.steps[index],
+			index: index
+		});
+	}
+}
+var adsr = {
+	update: function (type, value) {
+		// usage: adsr.update('sustain', 0.1);
+		console.log('updating this in adsr', type, value);
+		data.group.adsr[type] = value;
+		var string = '[envelope][' + type + ']';
+		for(var i in audio.sources) {
+			audio.sources[i].envelope[type] = value;
+		}
+	},
+	saveValue: function (percentage, item) {
+		// var value = data.group.adsr[]
+		console.log('saving this new value ', percentage, item);
+
+	},
+	changeEvent: function () {
+		tools.eachDomElement('.fn-adsr-button', function (item) {
+			var closeRotate = function () {
+				deviceRotation.stopListen(function (percentage, item) {
+					
+					var type = item.getAttribute('type');
+					var value = (percentage*parseInt(item.getAttribute('max')))/100;
+
+					adsr.update(type, value);
+
+					item.removeEventListener('mouseup', closeRotate)
+					item.removeEventListener('touchend', closeRotate)
+					item.removeEventListener('touchcancel', closeRotate)
+
+				});
+			};
+			var openRotate = function (e) {
+
+				var currentItem = e.target.getAttribute('type') ? e.target : e.target.parentNode;
+				var type        = currentItem.getAttribute('type')
+				var value       = data.group.adsr[type];
+				
+				var max = parseInt(currentItem.getAttribute('max'))
+				var percentage = (value *100)/max;
+
+				deviceRotation.listen(currentItem, 'adsr', percentage);
+
+				e.target.addEventListener('mouseup', closeRotate)
+				e.target.addEventListener('touchend', closeRotate)
+				e.target.addEventListener('touchcancel', closeRotate)
+			}
+			var hammertime = new Hammer(item, {})
+			hammertime.on('press', function (e) {
+				e.preventDefault();
+		
+				openRotate(e);
+			})
+		})
+		
+	},
+	receiveNewValue: function (perc, item) {
+		
+		var circle = item.querySelector('.rotate-extra-circle');
+		circle.style.transform = 'scale('+( perc * 3)/100 +')';
+	},
+	
+}
+
+var pp = {
+	setup: function () {
+		tools.eachDomElement('.fn-pp-button', function (button) {
+			button.addEventListener('touchstart',pp.openGate)
+			button.addEventListener('touchend',pp.closeGate)
+			button.addEventListener('touchcancel', pp.closeGate)
+		});
+	},
+	openGate: function (e) {
+		var value = e.currentTarget.getAttribute('pp-value');
+
+		loop.holdTone(true, value);
+		e.currentTarget.classList.add('active');
+		pp.sendSocket(true);
+	},
+	closeGate: function(e) {
+		var value = e.currentTarget.getAttribute('pp-value');
+
+		e.currentTarget.classList.remove('active');
+		loop.holdTone(false);
+		pp.sendSocket(false, value)
+	},
+	sendSocket: function (start, value) {
+		socket.emit('holdStep', {
+			room: data.group._id,
+			frequency: value,
+			start:start
+		});
+	}
+
+}
+
 
 var modulate = {
 	events: function() {
@@ -687,7 +792,7 @@ var modulate = {
 	sendSocket: function (newdata) {
 		
 		socket.emit('updateSources', {
-			room: data._id,
+			room: data.group._id,
 			data: newdata
 		});
 
@@ -703,7 +808,7 @@ var modulate = {
 	},
 	getCurrentData : function () {
 		var form = document.querySelector('.fn-form-modulate');
-		var thisdata = data.sources[parseInt(form.getAttribute('active-index'))];
+		var thisdata = data.group.sources[parseInt(form.getAttribute('active-index'))];
 		return thisdata
 	},
 	waveType: function () {
@@ -741,17 +846,77 @@ var changePage = {
 			})
 		};
 	},
-	tutorial: function () {
-		changePage.showPage('load');
-		var button = document.querySelector('.fn-start-sequece');
-		button.addEventListener('click', function () {
-			audio.setup();
-			changePage.showPage('adsr')
-		})
-		// audio.setup();
-		// changePage.showPage('sequencer')
+	onboarding: function () {
 
+		var button = document.querySelector('.fn-start-sequence');
+		button.addEventListener('click', function () {
+			document.querySelector('.fn-page-container').classList.remove('hide');
+			document.querySelector('.fn-alert').classList.add('hide');
+			audio.setup();
+			changePage.showPage('sequencer')
+		})
 	},
+	// tutorial: function () {
+	// 	changePage.showPage('load1');
+	// 	changePage.slider();
+
+	// 	var button = document.querySelector('.fn-start-sequece');
+	// 	button.addEventListener('click', function () {
+	// 		document.querySelector('.fn-page-container').classList.remove('hide');
+	// 		document.querySelector('.fn-slider-container').classList.add('hide');
+	// 		audio.setup();
+	// 		changePage.showPage('sequencer')
+	// 	})
+		
+	// 	// audio.setup();
+	// 	// changePage.showPage('sequencer')
+
+	// },
+	// slider: function () {
+	// 	var sliderContainer = document.querySelector('.fn-slider-container');
+	// 	var sliderItems = sliderContainer.querySelectorAll('.fn-slider-item');
+	// 	var index = parseInt(sliderContainer.getAttribute('current-slide'));
+
+	// 	var move = function (index) {
+
+	// 		for(var i = 0; i < sliderItems.length; i++) {
+	// 			var amount = 0
+	// 			if(i > index) {
+	// 				amount = 100;
+	// 			} else if (i < index) {
+	// 				amount = -100;
+	// 			}
+	// 			sliderItems[i].style.left =amount+ 'vh';
+	// 			// index++;
+	// 			// console.log(sliderItems);
+
+	// 		}
+	// 	}
+	// 	move(index);
+	// 	var hammertime = new Hammer(body, {});
+	// 	hammertime.on('swipeleft', function(ev) {
+	// 		console.log(sliderItems.length);
+	// 		if(index !== (sliderItems.length-1)) {
+	// 			index++
+	// 			move(index);
+				
+	// 		}
+	// 		console.log('index', index);
+
+			
+			
+	// 	});
+	// 	hammertime.on('swiperight', function(ev) {
+			
+	// 		if(index !== 0 ) {
+	// 			index--
+	// 			move(index);
+				
+	// 		}
+	// 	});
+
+	// },
+	
 	swipePages: function (startPage) {
 		changePage.showPage(startPage);
 		
@@ -782,7 +947,7 @@ var changePage = {
 	},
 	updateData: function (index) {
 		console.log('updating the data');
-		var elementData = data.sources[parseInt(index)]
+		var elementData = data.group.sources[parseInt(index)]
 		var form        = document.querySelector('.fn-form-modulate');
 		var wavetypes   = form.querySelectorAll('.fn-wavetype .fn-input'); 
 		var radioWrapper = document.querySelector('.fn-radio-slider');
@@ -821,44 +986,7 @@ var changePage = {
 	}
 }
 
-var adsr = {
-	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		
-		data.adsr[type] = value;
-		var string = '[envelope][' + type + ']';
-		for(var i in audio.sources) {
-			audio.sources[i].envelope[type] = value;
-		}
-	},
-	changeEvent: function () {
-		tools.eachDomElement('.fn-adsr-button', function (item) {
-			var closeRotate = function () {
-				deviceRotation.stopListen(function (value) {
-					console.log('done with rotating, new value is', value);
-				});
-			}
-			var hammertime = new Hammer(item, {})
-			hammertime.on('press', function (e) {
-				e.preventDefault();
-				item = e.target;
-				console.log(item);
-				var value = 0.3;
-				var max = 3;
-				var percentage = (value *100)/max;
 
-				console.log('start percentage = ', percentage);
-				deviceRotation.listen(item, 'adsr', percentage);
-
-				e.target.addEventListener('mouseup', closeRotate)
-				e.target.addEventListener('touchend', closeRotate)
-				e.target.addEventListener('touchcancel', closeRotate)
-			})
-		})
-		
-	},
-
-}
 
 var inputEvent = {
 	slider: function () {
@@ -866,7 +994,6 @@ var inputEvent = {
 		
 		
 		slider.addEventListener('input', function (e) {
-			console.log(e.currentTarget);
 			inputEvent.setSliderBg(e.currentTarget.value);
 		})
 	},
@@ -887,8 +1014,6 @@ var inputEvent = {
 			radioWrapper.setAttribute('active-radio', element.id);
 		}
 		element.addEventListener('change', function (e) {
-			console.log('--change');
-			console.log(e.currentTarget);
 			radioWrapper.setAttribute('active-radio', e.currentTarget.id);
 			modulate.changeWavetype(e.currentTarget.getAttribute('wavetype'))
 		})
@@ -911,7 +1036,7 @@ var deviceRotation = {
 		stop:function (callback) {
 			window.removeEventListener('deviceorientation', deviceRotation.event);
 			
-			callback(deviceRotation.newValue)
+			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
 			deviceRotation.firstTime    = null;
 			
@@ -927,7 +1052,7 @@ var deviceRotation = {
 		},
 		stopListen:function (callback) {
 			console.log('stop listen');
-			callback(deviceRotation.newValue)
+			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
 			deviceRotation.startCompass = null;
 			deviceRotation.lastCompass  = null;
@@ -965,6 +1090,8 @@ var deviceRotation = {
 		sendValues: function (value) {
 			if(deviceRotation.type == 'frequency') {
 				sequencer.receiveNewValue(value, deviceRotation.currentItem);
+			} else if (deviceRotation.type == 'adsr') {
+				adsr.receiveNewValue(value, deviceRotation.currentItem);
 			}
 		},
 		getValue: function (currentCompass) {
@@ -978,7 +1105,6 @@ var deviceRotation = {
 			value = value + 50;
 			var difference = 50 - deviceRotation.startPerc ;
 			value = value - difference;
-			console.log();
 			return value;
 		},
 		event: function (e) {
@@ -1062,6 +1188,56 @@ var postData = {
 				
 			}
 		})
+	}
+}
+var tips = {
+	textDOM: null,
+	allTips:[],
+	tipMemory:null,
+	currentTip: 0,
+	init:function () {
+		tips.textDOM = document.querySelector('.fn-info');
+		tips.tipMemory =tips.textDOM.innerHTML;
+		tips.allTips = data.tips;
+
+
+	},
+	increaseTip: function (cond) {
+		console.log('trying to increase tip ', cond);
+		console.log(data.tips);
+		// for(var i in data.tips) {
+		// 	console.log(data.tips[i].cond, cond, data.tips[i].cond == cond );
+		// 	if(data.tups[i].cond)
+		// }
+		if(cond == 'clickActive' && tips.currentTip == 0) {
+			tips.newTip();
+		} else if(cond == 'changefreq' && tips.currentTip == 1) {
+			tips.newTip();
+		} else if(cond == 'rec' && tips.currentTip == 2) {
+			tips.newTip();
+		} else if(cond == 'adsr' && tips.currentTip == 3) {
+			tips.newTip();
+		}
+
+	},
+	newTip: function () {
+		tips.currentTip++;
+		tips.textDOM.classList.add('tip-animation')
+		setTimeout(function () {
+			tips.textDOM.innerHTML = tips.tipMemory = data.tips[tips.currentTip].text;
+		}, 250)
+
+	},
+	textboxContent: function (content) {
+		var box = document.querySelector('.fn-info');
+		
+		console.log(box, content);
+		if(!content) {
+			box.innerHTMLv= tips.tipMemory;
+		} else {
+			box.innerHTML = content;
+		}
+
 	}
 }
 var tone = {

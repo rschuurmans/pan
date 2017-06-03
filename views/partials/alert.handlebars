@@ -1,0 +1,48 @@
+<div class='container container-fixed container-yellow fn-alert text-center container-padding-lg text-black'>
+	<div class="container-center">
+		<h2 class='text-black'>{{head}}</h2>
+		<p>{{text}}</p>
+		
+
+	</div>
+	{{#ifCond action '==' 'start'}}
+		<div class="container-bottom container-padding-lg"><div class='btn fn-start-sequence btn-b-black btn-lg'>start</div></div>
+		{{/ifCond}}
+</div>
+{{!-- <div class="fn-slider-container container-fixed above" current-slide='0'>
+	{{#each tutorial}}
+		<div class="fn-slider-item container container-fixed pagetransition-slide block-tutorial text-center text-white" index='{{@index}}' style='left:calc({{@index}}*100'>
+			
+			
+			
+			<div class="image" style='background-image:url("{{image}}")'></div>
+
+			<ul class='list-dots'>
+				<li class="list-dots-item {{#ifCond @index '==' '0'}} active {{/ifCond}}"></li>
+				<li class="list-dots-item {{#ifCond @index '==' '1'}} active {{/ifCond}}"></li>
+				<li class="list-dots-item {{#ifCond @index '==' '2'}} active {{/ifCond}}"></li>
+			</ul>
+			<div class="container-padding-sm">
+				
+			<p class='text-small'>
+				{{text}}
+			</p>
+			
+				{{#ifCond @index '==' '2'}}
+				<div class='btn  btn-lg btn-b-yellow fn-start-sequece'>
+					Start
+				</div>
+				{{else}}
+				<div class='btn btn-lg '>
+						Volgende
+					</div>
+					
+				{{/ifCond}}
+				
+			</div>
+		</div>
+
+		
+	{{/each}}
+
+</div> --}}

@@ -34,7 +34,9 @@
 	overflow:auto;
 }
 
-
+.above {
+	z-index:99;
+}
 .right {
 	float:right;
 }

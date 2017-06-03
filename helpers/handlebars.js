@@ -11,7 +11,7 @@ function hbsHelpers(hbs) {
 				return parseInt(value) +1;
 			},
 			indexArray: function (index, array) {
-				console.log(index, array);
+				
 				return array.split(',')[index];
 			},
 			json: function (context) {
@@ -29,7 +29,14 @@ function hbsHelpers(hbs) {
 			},
 			rotatePercentage: function (value, min, max) {
 				return (value * 360) / max;
-
+			},
+			percentageMax: function (value, max, min) {
+				var percentage =  value * 100 / max;
+				if(min) {
+					percentage += min;
+				}
+				return percentage
+				
 			},
 			eachNumber: function (number, options) {
 				 var ret = "";
@@ -86,7 +93,7 @@ function hbsHelpers(hbs) {
 			},
 
 			ifCond: function (v1, operator, v2, options) {
-				console.log(options.fn(this) , options.inverse(this), this);
+				
 				switch (operator) {
 			        case '==':
 			            return (v1 == v2) ? options.fn(this) : options.inverse(this);
