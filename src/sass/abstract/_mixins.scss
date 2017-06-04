@@ -39,15 +39,10 @@
 	position:relative;
 	&:before {	
 		transition:.2s ease-in-out;
-		content:' ';
+		@extend %absolute-100;
 		background:rgba(0,0,0,1);
 		opacity:#{$amount/10};
-		position:absolute;
-		top:0;
-		left:0;
-		width:100%;
 		pointer-events: none;
-		height:100%;
 
 	   }
 }
@@ -55,15 +50,11 @@
 	position:relative;
 	&:before {	
 		transition:.2s ease-in-out;
-		content:' ';
+		@extend %absolute-100;
 		background:rgba(225,225,225,1);
 		opacity:#{$amount/10};
 		position:absolute;
-		top:0;
-		left:0;
-		width:100%;
 		pointer-events: none;
-		height:100%;
 
 	   }
 }

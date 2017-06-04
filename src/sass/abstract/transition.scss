@@ -94,4 +94,36 @@ body[splash='finished'] {
 	}
 	
 }
+@keyframes scale-icon {
+	0%{transform:scale(1);}
+	100%{transform:scale(20);}
+}
+@keyframes scale-icon-ic {
+	0%{opacity:1}
+	50%{opacity:0}
+	100%{opacity:0}
+}
+@keyframes opacity-in {
+	0%{opacity:0}
+	100%{opacity:1}
+}
+@keyframes scale-in {
+	0%{transform:scale(0);}
+	100%{transform:scale(1);}
+}
+
+// body[current-page='calibrate'] {
+// 	div[current-page='calibrate'] {
+// 		& >* {
+// 			animation: .1s scale-in, .2s opacity-in;
+// 		}
+// 	}
+// 	.btn-calibrate {
+// 		animation:2s scale-icon;
+// 		box-shadow:none !important;
+// 		.ic {
+// 			animation: 2s scale-icon-ic;
+// 		}
+// 	}
+// }
 

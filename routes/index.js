@@ -27,6 +27,14 @@ router.get('/', function(req, res, next) {
 
 });
 
+router.get('/demo', function(req, res, next) { 
+	console.log('////');
+	res.render('demo');
+	
+	
+
+});
+
 router.post('/createGroup', function (req, res, next) {
 	// if(req.body.newGroup)
 	

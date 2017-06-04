@@ -1,10 +1,6 @@
 .extraCircle  {
 	
-	position:absolute;
-	width:100%;
-	height:100%;
-	top:0%;
-	left:0%;
+	@extend %absolute-100;
 	transition:.1s ease-in-out;
 	border-radius:100%;
 	transform:scale(0);
@@ -19,7 +15,7 @@
 	background:none;
 	text-decoration:none;
 	font-size:$font-size-base;
-	
+
 	&-label-abs {
 		@extend %text-center-absolute;
 	}
@@ -60,18 +56,7 @@
 			font-size:15px;
 
 		}
-		// &:before {
-		// 	background:darken($color-turq, 25);
-		// 	content: ' ';
-		// 	width:100%;
-		// 	height:100%;
-		// 	position:absolute;
-		// 	top:0;
-		// 	left:0;
-		// 	z-index:-1;
-		// 	transform:scale(1.5);
-		// 	border-radius:100%;
-		// }
+		
 		.rotate-extra-circle {
 			position:relative;
 			display:block;
@@ -110,8 +95,15 @@
 
 	&-filter {
 		box-shadow: 0px 0px 0px 4px $color-blue inset;
-	    
+	    transition:.2s ease-in-out;
 		position:relative;
+		.rotate-extra-circle {
+			border:1px solid red;
+			
+			@extend .extraCircle;
+			border:10px solid $color-pink;
+
+		}
 	}
 	&-rectangle {
 		
@@ -149,6 +141,10 @@
 		// width:100%;
 		// border:none;
 	}
+	&-half {
+		width:50%;
+		float:left;
+	}
 	&-round {
 		border-radius:100%;
 
@@ -160,9 +156,19 @@
 	&-b-black {
 		@include button-border($color-black);
 	}
+	&-black {
+		background-color:$color-black;
+	}
 	&-b-yellow {
 		@include button-border($color-yellow);
 		color:$color-yellow;
+	}
+	&-margin {
+		margin-bottom:$gutter*3;
+	}
+	&-b-white {
+		@include button-border($color-white);
+		color:$color-white;
 	}
 	&-yellow {
 		background-color:$color-yellow;
@@ -172,6 +178,19 @@
 	}
 	&-rounded {
 		border-radius:$button-border-radius;
+	}
+	&.checked {
+		position:relative;
+		&:before {
+			content : '';
+			position:absolute;
+			width:$icon-width/2;
+			height:$icon-width;
+			background-image:url(./images/ic_check.svg);
+			right:$padding-page-sm;
+			background-position:center center;
+			background-repeat:no-repeat;
+		}
 	}
 	
 }

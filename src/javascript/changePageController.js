@@ -15,87 +15,50 @@ var changePage = {
 	},
 	sequencerNavigation: function () {
 		var buttons = document.querySelectorAll('.fn-nav-buttons');
-		
+		console.log(buttons);
 		animate.restartAnimations();
 		
 		for(var i = 0; i < buttons.length; i++) {
 
 			buttons[i].addEventListener('click', function (e) {
-				changePage.showPage(e.currentTarget.getAttribute('target-page'));
-				animate.restartAnimations();
+				console.log(e.currentTarget);
+				var page  = e.currentTarget.getAttribute('target-page');
+				body.setAttribute('current-page', page)
+
+				if(page == 'calibrate') {
+					window.setTimeout(function () { 
+						changePage.showPage(page);
+						animate.restartAnimations();
+					}, 2000)
+				} else {
+					changePage.showPage(page);
+					animate.restartAnimations();
+				}
 			})
 		};
 	},
 	onboarding: function () {
+		changePage.showPage('alert')
+		var buttonSeq = document.querySelector('.fn-start-sequence');
+		if(buttonSeq) {
+			button.addEventListener('click', function () {
+				audio.setup();
+				changePage.showPage('filters')
+			})
+		}
+		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
+		if(buttonCalibrate) {
+			buttonCalibrate.addEventListener('click', function () {
+				// document.querySelector('.fn-page-container').classList.remove(fil
+				audio.setup();
+				// cameraTracker.calibrate();
+				changePage.showPage('calibrate')
+			})
+			
+		}
 
-		var button = document.querySelector('.fn-start-sequence');
-		button.addEventListener('click', function () {
-			document.querySelector('.fn-page-container').classList.remove('hide');
-			document.querySelector('.fn-alert').classList.add('hide');
-			audio.setup();
-			changePage.showPage('sequencer')
-		})
-	},
-	// tutorial: function () {
-	// 	changePage.showPage('load1');
-	// 	changePage.slider();
-
-	// 	var button = document.querySelector('.fn-start-sequece');
-	// 	button.addEventListener('click', function () {
-	// 		document.querySelector('.fn-page-container').classList.remove('hide');
-	// 		document.querySelector('.fn-slider-container').classList.add('hide');
-	// 		audio.setup();
-	// 		changePage.showPage('sequencer')
-	// 	})
 		
-	// 	// audio.setup();
-	// 	// changePage.showPage('sequencer')
-
-	// },
-	// slider: function () {
-	// 	var sliderContainer = document.querySelector('.fn-slider-container');
-	// 	var sliderItems = sliderContainer.querySelectorAll('.fn-slider-item');
-	// 	var index = parseInt(sliderContainer.getAttribute('current-slide'));
-
-	// 	var move = function (index) {
-
-	// 		for(var i = 0; i < sliderItems.length; i++) {
-	// 			var amount = 0
-	// 			if(i > index) {
-	// 				amount = 100;
-	// 			} else if (i < index) {
-	// 				amount = -100;
-	// 			}
-	// 			sliderItems[i].style.left =amount+ 'vh';
-	// 			// index++;
-	// 			// console.log(sliderItems);
-
-	// 		}
-	// 	}
-	// 	move(index);
-	// 	var hammertime = new Hammer(body, {});
-	// 	hammertime.on('swipeleft', function(ev) {
-	// 		console.log(sliderItems.length);
-	// 		if(index !== (sliderItems.length-1)) {
-	// 			index++
-	// 			move(index);
-				
-	// 		}
-	// 		console.log('index', index);
-
-			
-			
-	// 	});
-	// 	hammertime.on('swiperight', function(ev) {
-			
-	// 		if(index !== 0 ) {
-	// 			index--
-	// 			move(index);
-				
-	// 		}
-	// 	});
-
-	// },
+	},
 	
 	swipePages: function (startPage) {
 		changePage.showPage(startPage);
@@ -126,7 +89,7 @@ var changePage = {
 		}
 	},
 	updateData: function (index) {
-		console.log('updating the data');
+		console.log('updating the data', data);
 		var elementData = data.group.sources[parseInt(index)]
 		var form        = document.querySelector('.fn-form-modulate');
 		var wavetypes   = form.querySelectorAll('.fn-wavetype .fn-input'); 

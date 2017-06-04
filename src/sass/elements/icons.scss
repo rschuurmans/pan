@@ -12,6 +12,17 @@
 		width:100%;
 		background-image:url(./images/ic_back.svg);
 	}
+	&-calibrate {
+		margin:0 auto;
+		width:100%;
+		height:100%;
+		background-image:url(./images/ic_calibrate.svg);
+		background-size:60%;
+		// box-shadow:0px 0px 10px 0px $color-white;
+		&-wrapper {
+			
+		}
+	}
 	&-value {
 		// background:white;
 			position:absolute;
@@ -20,7 +31,7 @@
 			width:100%;
 			height:100%;
 			border-radius:100%;
-			
+			transition:.05s ease-in;
 			&:before {
 				content: ' ';
 				width:12px;
@@ -87,6 +98,21 @@
 		top: calc(50% - #{($icon-width/2)});
 
 		background-image:url(./images/ic_back.svg);
+	}
+	&-fixed-bottom {
+		// margin-bottom:2em;
+		// margin-left:2em !important;
+		// &-wrapper {
+		// 	 background:$color-turq;
+		// 	 position:fixed;
+		// 	 bottom:-2.5em;
+		// 	 left:-2.5em;
+			 
+		// 	 text-align:center;
+		// 	 border-radius:100%;
+		// 	 width:8em;
+		// 	 height:8em;
+		// }
 	}
 }
 

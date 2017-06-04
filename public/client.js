@@ -3,51 +3,31 @@ var body = document.querySelector('body');
 var onLoad = function () {
 
 	var path = window.location.pathname;
-
+	console.log(path, path.length);
 	if(path.indexOf('/role') !== -1) {
 		changePage.onboarding();
 		deviceRotation.start();
 		tips.init();
+
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();
 			changePage.sequencerNavigation();
 		} else {
-			changePage.swipePages('osc');
-			modulateSocket();
-			changePage.selector();
-			inputEvent.slider();
-			modulate.events();
+			cameraTracker.init();
+			changePage.sequencerNavigation();
+			// modulateSocket();
+			// changePage.selector();
+			// inputEvent.slider();
+			// modulate.events();
 		}
+	} else  if(path.indexOf('/demo') !== -1) { 
 	} else {
 		animate.loginBackground();
 		animate.loginTransition();
 		postData.username();
 		postData.groupList();
 	}
-
-	// if(path.indexOf('/role/modulator') !== -1) {
-		
-	// 	// modulateRole.init();
-	// 	// changePage.swipePages('osc');
-	// 	// changePage.selector();
-	// 	// inputEvent.slider();
-
-	// 	// inputEvent.radioSlider();
-
-	// } else if(path.indexOf('/role/sequencer') !== -1) {
-	// 	audio.setup();
-		
-	// 	// changePage.sequencerNavigation();
-	// 	// sequencerRole.init();
-	// } else {
-	// 	// animate.loginBackground();
-	// 	// animate.loginTransition();
-	// 	// postData.username();
-	// 	// postData.groupList();
-	// }
-
-
 	
 }
 
@@ -56,6 +36,8 @@ var onLoad = function () {
 
 window.onload = function () {
 	onLoad();
+	 
+
 
 }
 
@@ -835,87 +817,50 @@ var changePage = {
 	},
 	sequencerNavigation: function () {
 		var buttons = document.querySelectorAll('.fn-nav-buttons');
-		
+		console.log(buttons);
 		animate.restartAnimations();
 		
 		for(var i = 0; i < buttons.length; i++) {
 
 			buttons[i].addEventListener('click', function (e) {
-				changePage.showPage(e.currentTarget.getAttribute('target-page'));
-				animate.restartAnimations();
+				console.log(e.currentTarget);
+				var page  = e.currentTarget.getAttribute('target-page');
+				body.setAttribute('current-page', page)
+
+				if(page == 'calibrate') {
+					window.setTimeout(function () { 
+						changePage.showPage(page);
+						animate.restartAnimations();
+					}, 2000)
+				} else {
+					changePage.showPage(page);
+					animate.restartAnimations();
+				}
 			})
 		};
 	},
 	onboarding: function () {
+		changePage.showPage('alert')
+		var buttonSeq = document.querySelector('.fn-start-sequence');
+		if(buttonSeq) {
+			button.addEventListener('click', function () {
+				audio.setup();
+				changePage.showPage('filters')
+			})
+		}
+		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
+		if(buttonCalibrate) {
+			buttonCalibrate.addEventListener('click', function () {
+				// document.querySelector('.fn-page-container').classList.remove(fil
+				audio.setup();
+				// cameraTracker.calibrate();
+				changePage.showPage('calibrate')
+			})
+			
+		}
 
-		var button = document.querySelector('.fn-start-sequence');
-		button.addEventListener('click', function () {
-			document.querySelector('.fn-page-container').classList.remove('hide');
-			document.querySelector('.fn-alert').classList.add('hide');
-			audio.setup();
-			changePage.showPage('sequencer')
-		})
-	},
-	// tutorial: function () {
-	// 	changePage.showPage('load1');
-	// 	changePage.slider();
-
-	// 	var button = document.querySelector('.fn-start-sequece');
-	// 	button.addEventListener('click', function () {
-	// 		document.querySelector('.fn-page-container').classList.remove('hide');
-	// 		document.querySelector('.fn-slider-container').classList.add('hide');
-	// 		audio.setup();
-	// 		changePage.showPage('sequencer')
-	// 	})
 		
-	// 	// audio.setup();
-	// 	// changePage.showPage('sequencer')
-
-	// },
-	// slider: function () {
-	// 	var sliderContainer = document.querySelector('.fn-slider-container');
-	// 	var sliderItems = sliderContainer.querySelectorAll('.fn-slider-item');
-	// 	var index = parseInt(sliderContainer.getAttribute('current-slide'));
-
-	// 	var move = function (index) {
-
-	// 		for(var i = 0; i < sliderItems.length; i++) {
-	// 			var amount = 0
-	// 			if(i > index) {
-	// 				amount = 100;
-	// 			} else if (i < index) {
-	// 				amount = -100;
-	// 			}
-	// 			sliderItems[i].style.left =amount+ 'vh';
-	// 			// index++;
-	// 			// console.log(sliderItems);
-
-	// 		}
-	// 	}
-	// 	move(index);
-	// 	var hammertime = new Hammer(body, {});
-	// 	hammertime.on('swipeleft', function(ev) {
-	// 		console.log(sliderItems.length);
-	// 		if(index !== (sliderItems.length-1)) {
-	// 			index++
-	// 			move(index);
-				
-	// 		}
-	// 		console.log('index', index);
-
-			
-			
-	// 	});
-	// 	hammertime.on('swiperight', function(ev) {
-			
-	// 		if(index !== 0 ) {
-	// 			index--
-	// 			move(index);
-				
-	// 		}
-	// 	});
-
-	// },
+	},
 	
 	swipePages: function (startPage) {
 		changePage.showPage(startPage);
@@ -946,7 +891,7 @@ var changePage = {
 		}
 	},
 	updateData: function (index) {
-		console.log('updating the data');
+		console.log('updating the data', data);
 		var elementData = data.group.sources[parseInt(index)]
 		var form        = document.querySelector('.fn-form-modulate');
 		var wavetypes   = form.querySelectorAll('.fn-wavetype .fn-input'); 
@@ -1240,90 +1185,6 @@ var tips = {
 
 	}
 }
-var tone = {
-	init:function () {
-		var distortion = new Tone.Distortion(1)
-
-
-		var synth = new Tone.Synth({
-	oscillator : {
-  	type : 'sine',
-    modulationType : 'sawtooth',
-    modulationIndex : 3,
-    harmonicity: 3.4
-  },
-  envelope : {
-  	attack : 0.001,
-    decay : 1,
-    sustain: 1,
-    release: 0.1
-  }
-}).chain(distortion, Tone.Master)
-		var index = 0;
-		var event = [
-	{ time: 0, note : 220, dur : '4n'},
-	{ time: '4n + 8n', note : 440, dur : '8n'},
-	{ time: '2n', note : 550, dur : '16n'},
-	{ time: '2n + 8t', note : 880, dur : '4n'}
-]
-
-		var loop = new Tone.Loop(function(time){
-			console.log(time);
-			
-			console.log(index);
-			synth.triggerAttackRelease(event[index].note, "8n", time)
-			index++;
-			if(index >3) {
-				index = 0;
-			}
-		}, "4n")
-		loop.start(0)
-
-// 		var tones = [220,'B1','D1','E1','C2','B4','D2','E3']
-// var event = [
-// 	{ time: 0, note : 220, dur : '4n'},
-// 	{ time: '4n + 8n', note : 440, dur : '8n'},
-// 	{ time: '2n', note : 550, dur : '16n'},
-// 	{ time: '2n + 8t', note : 880, dur : '4n'}
-// ]
-// var part = new Tone.Part(function(time, event){
-// 	console.log('here');
-// 	//the events will be given to the callback with the time they occur
-
-// 	synth.triggerAttackRelease(event.note, event.dur, time)
-// }, event)
-
-// //start the part at the beginning of the Transport's timeline
-// part.start(0)
-
-// //loop the part 3 times
-// part.loop = 3
-// part.loopEnd = '1m'
-
-		var playing = false;
-		document.querySelector('.fn-seq-sh').addEventListener('click', function(e){
-			console.log(playing);
-			if (!playing){
-				Tone.Transport.start('+0.1');
-				playing=true;
-			} else {
-				Tone.Transport.stop()
-				playing=false;
-			}
-		})
-		document.querySelector('.fn-demo').addEventListener('click', function (e) {
-			// console.log(synth.);
-			synth.envelope.sustain = 0.001;
-			for(var i = 0; i < event.length;i++) {
-				event[i].note += 200;
-			}
-			
-		})
-
-	}
-}
-
-// tone.init();
 var tools = {
 	autoSubmit: function () {
 		var form = document.querySelector('.fn-post-radio');
@@ -1441,42 +1302,171 @@ var cameraTracker = {
   base: 440,
   maxValue:880,
   baseNum: 0,
+  size:0,
+  lowSize:1023,
+  highSize:11554,
+  calibrated: 0,
+  tracker: null,
+  stop: false,
   init: function () {
     console.log('tracker init');
-    cameraTracker.camera();
-  },
-  camera: function () {
-    var arr = [];
-    var info  = document.querySelector('.fn-info');
-    var video = document.querySelector('video');
-    var meter = document.querySelector('.fn-tracking-meter');
+      cameraTracker.calibrate();
+      var filters = document.querySelectorAll('.fn-modulate-btn');
+      
+      filters.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+          cameraTracker.trackElement(e.currentTarget)
+        });
+      });
+  },  
+  
+  calibrate: function () {
+    var buttonTop    = document.querySelector('.fn-calibrate-top');
+    var buttonBottom = document.querySelector('.fn-calibrate-bottom');
+    var video        = document.querySelector('.fn-video-calibrate');
+    var canvas       = document.querySelector('.fn-canvas-calibrate');
 
-    
-    var tracker = new tracking.ColorTracker(['yellow']);
-
-    tracking.track(video, tracker, { camera: true });
-
-    tracker.on('track', function(event) {
-
-      if(event.data[0]) {
-        var biggest = 0;
-        for(var i in event.data) {
-
-          if(event.data[i].width > biggest) {
-            biggest = event.data[i].width;
-          }
-          arr.push(biggest)
-        }
-      }
+    cameraTracker.showCamera(video, canvas, true, document.querySelector('.calibrate-done'), function () {
+      changePage.showPage('filters')
     });
 
-    window.setInterval(function () {
-      if(arr.length) {
-        cameraTracker.audioInterval(arr, meter);
-        arr = [];
-      }
-    },200)
+    buttonTop.addEventListener('click', function (e) {
+      cameraTracker.saveCalibrate(e.currentTarget, 'lowSize', cameraTracker.size);      
+    })
+    
+    buttonBottom.addEventListener('click', function (e) {
+      cameraTracker.saveCalibrate(e.currentTarget, 'highSize', cameraTracker.size);      
+    })
+  },
 
+  saveCalibrate: function (button, type, value) {
+    
+    if(value !== 0) {
+      
+      button.classList.add('checked')
+      cameraTracker.lowSize = button.innerHTML = cameraTracker.size;
+      cameraTracker.finishCalibrate();
+    }
+  },
+
+  finishCalibrate: function () {
+    var buttonTop    = document.querySelector('.fn-calibrate-top');
+    var buttonBottom = document.querySelector('.fn-calibrate-bottom');
+    console.log('can we fiish?');
+    if(buttonTop.classList.contains('checked') && buttonBottom.classList.contains('checked')) {
+      document.querySelector('.fn-calibrate-buttons').classList.add('finished');
+    }
+  },
+  trackerData: function (data) {
+    console.log('the new size is', data.width * data.height);
+    var size = data.width * data.height;
+    if(size > cameraTracker.highSize) {
+      console.log('je gaat over de max');
+    } else if (size < cameraTracker.lowSize) {
+      console.log('je bent de laag');
+    } else {
+      // console.log('je zit er tussen');
+      var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
+      // var percentage = ((size - cameraTracker.highSize) * 100) / cameraTracker.highSize;
+      var percentage = ((size - cameraTracker.highSize) / calculateableNum) * 100
+      console.log('het percentage is ', percentage);
+    }
+  },
+  showCamera: function (video, canvas, showTrack, stopButton, callback) {
+    var first   = true;
+    var context = canvas.getContext('2d');
+    var tracker = new tracking.ColorTracker(['yellow']);
+    var trackThing = tracking.track(video, tracker, { camera: true , fps:1});
+ 
+    tracker.on('track', function(event) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+     if(showTrack) {
+      if(first) {
+        first = !first;
+        canvas.height = video.offsetHeight;
+        canvas.width  = video.offsetWidth;
+      }
+      cameraTracker.drawRectangle(event.data, context, tracker.colors[0])
+      
+     } else {
+      cameraTracker.trackerData(event.data[0]);
+
+
+     }
+    });
+
+
+    stopButton.addEventListener('click', function(e) {
+        trackThing.stop();
+        callback(); 
+        // video.parentNode.removeChild(video)
+        // canvas.parentNode.removeChild(canvas)
+        
+    });
+  },
+  drawRectangle: function (data, context, color) {
+    data.forEach(function(rect) {
+      rect.color         = color;
+      context.fillStyle  = rect.color;
+      cameraTracker.size = rect.width * rect.height;
+
+      context.fillRect(rect.x, rect.y, rect.width, rect.height);
+    });
+      
+  },
+  trackElement: function(element) {
+    var video        = document.querySelector('.fn-video-calibrate');
+    var canvas       = document.querySelector('.fn-canvas-calibrate');
+
+    if(!element.classList.contains('active')) {
+      body.setAttribute('tracking', element.getAttribute('filter-index'))
+      element.classList.add('active');
+       cameraTracker.showCamera(video, canvas, false, element, function () {
+        changePage.showPage('filters')
+      });
+    } else {
+      body.removeAttribute('tracking')
+      element.classList.remove('active');
+    }
+  },
+  
+  randomFUnction : function () {
+//      smooth: function(array) {
+//         var array = [10, 13, 7, 11, 12, 9, 6, 5];
+
+// function smooth(values, alpha) {
+//     var weighted = average(values) * alpha;
+//     var smoothed = [];
+//     for (var i in values) {
+//         var curr = values[i];
+//         var prev = smoothed[i - 1] || values[values.length - 1];
+//         var next = curr || values[0];
+//         var improved = Number(average([weighted, prev, curr, next]).toFixed(2));
+//         smoothed.push(improved);
+//     }
+//     return smoothed;
+// }
+
+// function average(data) {
+//     var sum = data.reduce(function(sum, value) {
+//         return sum + value;
+//     }, 0);
+//     var avg = sum / data.length;
+//     return avg;
+// }
+
+// var a  = array;
+// console.log(a);
+// var d3data = [];
+// for(var i in a ) {
+//   d3data.push({
+//     letter: i,
+//     frequency: a[i],
+//   })
+// }
+//   console.log(d3data);
+// },
+//   },
   },
 
   audioInterval: function (arr, meter) {

@@ -1,5 +1,39 @@
+.btn-filter {
+	z-index:3;
+}
 body {
 	transition:.2s ease-in;
+	&[tracking="0"],&[tracking="1"],&[tracking="2"],&[tracking="3"] {
+		.block-overlay{
+			transform:translateY(0%) rotate(45deg);
+		}
+		nav {
+			opacity:0;
+		}
+		.block-info-wrapper:before  {
+			content: none;
+		}
+		.btn-filter:not(.active) {
+			opacity:0;
+		}
+		h5 {
+			z-index:99;
+		}
+		.btn-filter.active {
+			 box-shadow: 0px 0px 0px 10px $color-purple inset;
+			 .ic-value {
+			 	// background-color:darken($color-purple, 0);
+			 	z-index:-1;
+			 	transform:scale(2) !important;
+			 	span {
+			 		opacity:0;
+			 	}
+			 	&:before {
+			 		content:none;
+			 	}
+			 }
+		}
+	}
 	&[rotate-active="true"] {
 		border:2px solid blue;
 		.grid-item {

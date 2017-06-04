@@ -16,6 +16,16 @@
 	 		<li class=' text-black'><div class=' btn btn-yellow btn-rounded  btn-md fn-seq-rec'>rec</div></li>
 	 		{{/ifCond}}
 
+	 		{{#ifCond this '==' 'osc'}}
+	 		<li class='text text-icon text-white fn-nav-buttons' target-page='osc'>SOURCE <span class='ic ic_back ic_text' ></span></li>
+	 		{{/ifCond}}
+
+	 		{{#ifCond this '==' 'filters'}}
+	 		<li class='text text-icon text-white fn-nav-buttons' target-page='filters'>FILTERS <span class='ic ic_back ic_text' ></span></li>
+	 		{{/ifCond}}
+
+	 		
+
 			{{#ifCond this '==' 'sequencer'}}
 			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>SEQ <span class='ic ic_back ic_text' ></span></li>
 			{{/ifCond}}

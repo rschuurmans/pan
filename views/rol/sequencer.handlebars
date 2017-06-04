@@ -5,7 +5,7 @@
 
 <div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='sequencer' active='false' origin='left'>
 	<div class="container container-padding-lg container-fixed ">
-	<div class='fn-info-wrapper block-info-wrapper'> <p class='fn-info block-info'>{{tips.0.text}}</p> </div>
+	{{> tipBox tips.0.text}}
 
 	
 		<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength group.steps}}'>

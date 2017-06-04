@@ -86,10 +86,7 @@
 		padding:$padding-page-sm 2rem;
 		
 		&:before, &:after {
-			content: ' ';
-			position:absolute;
-			top:0;
-			right:0;
+			@extend %absolute-100;
 			border-radius:8px;
 			width:1rem;
 		}
@@ -113,6 +110,7 @@
 	}
 	&-grid {
 		position:relative;
+		overflow:visible;
 		&-item {
 			float:left;
 			position: relative;

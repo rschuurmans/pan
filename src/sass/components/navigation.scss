@@ -1,11 +1,13 @@
 .nav {
+	opacity:1;
+	transition:.2s ease-in-out;
 	ul {
 		position:fixed;
 		bottom:0;
 		text-align:center;
 		width:100%;
 		left:0;
-		padding:$padding-page-md;
+		padding:$padding-page-sm $padding-page-md;
 		display:flex;
 			justify-content: space-between;
 		li {
@@ -97,6 +99,31 @@ body[current-page='adsr'] .nav {
 		@include animate-in-out(3,.2, navright)
 	}
 
+}
+body[current-page='filters'] .nav {
+	ul[nav='filters'] {
+		@include animate-in-out(3,.2, navinright);
+	}
+	ul[nav='osc'] {
+		display:none;
+	}
+}
+
+body[current-page='osc'] .nav {
+	ul[nav='filters'] {
+		display:none;
+	}
+	ul[nav='osc'] {
+		@include animate-in-out(3,.2, navinleft);
+	}
+}
+body[current-page='calibrate'] .nav {
+	ul[nav='filters'] {
+		@include animate-in-out(3,.2, navright);
+	}
+	ul[nav='osc'] {
+		@include animate-in-out(3,.2, navright);
+	}
 }
 
 @keyframes navleft {

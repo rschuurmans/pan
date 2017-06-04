@@ -41,21 +41,21 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 		}
 		]
 	data.tips = [{
-		text: 'Tik op de steps van de sequencer om een step aan of uit te zetten',
-		cond: 'clickActive'
-	}, {
-		text: 'houd de step lang ingedrukt en draai je telefoon om de toonhoogte te veranderen',
-		cond : 'changeFreq'
-	},
-	{
-		text: 'Je kunt de complete melodie veranderen door een nieuwe op te nemen',
-		cond : 'rec'
-	},
-	{
-		text: 'Nice! Nog een laatste tip. Probeer met de ADSR de toonlengte te veranderen',
-		cond : 'adsr'
-	}
-	]
+			text: 'Tik op de steps van de sequencer om een step aan of uit te zetten',
+			cond: 'clickActive'
+		}, {
+			text: 'houd de step lang ingedrukt en draai je telefoon om de toonhoogte te veranderen',
+			cond : 'changeFreq'
+		},
+		{
+			text: 'Je kunt de complete melodie veranderen door een nieuwe op te nemen',
+			cond : 'rec'
+		},
+		{
+			text: 'Nice! Nog een laatste tip. Probeer met de ADSR de toonlengte te veranderen',
+			cond : 'adsr'
+		}
+		]
 		res.render('rol/sequencer', data)
 	})
 
@@ -65,7 +65,37 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 	
 
 	db.getData(req.params.groupid, req.params.userid, function (data) {
-	
+		data.alert = {
+			text: 'Als modulator vervorm je het geluid. Gebruik filters e.d. om wat vets te maken. Begin als eerste met het calibreren van je camera',
+			action: 'calibrate',
+			head: 'Modulator'
+		}
+		data.tips = [{
+			text: 'Houd een filter ingedrukt en gebruik de pan-panner om de filter aan te passen',
+			cond: 'filter'
+		}, {
+			text: 'houd de step lang ingedrukt en draai je telefoon om de toonhoogte te veranderen',
+			cond : 'changeFreq'
+		},
+		{
+			text: 'Je kunt de complete melodie veranderen door een nieuwe op te nemen',
+			cond : 'rec'
+		},
+		{
+			text: 'Nice! Nog een laatste tip. Probeer met de ADSR de toonlengte te veranderen',
+			cond : 'adsr'
+		}
+		]
+		data.navigation = [{
+			current: 'filters',
+			links: [
+				'null', 'null', 'osc'
+			]
+		}, {
+			current : 'osc',
+			links: ['filters', 'null', 'null']
+		}
+		]
 		res.render('rol/modulator', data)
 	})
 

@@ -20,6 +20,14 @@
 	width:100%;
 	overflow:hidden;
 }
+%absolute-100 {
+	width:100%;
+	height:100%;
+	position:absolute;
+	top:0;
+	left:0;
+	content:'';
+}
 %fixed-bottom {
 	position:fixed;
 		width:100%;
@@ -84,5 +92,4 @@
 .position-behind {
 	z-index:-1;
 	position:fixed;
-
 }
