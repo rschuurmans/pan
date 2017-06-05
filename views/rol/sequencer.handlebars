@@ -8,34 +8,14 @@
 	{{> tipBox tips.0.text}}
 
 	
-		<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength group.steps}}'>
-			
-			{{#each group.steps}}
-				<li class='list-grid-item list-grid-item-25 btn-rectangle'>
-					<span  class='btn btn-round btn-grid-item btn-sequencer {{#if active}}active{{/if}} fn-sequencer-item' sequence-index={{@index}} frequency={{frequency}} max={{max}}>
-						<span class="rotate-extra-circle unclickable"></span>
-							<span class="ic-value  unclickable" style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
-							
-						</li>
-					</span>
-				</li>
-			{{/each}}
-		</ul>
+		{{> stepSequencer group}}
 
 	</div>
 </div>
 
 <div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='pp' active='false' origin='right'>
 
-	<ul class='list-grid list-grid-pp list-clear container-fixed fn-start-animation animate-stagger animate-stagger-in-slow stagger-kids-8'>
-		{{#each group.pp}}
-			
-			<li class='block-pp text-white fn-pp-button' pp-index={{@index}} pp-value={{this}}>
-				
-			</li>
-		{{/each}}
-	</ul>
-
+	{{> pressurePads group}}
 	
 </div>
 
@@ -48,10 +28,6 @@
 
 {{> navigation this.navigation}}
 </div>
-<script>
-	var data  = {{{json this}}};
-	
-	console.log(data);
-	
-</script>
 
+
+{{> data-client this}}

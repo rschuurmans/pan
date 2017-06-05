@@ -326,7 +326,7 @@ var loop = {
 	playStep: function (active, frequency, time) {
 		if(active && !loop.hold && !recording.isRecording) {
 			audio.triggerAttack(frequency);
-			
+			console.log('step');
 			if(!data.group.adsr[0].value) {
 				window.setTimeout(function () {
 				audio.triggerRelease();
@@ -539,12 +539,6 @@ var filters = {
 			filters.create[data.group.modulate[i].type](data.group.modulate[i])
 		}
 		filters.create.connect();
-		// var freeverb = new Tone.Freeverb().toMaster();
-		// freeverb.dampening.value = 12000;
-		//routing synth through the reverb
-		
-		
-		
 	},
 	create: {
 		pingpong: function (data) {

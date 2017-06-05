@@ -1,0 +1,13 @@
+<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength steps}}'>
+			
+	{{#each steps}}
+		<li class='list-grid-item list-grid-item-25 btn-rectangle'>
+			<span  class='btn btn-round btn-grid-item btn-sequencer {{#if active}}active{{/if}} fn-sequencer-item' sequence-index={{@index}} frequency={{frequency}} max={{max}}>
+				<span class="rotate-extra-circle unclickable"></span>
+					<span class="ic-value  unclickable" style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
+					
+				</li>
+			</span>
+		</li>
+	{{/each}}
+</ul>

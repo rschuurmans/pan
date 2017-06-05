@@ -3,83 +3,16 @@
 <div class='fn-page-container'>
 	<div class='container container-fixed pagetransition fn-transition-page container-yellow above text-black text-center pagetransition-slide ' origin='right' active='false' current-page='calibrate'>
 		
-		<div class='container-padding-lg  container-fixed '>
-			<h2>CALIBRATE</h2>
-			<p>
-			Calibreer je device door het hoogste en het laagste punt aan te geven. Druk op de knop, en hang je pan-panner boven de camera.
-			</p>
-			
-			 <div class='video-container'>
-		      <video class='fn-video-calibrate' id='video' width='100%' height='auto' preload autoplay loop muted controls></video>
-		      <canvas class='fn-canvas-calibrate' id='canvas' width='100%' height='auto'></canvas>
-		    </div>
-
-
-
-			<div class='container-bottom  above block-calibrate-buttons fn-calibrate-buttons'>
-				<div class='btn btn-b-black text-black btn-lg text-center fn-calibrate-top btn-margin  left'>top</div>
-				<div class='btn btn-b-black text-black btn-lg text-center fn-calibrate-bottom btn-margin '>bottom</div>
-				<div class='btn btn-black text-white text-center btn-lg calibrate-done btn-margin'>Klaar!</div>
-				
-			</div>
-	
-			
-			
-
-		</div>
+		{{> calibrate}}
 	</div>
 
 	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
 		
-		<div class='container-fixed container-padding-lg'>
-		<ul class='list list-clear list-grid '>
-
-		{{#each group.modulate}}
-			<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type='{{type}}' filter-index={{@key}} modulate-value={{value}}>
-				<span class='ic-value' style='transform:rotate({{{rotatePercentage 50 min max}}}deg)'></span>
-				<span class='text-blue btn-label-abs'>{{type}}</span>
-			</li>
-
-			{{/each}}
-		</ul>
-	{{!-- 	<div class="slider-container-container ">
-			<div class="slider-container fn-slider">
-				{{#each group.modulate}}
-					<div class="slider-item fn-slider-item">
-						<div class='block-filter-top'>
-							<div class='btn-round btn-filter btn-xlg btn-rectangle fn-modulate-btn'>
-								<span class='btn-label-abs'> {{type}} </span>
-							</div>
-						</div>
-					</div>
-				{{/each}}
-				
-			</div>
-		</div>
-		<form class='fn-modulate-settings block-modulate-settings' active-index={{@index}}>
-						
-				<ul class='list-clear text-white'>
-					{{#each group.modulate.0.settings}}
-					
-						
-							<li class='fn-setting {{#if adjustable}}{{else}}hide{{/if}}'>
-								<input class='input input-range fn-filter-settings ' type='range' name='points' min='{{min}}' max='{{max}}' steps={{steps}} value='{{value}}' id={{type}} >
-								<label class='fn-label text-small'for="{{type}}" > {{type}}:</label>
-							</li>
-					{{/each}}
-				</ul>
-			</form>
-
-		</div> --}}
+		{{> filters this}}
 	</div>
 
 	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='right' active='false' current-page='osc'>
-		<ul class='list list-clear list-selector'>
-			{{#each group.modulate}}
-			hmfp
-			{{/each}}
-			
-		</ul>
+		{{> sources this}}
 	</div>
 </div>
 <div class='hide'>
@@ -92,6 +25,7 @@
 
 
 {{> navigation this.navigation}}
+{{> data-client this}}
 {{!-- <div class='fn-page-container hide'>
 	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
 		<div class='container-bottom container-padding-lg'>
