@@ -1,71 +1,175 @@
-<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" origin='left' active='true' current-page='filters'>
-	<div class='container-bottom container-padding-lg'>
-	<ul class='list list-clear list-grid '>
-	{{#each group.modulate}}
-		<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type="{{type}}" modulate-value={{value}}>
-			<span class="ic-value" style="transform:rotate({{{rotatePercentage 50 min max}}}deg)"></span>
-				<span class='text-blue btn-label-abs'>{{type}}</span>
-			</li>
-		{{/each}}
-	</ul>
+{{!-- 	<div class='btn btn-b-yellow text-yellow btn-lg text-center fn-calibrate'>CAlibreren!</div>
+			<div class='btn btn-b-yellow text-yellow btn-lg text-center fn-calibrate-top'>top!</div>
+			<div class='btn btn-b-yellow text-yellow btn-lg text-center fn-calibrate-bottom'>bottom!</div>
+
+			<video id='video' width='600' height='450' preload autoplay loop muted controls></video>
+      <canvas id='canvas' width='600' height='450'></canvas> --}}
+{{> alert alert}}
+
+<div class='fn-page-container'>
+	<div class='container container-fixed pagetransition fn-transition-page container-yellow above text-black text-center pagetransition-slide ' origin='right' active='false' current-page='calibrate'>
+		
+		<div class='container-padding-lg  container-fixed '>
+			<h2>CALIBRATE</h2>
+			<p>
+			Calibreer je device door het hoogste en het laagste punt aan te geven. Druk op de knop, en hang je pan-panner boven de camera.
+			</p>
+			
+			 <div class='video-container'>
+		      <video class='fn-video-calibrate' id='video' width='100%' height='auto' preload autoplay loop muted controls></video>
+		      <canvas class='fn-canvas-calibrate' id='canvas' width='100%' height='auto'></canvas>
+		    </div>
+
+
+
+			<div class='container-bottom  above block-calibrate-buttons fn-calibrate-buttons'>
+				<div class='btn btn-b-black text-black btn-lg text-center fn-calibrate-top btn-margin  left'>top</div>
+				<div class='btn btn-b-black text-black btn-lg text-center fn-calibrate-bottom btn-margin '>bottom</div>
+				<div class='btn btn-black text-white text-center btn-lg calibrate-done btn-margin'>Klaar!</div>
+				
+			</div>
+	
+			
+			
+
+		</div>
+	</div>
+
+	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
+		
+		<div class='container-fixed'>
+		
+		
+		<div class="slider-container-container">
+			<div class='slider-container fn-slider'>
+				{{#each group.modulate}}
+				<div class='slider-item '>
+					<div class="block-filter-top fn-slider-item ">
+						<div class='btn-round btn-filter btn-xlg btn-rectangle fn-modulate-btn'>
+							<span class='btn-label-abs'> {{type}} </span>
+						</div>
+					</div>
+					
+
+						<form class='fn-modulate-settings block-modulate-settings' modulate-index={{@index}}>
+							
+							<ul class='list-clear text-white' modulate-index={{@index}}>
+								{{#each settings}}
+									{{#if adjustable}}
+										<li>
+											<input class='input input-range fn-slider fn-filter-settings' id='range' type='range' name='points' min='{{min}}' max='{{max}}' steps={{steps}} value='{{value}}' id={{type}}>
+											<label class='text-small'for="{{type}}" > {{type}}:</label>
+										</li>
+									{{/if}}
+								{{/each}}
+							</ul>
+						</form>
+				</div>
+				{{/each}}
+				</div>
+			</div>
+		</div>
+			{{!-- <ul class='list list-clear list-grid'>
+			
+
+				
+				<div class='block-overlay'>
+				
+				</div>
+
+			</ul> --}}
+			
+
+		</div>
+	</div>
+
+	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='right' active='false' current-page='osc'>
+		<ul class='list list-clear list-selector'>
+			{{#each group.modulate}}
+			hmfp
+			{{/each}}
+			
+		</ul>
 	</div>
 </div>
-<div class="container container-fixed container-padding-lg pagetransition pagetransition-slide fn-transition-page" origin='right' active='false' current-page='osc'>
-	
-	<ul class='list list-clear list-selector'>
-		{{#each group.sources}}
-			<li class='list-selector-item btn-selector fn-selector-buttons' target-element={{@index}}>
-				<h5>OSC{{@index}}</h5>
-			</li>
-		{{/each}} 
-		<div class="active-bar-container fn-active-bar-container" active="0">
-			<span class="active-bar"></span>
-		</div>
-	 	
-	 </ul>
-
-	 <div class="elementtransition">
-		
-	 	{{#each group.sources}}
-		 <form class='form form-osc elementtransition-element fn-element fn-form-radio fn-form-modulate' current-element={{@index}} active="false">
-
-			<label for="range" class='text-yellow col col-50'><h5>DETUNE</h5></label>
-			<div class='col col-50 text-right'>
-				<label for="active" class='text-yellow'>
-					<h5>ACTIVE</h5>
-				</label>
-				<input type="checkbox" id='active' class='input-switch fn-active' {{#if active}}checked{{/if}}>
-				
-			</div>
-
-			  <div class="input-range-wrapper col col-100">
-			  	<input class='input input-range fn-slider fn-input' id='range' type="range" name="points" min="0" max="100" value='{{detune}}'>
-			  <div class="input-bg fn-slider-bg" style="clip-path: polygon(0 0, {{detune}}% 0, {{detune}}% 100%, 0% 100%);">
-			  </div>
-			  	
-			  </div>
-			
-			<div class="list-meter-wrapper col col-100">
-				<ul class='list list-clear list-meter text-right fn-radio-slider fn-wavetype' index={{@index}}>
-				{{#each ../group.wavetypes}}
-					<li>
-						
-						<input type="radio" name='wavetype'  id='{{@index}}' class='input-radio fn-input' value='0' {{#ifCond ../this.type '==' this}} checked{{/ifCond}}>
-						<label for="{{@index}}" class='input-radio-label'><h5 class='text-yellow text-uppercase' >{{this}}</h5></label>
-					</li>
-				{{/each}}
-				
-			</ul>
-
-
-			</div>
-		 </form>
-		 {{/each}}
-	 </div>
-
+<div class='hide'>
+			{{> tipBox tips.0.text}}
+	<div class='video-container'>
+		      <video class='fn-video' id='video' width='100%' height='auto' preload autoplay loop muted controls></video>
+		      <canvas class='fn-canvas' id='canvas' width='100%' height='auto'></canvas>
+		    </div>
 </div>
 
+
+{{!-- {{> navigation this.navigation}} --}}
+{{!-- <div class='fn-page-container hide'>
+	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
+		<div class='container-bottom container-padding-lg'>
+		<ul class='list list-clear list-grid '>
+		
+		{{#each group.modulate}}
+			<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type='{{type}}' modulate-value={{value}}>
+				<span class='ic-value' style='transform:rotate({{{rotatePercentage 50 min max}}}deg)'></span>
+					<span class='text-blue btn-label-abs'>{{type}}</span>
+				</li>
+			{{/each}}
+		</ul>
+		</div>
+	</div>
+	<div class='container container-fixed container-padding-lg pagetransition pagetransition-slide fn-transition-page' origin='right' active='false' current-page='osc'>
+		
+		<ul class='list list-clear list-selector'>
+			{{#each group.sources}}
+				<li class='list-selector-item btn-selector fn-selector-buttons' target-element={{@index}}>
+					<h5>OSC{{@index}}</h5>
+				</li>
+			{{/each}} 
+			<div class='active-bar-container fn-active-bar-container' active='0'>
+				<span class='active-bar'></span>
+			</div>
+		 	
+		 </ul>
+
+			
+		 	
+			 <form class='form form-osc fn-element fn-form-radio fn-form-modulate' active='false'>
+				
+				<label for='range' class='text-yellow col col-50'><h5>DETUNE</h5></label>
+				<div class='col col-50 text-right'>
+					<label for='active' class='text-yellow'>
+						<h5>ACTIVE</h5>
+					</label>
+					<input type='checkbox' id='active' class='input-switch fn-active'>
+					
+				</div>
+
+				  <div class='input-range-color-wrapper col col-100'>
+				  	<input class='input input-range-color fn-slider fn-input' id='range' type='range' name='points' min='0' max='100' value='0'>
+				  <div class='input-bg fn-slider-bg'>
+				  </div>
+				  	
+				  </div>
+				
+				<div class='list-meter-wrapper col col-100'>
+				
+					<ul class='list list-clear list-meter text-right fn-radio-slider fn-wavetype' index={{@index}}>
+					{{#each group.wavetypes}}
+						<li>
+							<input type='radio' name='wavetype'  id='{{@index}}' class='input-radio fn-input' value='0' wavetype='{{this}}'>
+							<label for='{{@index}}' class='input-radio-label'><h5 class='text-yellow text-uppercase' >{{this}}</h5></label>
+						</li>
+					{{/each}}
+					
+				</ul>
+
+
+				</div>
+			 </form>
+
+	</div>
+</div>
+ --}}
 <script>
-	var data  = {{{json group}}};
+	var data  = {{{json this}}};
 	console.log({{{json this}}});
 </script> 

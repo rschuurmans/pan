@@ -21,6 +21,11 @@
 		@extend %fixed-bottom;
 		
 	}
+	&
+	&-padding-top {
+		padding:$padding-page-sm 0;
+		
+	}
 	&-yellow {
 		background-color:$color-yellow;
 	}

@@ -1,3 +1,189 @@
+data.group.modulate = [
+			{
+		    "type": "pingpong",
+		    "settings": [{
+		    	type:"wetLevel",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:1
+		    },
+		    {
+		    	type:"Feedback",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:0.3
+		    },
+		    {
+		    	type:"delayTimeLeft",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    },
+		    {
+		    	type:"delayTimeRight",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    }],
+		    "amount": 0,
+		    "min": 0,
+		    "max": 300
+		  },
+		  {
+		    "type": "chorus",
+		    "settings": [{
+		    	type:"rate",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:0
+		    },
+		    {
+		    	type:"feedback",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    },
+		    {
+		    	type:"delay",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    },
+		    {
+		    	type:"bypass",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    }],
+		    "amount": 0,
+		    "min": 0,
+		    "max": 300
+		  },
+		  {
+		    "type": "tremelo",
+		    "settings": [{
+		    	type:"intensity",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    },
+		    {
+		    	type:"rate",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.001,
+		    	value:0.01
+		    },
+		    {
+		    	type:"stereoPhase",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    },
+		    {
+		    	type:"bypass",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.01,
+		    	value:0
+		    }],
+		    "amount": 0,
+		    "min": 0,
+		    "max": 300
+		  },
+		  {
+		    "type": "wahwah",
+		    "settings": [{
+		    	type:"automode",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0,
+		    	value:true
+		    },
+		    {
+		    	type:"baseFrequency",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:0
+		    },
+		    {
+		    	type:"excursionOctaves",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:2
+		    },
+		    {
+		    	type:"sweep",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:1
+		    },
+		    {
+		    	type:"resonance",
+		    	adjustable: true,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:10
+		    },
+		    {
+		    	type:"sensitivity",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:0.5
+		    },
+		    {
+		    	type:"bypass",
+		    	adjustable: false,
+		    	min:0,
+		    	max:1,
+		    	step:0.1,
+		    	value:1
+		    }
+		    ],
+		    "amount": 0,
+		    "min": 0,
+		    "max": 300
+		  }
+
+		]
+{{!-- 	<div class='btn btn-b-yellow text-yellow btn-lg text-center fn-calibrate'>CAlibreren!</div>
+			<div class='btn btn-b-yellow text-yellow btn-lg text-center fn-calibrate-top'>top!</div>
+			<div class='btn btn-b-yellow text-yellow btn-lg text-center fn-calibrate-bottom'>bottom!</div>
+
+			<video id='video' width='600' height='450' preload autoplay loop muted controls></video>
+      <canvas id='canvas' width='600' height='450'></canvas> --}}
 {{> alert alert}}
 
 <div class='fn-page-container'>
@@ -31,18 +217,9 @@
 
 	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
 		
-		<div class='container-fixed container-padding-lg'>
-		<ul class='list list-clear list-grid '>
-
-		{{#each group.modulate}}
-			<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type='{{type}}' filter-index={{@key}} modulate-value={{value}}>
-				<span class='ic-value' style='transform:rotate({{{rotatePercentage 50 min max}}}deg)'></span>
-				<span class='text-blue btn-label-abs'>{{type}}</span>
-			</li>
-
-			{{/each}}
-		</ul>
-	{{!-- 	<div class="slider-container-container ">
+		<div class='container-fixed'>
+		
+		<div class="slider-container-container ">
 			<div class="slider-container fn-slider">
 				{{#each group.modulate}}
 					<div class="slider-item fn-slider-item">
@@ -70,7 +247,7 @@
 				</ul>
 			</form>
 
-		</div> --}}
+		</div>
 	</div>
 
 	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='right' active='false' current-page='osc'>
@@ -91,7 +268,7 @@
 </div>
 
 
-{{> navigation this.navigation}}
+{{!-- {{> navigation this.navigation}} --}}
 {{!-- <div class='fn-page-container hide'>
 	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
 		<div class='container-bottom container-padding-lg'>

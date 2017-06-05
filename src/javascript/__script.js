@@ -1,6 +1,6 @@
 var body = document.querySelector('body');
-
-var onLoad = function () {
+console.log('hey');
+var init = function () {
 
 	var path = window.location.pathname;
 	console.log(path, path.length);
@@ -15,7 +15,8 @@ var onLoad = function () {
 			changePage.sequencerNavigation();
 		} else {
 			cameraTracker.init();
-			changePage.sequencerNavigation();
+			modulator.init();
+			// changePage.sequencerNavigation();
 			// modulateSocket();
 			// changePage.selector();
 			// inputEvent.slider();
@@ -30,13 +31,8 @@ var onLoad = function () {
 	}
 	
 }
-
-
-
-
 window.onload = function () {
-	onLoad();
-	 
-
+	console.log('load');
+	init();
 
 }

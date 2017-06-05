@@ -12,13 +12,6 @@ var cameraTracker = {
   init: function () {
     console.log('tracker init');
       cameraTracker.calibrate();
-      var filters = document.querySelectorAll('.fn-modulate-btn');
-      
-      filters.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-          cameraTracker.trackElement(e.currentTarget)
-        });
-      });
   },  
   
   calibrate: function () {
@@ -27,7 +20,7 @@ var cameraTracker = {
     var video        = document.querySelector('.fn-video-calibrate');
     var canvas       = document.querySelector('.fn-canvas-calibrate');
 
-    cameraTracker.showCamera(video, canvas, true, document.querySelector('.calibrate-done'), function () {
+    cameraTracker.showCamera(video, canvas, true, document.querySelector('.calibrate-done'),false, function () {
       changePage.showPage('filters')
     });
 
@@ -41,7 +34,6 @@ var cameraTracker = {
   },
 
   saveCalibrate: function (button, type, value) {
-    
     if(value !== 0) {
       
       button.classList.add('checked')
@@ -58,7 +50,8 @@ var cameraTracker = {
       document.querySelector('.fn-calibrate-buttons').classList.add('finished');
     }
   },
-  trackerData: function (data) {
+  
+  trackerData: function (data, max) {
     console.log('the new size is', data.width * data.height);
     var size = data.width * data.height;
     if(size > cameraTracker.highSize) {
@@ -69,11 +62,19 @@ var cameraTracker = {
       // console.log('je zit er tussen');
       var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
       // var percentage = ((size - cameraTracker.highSize) * 100) / cameraTracker.highSize;
-      var percentage = ((size - cameraTracker.highSize) / calculateableNum) * 100
+      var percentage = ((size - cameraTracker.highSize) / calculateableNum) * 100;
       console.log('het percentage is ', percentage);
+      cameraTracker.parseData(percentage, max)
     }
   },
-  showCamera: function (video, canvas, showTrack, stopButton, callback) {
+  parseData: function (percentage, max) {
+    
+    var newValue = (max * percentage)/100;
+    console.log(newValue);
+    // var oldPercentage = (oldData.value * 100) / oldData.max;
+
+  },
+  showCamera: function (video, canvas, showTrack, stopButton, max, callback) {
     var first   = true;
     var context = canvas.getContext('2d');
     var tracker = new tracking.ColorTracker(['yellow']);
@@ -90,7 +91,7 @@ var cameraTracker = {
       cameraTracker.drawRectangle(event.data, context, tracker.colors[0])
       
      } else {
-      cameraTracker.trackerData(event.data[0]);
+      if(event.data.length) {cameraTracker.trackerData(event.data[0], oldData);}
 
 
      }
@@ -100,8 +101,6 @@ var cameraTracker = {
     stopButton.addEventListener('click', function(e) {
         trackThing.stop();
         callback(); 
-        // video.parentNode.removeChild(video)
-        // canvas.parentNode.removeChild(canvas)
         
     });
   },
@@ -122,107 +121,20 @@ var cameraTracker = {
     if(!element.classList.contains('active')) {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
-       cameraTracker.showCamera(video, canvas, false, element, function () {
-        changePage.showPage('filters')
+      
+       cameraTracker.showCamera(video, canvas, false, element,20, function () {
+        // changePage.showPage('filters')
       });
     } else {
       body.removeAttribute('tracking')
       element.classList.remove('active');
     }
   },
-  
-  randomFUnction : function () {
-//      smooth: function(array) {
-//         var array = [10, 13, 7, 11, 12, 9, 6, 5];
-
-// function smooth(values, alpha) {
-//     var weighted = average(values) * alpha;
-//     var smoothed = [];
-//     for (var i in values) {
-//         var curr = values[i];
-//         var prev = smoothed[i - 1] || values[values.length - 1];
-//         var next = curr || values[0];
-//         var improved = Number(average([weighted, prev, curr, next]).toFixed(2));
-//         smoothed.push(improved);
-//     }
-//     return smoothed;
-// }
-
-// function average(data) {
-//     var sum = data.reduce(function(sum, value) {
-//         return sum + value;
-//     }, 0);
-//     var avg = sum / data.length;
-//     return avg;
-// }
-
-// var a  = array;
-// console.log(a);
-// var d3data = [];
-// for(var i in a ) {
-//   d3data.push({
-//     letter: i,
-//     frequency: a[i],
-//   })
-// }
-//   console.log(d3data);
-// },
-//   },
-  },
-
-  audioInterval: function (arr, meter) {
-    var avg = cameraTracker.calculateAverage(arr);
-
-    var info  = document.querySelector('.fn-info');
-
-    if(cameraTracker.first) {
-      console.log('first');
-      cameraTracker.first = false;
-      cameraTracker.baseNum = avg;
-      console.log(cameraTracker.first, cameraTracker.baseNum);
-    }
-    if(avg) {
-        var a       = avg * cameraTracker.base;
-        var newFreq = a / cameraTracker.baseNum;
-        
-        info.textContent = newFreq;
-
-        if(newFreq > cameraTracker.maxValue) {
-          newFreq = cameraTracker.maxValue;
-        } else if( newFreq < 200) {
-          newFreq = 220;
-        }
-        
-        var b = 100 * newFreq;
-        var percentage = b / cameraTracker.maxValue;
-        
-      
-
-        cameraTracker.updateMeter(meter, percentage);
-        
-      } else {
-        console.log('no colors detected');
-      }
-  },
-  calculateAverage: function (arr) {
-    var sum = 0;
-    for(var i = 0; i < arr.length;i++) {
-      sum += arr[i];
-    }
-    if(arr.length) {
-      return sum / arr.length
-    } else {
-      return false;
-    }
-  },
-  updateMeter: function (meter, value) {
-    value = value - 50;
-    value = value * 2;
-
-    console.log('updateMeter');
-    meter.style.width = value + '%';
-    meter.style.height = value + '%';
+  stopTracking: function (element) {
 
   }
+  
+
+ 
 
 }

@@ -25,6 +25,7 @@
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 var audio = {
 	sources:[],
+	filters:[],
 	scale: [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
 	envelope:null,
 	defTime: "8n",
@@ -55,6 +56,7 @@ var audio = {
 		
 	}
 }
+
 var recording = {
 	buttons: null,
 	isRecording: false,
@@ -119,7 +121,6 @@ var recording = {
 			data.group.steps[i].active = true;
 			data.group.steps[i].frequency = newMelody[i];
 		}
-		console.log('new steps:', data.group.steps);
 		sequencer.updateActive();
 	},
 	fillMelody: function (melody) {
@@ -148,7 +149,6 @@ var loop = {
 					audio.sources[i].setNote(freq);
 				}
 			} else {
-				console.log('triggering holdtone attack', start, freq);
 				loop.hold = true;
 				audio.triggerAttack(freq);
 			}
@@ -171,11 +171,13 @@ var loop = {
 	},
 	playStep: function (active, frequency, time) {
 		if(active && !loop.hold && !recording.isRecording) {
-
 			audio.triggerAttack(frequency);
-			window.setTimeout(function () {
+			
+			if(!data.group.adsr[0].value) {
+				window.setTimeout(function () {
 				audio.triggerRelease();
 			}, time)
+			}
 
 		} 
 	},
@@ -222,14 +224,10 @@ var loop = {
 }
 
 
-
-var filters = {
-
-}
-
 var sources = {
 	setup:function () {
 		sources.createSources();
+		filters.setup();
 		sources.setDetune();
 
 	},
@@ -237,7 +235,8 @@ var sources = {
 		
 		for(var i in data.group.sources) {
 			if(data.group.sources[i].active) {
-				sources.create(i);
+				console.log(data.group.synth.type);
+				sources.create[data.group.synth.type](i);
 
 			}
 
@@ -285,22 +284,81 @@ var sources = {
 			}
 		}
 	},
-	create: function (id) {
-		var sourceData = data.group.sources[id];
+	create: {
+		synth: function (id) {
+			console.log('creating a synth');
+			
 
-		var synth = new Tone.Synth({
-			type:sourceData.type,
-			envelope: {
-				attack: data.group.adsr.attack,
-				decay: data.group.adsr.decay,
-				sustain: data.group.adsr.sustain,
-				release: data.group.adsr.release
+			var synth = new Tone.Synth(sources.create.parseData(id))
+			synth.id = id;
+
+			audio.sources.push(synth)
+		},
+		amSynth: function (id) {
+			console.log('running amSynth');
+			var synth = new Tone.AMSynth(sources.create.parseData(id))
+			synth.id = id;
+
+			audio.sources.push(synth)
+
+		},
+		fmSynth: function (id) {
+			
+			var sourceData = data.group.sources[id];
+			
+			var synth = new Tone.FMSynth({
+				oscillator: {
+					type: sourceData.type
+				},
+				harmonicity:1,
+				modulationIndex:1,
+				envelope: {
+					attack: data.group.adsr.attack,
+					decay: data.group.adsr.decay,
+					sustain: .5,
+					release: data.group.adsr.release
+				}
+			});
+
+			// could be a filteR: harmonicity:1 icm modulationIndex
+
+			synth.id = id;
+
+			audio.sources.push(synth)
+		},
+		
+		MembraneSynth: function (id) {
+			data.group.adsr[0].value = false;
+			for(var i in data.group.steps) {
+				data.group.steps[i].frequency = data.group.steps[i].frequency - 400;
 			}
-		}).toMaster();
-		synth.id = id;
 
-		audio.sources.push(synth)
+			var synth = new Tone.MembraneSynth();
+			synth.id = id;
+
+			audio.sources.push(synth)
+			synth.triggerAttackRelease("C2", "8n");
+		},
+		parseData: function (id) {
+			// fm synth
+			// membrane
+			var sourceData = data.group.sources[id];
+			var synthData = {
+				oscillator: {
+					type : sourceData.type
+				},
+				envelope: {
+					attack: data.group.adsr.attack,
+					decay: data.group.adsr.decay,
+					sustain: .5,
+					release: data.group.adsr.release
+				}
+			}
+			return synthData 
+		}
 	},
+	
+	
 	remove: function (id) {
 		for(var i in audio.sources) {
 			
@@ -317,6 +375,83 @@ var sources = {
 			
 	},
 	setSingleDetune: function (index, value) {
+
+	}
+}
+
+var filters = {
+	setup: function () {
+		for(var i in data.group.modulate) {
+			filters.create[data.group.modulate[i].type](data.group.modulate[i])
+		}
+		filters.create.connect();
+		// var freeverb = new Tone.Freeverb().toMaster();
+		// freeverb.dampening.value = 12000;
+		//routing synth through the reverb
+		
+		
+		
+	},
+	create: {
+		pingpong: function (data) {
+			var pingPong = new Tone.PingPongDelay(data.values.delayTime , data.values.feedback).toMaster();;
+			audio.filters.push(pingPong);
+			
+			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
+
+		},
+		tremelo: function (data) {
+			var autoFilter = new Tone.AutoFilter({
+				frequency    :data.values.frequency,
+				depth        :data.values.depth,
+			}).toMaster().start();
+		},
+		chorus: function (data) {
+			var chorus = new Tone.Chorus({
+				frequency:0,
+				delayTime: data.values.delayTime,
+				depth: data.values.delayTime/2,
+				feedback: data.values.feedback
+			}).toMaster();
+			audio.filters.push(chorus);
+		},
+		wahwah: function (data) {
+			var autoWah = new Tone.AutoWah({
+				baseFrequency:data.values.baseFrequency,
+				octaves      :3,
+				sensitivity  :0,
+				Q            :data.values.q,
+				gain         :data.values.gain,
+				
+			}).toMaster();
+			
+			audio.filters.push(autoWah);
+
+		},
+		lowpass: function () {
+			// ik hoor hier geen verschil
+			// var filter = new Tone.Filter(100, "lowshelf").toMaster();
+			// console.log(filter);
+			// audio.filters.push(filter)
+		},
+		distortion: function (data) {
+			var dist = new Tone.Distortion({
+				distortion: data.values.distortion,
+				oversample: data.values.oversample
+			}).toMaster();
+			audio.filters.push(dist);
+
+		},
+		connect: function () {
+			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
+			for(var i in audio.sources) {
+				for(var y in audio.filters) {
+					audio.sources[i].connect(audio.filters[y])
+				}
+
+			}
+
+		},
 
 	}
 }

@@ -38,12 +38,14 @@ var changePage = {
 		};
 	},
 	onboarding: function () {
+		
+		
 		changePage.showPage('alert')
 		var buttonSeq = document.querySelector('.fn-start-sequence');
 		if(buttonSeq) {
-			button.addEventListener('click', function () {
+			buttonSeq.addEventListener('click', function () {
 				audio.setup();
-				changePage.showPage('filters')
+				changePage.showPage('sequencer')
 			})
 		}
 		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
@@ -59,6 +61,72 @@ var changePage = {
 
 		
 	},
+	swipeSlider: function (callback) {
+		var panels = document.querySelectorAll('.fn-slider-item');
+		var slider = document.querySelector('.fn-slider');
+		var sensitivity = 25;
+		var activeSlide = 0;
+		var slideCount = panels.length;
+		var timer;
+		console.log(slideCount);
+
+		
+		// slider from: https://codepen.io/dangodev/pen/bpjrRg?editors=0011
+		var goTo =  function (number) {
+			console.log('go to', number);
+			if( number < 0 ) {
+				activeSlide = 0;
+			} else if( number > slideCount - 1 ) {
+				console.log('last');
+				activeSlide = slideCount - 1;
+			} else {
+				activeSlide = number;
+			}
+
+			slider.classList.add( 'is-animating');
+
+			var percentage = -( 100 / slideCount ) * activeSlide;
+
+			slider.style.transform = 'translateX( ' + percentage + '% )';
+			console.log(percentage, slider);
+			clearTimeout( timer );
+			callback(activeSlide)
+
+			timer = setTimeout( function() {
+				slider.classList.remove( 'is-animating' );
+			}, 400 );
+
+		}
+
+		var sliderManager = new Hammer.Manager(slider);
+		sliderManager.add(new Hammer.Pan({threshold: 0, pointers:0}))
+		sliderManager.on('pan', function (e) {
+
+		var percentage           = 100 / slideCount * e.deltaX / window.innerWidth;
+		var percentageCalculated = percentage - 100 / slideCount * activeSlide;
+
+		slider.style.transform = 'translateX( ' + percentageCalculated + '% )';
+
+		if( e.isFinal ) {
+			if( e.velocityX > 1 ) {
+				goTo( activeSlide - 1 );
+			} else if( e.velocityX < -1 ) {
+				goTo( activeSlide + 1 )
+			} else {
+				if( percentage <= -( sensitivity / slideCount ) ) {
+					goTo( activeSlide + 1 );
+				}
+				else if( percentage >= ( sensitivity / slideCount ) ) {
+					goTo( activeSlide - 1 );
+				} else {
+					goTo( activeSlide );
+				}
+				
+			}
+		}
+		})
+			  
+	},	
 	
 	swipePages: function (startPage) {
 		changePage.showPage(startPage);
@@ -88,9 +156,40 @@ var changePage = {
 			
 		}
 	},
+	updateSettingValues: function (index) {
+		console.log('updating the data', data);
+		var elementData = data.group.modulate[parseInt(index)]
+		
+
+		
+		var form        = document.querySelector('.fn-modulate-settings');
+		for(var i = 0; i < elementData.settings.length;i++) {
+			
+			var settings = elementData.settings[i];
+			var form        = document.querySelector('.fn-modulate-settings');
+			var listItem = form.querySelectorAll('.fn-setting')[i];
+
+			var input = listItem.querySelector('.fn-filter-settings');
+			var label = listItem.querySelector('.fn-label');
+			
+			listItem.classList.remove('hide');
+			console.log(settings.adjustable);
+			if(!settings.adjustable) {
+				listItem.classList.add('hide');
+			}
+			input.setAttribute('id', settings.type);
+			input.setAttribute('min', settings.min);
+			input.setAttribute('max', settings.max);
+			input.setAttribute('steps', settings.step);
+			input.setAttribute('value', settings.value);
+
+			label.innerHTML = settings.type;
+		}
+	},
 	updateData: function (index) {
 		console.log('updating the data', data);
 		var elementData = data.group.sources[parseInt(index)]
+
 		var form        = document.querySelector('.fn-form-modulate');
 		var wavetypes   = form.querySelectorAll('.fn-wavetype .fn-input'); 
 		var radioWrapper = document.querySelector('.fn-radio-slider');
@@ -128,3 +227,4 @@ var changePage = {
 		};
 	}
 }
+

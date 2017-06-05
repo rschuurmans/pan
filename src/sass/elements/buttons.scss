@@ -37,6 +37,15 @@
 			color:$color-yellow;
 		}
 	}
+	&-xlg {
+		width:7em;
+		height:7em;
+		margin:0 auto;
+		box-shadow: 0px 0px 0px 10px  rgba( $color-blue, .7 ), 0px 0px 0px 20px  rgba( $color-blue, .5 )
+
+
+
+	}
 	&-adsr {
 		border:2px solid lighten($color-turq, 20);
 		background-color:$color-turq;
@@ -94,7 +103,11 @@
 	}
 
 	&-filter {
-		box-shadow: 0px 0px 0px 4px $color-blue inset;
+		// box-shadow: 0px 0px 0px 4px $color-blue inset;
+		background-color:$color-blue;
+		color:$color-white;
+		font-weight:bold;
+		text-transform:uppercase;
 	    transition:.2s ease-in-out;
 		position:relative;
 		.rotate-extra-circle {

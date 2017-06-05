@@ -51,12 +51,21 @@ var events = {
 	
 	
 }
-
+var modulator = {
+	init: function () {
+		var filters = document.querySelectorAll('.fn-modulate-btn');
+      
+	      filters.forEach(function(button) {
+	        button.addEventListener('click', function(e) {
+	          cameraTracker.trackElement(e.currentTarget);
+	        });
+	      });
+	}
+}
 var sequencer = {
 	isRecording: false,
 	newMelody: [],
 	init: function() {
-
 		tools.eachDomElement('.fn-sequencer-item', function (item) {
 			events.updateStepLocation(item)
 			var hammertime = new Hammer(item, {})
@@ -185,6 +194,12 @@ var adsr = {
 
 	},
 	changeEvent: function () {
+		var sustainButton = document.querySelector('.fn-sustain');
+		sustainButton.addEventListener('change', function (e) {
+			console.log(e.currentTarget.value, e.currentTarget.checked);
+			data.group.adsr[0].value = e.currentTarget.checked;
+		})
+
 		tools.eachDomElement('.fn-adsr-button', function (item) {
 			var closeRotate = function () {
 				deviceRotation.stopListen(function (percentage, item) {

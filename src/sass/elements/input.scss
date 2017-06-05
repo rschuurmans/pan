@@ -92,6 +92,25 @@
 	&-range {
 		-webkit-appearance:none;
 		width:100%;
+		height:2px;
+		background:rgba(225,225,225,.5);
+		&-wrapper {
+			height:2.5em;
+		}
+		&::-webkit-slider-thumb {
+			background-color:$color-black;
+			border:2px solid $color-turq;
+			width:$icon-width;
+			height:$icon-width;
+			-webkit-appearance:none;
+			border-radius:100%;
+
+		}
+
+	}
+	&-range-color {
+		-webkit-appearance:none;
+		width:100%;
 		height:$button-height-sm;
 		// background:transparent;
 		background:url('/images/bg-slider-grey.png');

@@ -150,6 +150,7 @@ var db = {
 						var sound = db.randomSound();
 						var adsr = db.randomADSR();
 						var wavetypes = db.getwavetypes();
+						var synth = db.getSynth();
 					group = new Group({
 						steps: melody,
 						sources: source,
@@ -161,7 +162,8 @@ var db = {
 						vca: false,
 						effects: false,
 						adsr: adsr,
-						wavetypes:wavetypes
+						wavetypes:wavetypes,
+						synth:synth
 					})
 					group.save(function () {
 						cb(group);
@@ -173,6 +175,12 @@ var db = {
 	getwavetypes: function () {
 		var wavetypes = ['sine', 'square', 'sawtooth', 'triangle', 'noise'];
 		return wavetypes;
+	},
+	getSynth: function () {
+		var synth = {
+			type: 'synth'
+		}
+		return synth;
 	},
 	randomADSR: function () {
 		// random values
@@ -191,6 +199,7 @@ var db = {
 			var source = db.randomSource(melody.length);
 			var sound  = db.randomSound();
 			var adsr = db.randomADSR();
+			var synth = db.getSynth();
 			var wavetypes = db.getwavetypes();
 			group = new Group({
 				steps       : melody,
@@ -204,7 +213,8 @@ var db = {
 				vca: false,
 				effects: false,
 				adsr: adsr,
-				wavetypes:wavetypes
+				wavetypes:wavetypes,
+				synth: synth
 			})
 			group.save(function () {
 				cb(group);
@@ -250,62 +260,64 @@ var db = {
 	randomSound: function () {
 
 
-		var sound = [{
-				type: 'pingpong',
-				values: {
-					wetLevel: 1, 
-				    feedback: 0.3,
-				    delayTimeLeft: 0,
-				    delayTimeRight: 0 
-				},
-				setValue: 'delayTimeLeft',
-				value: 0,
-				min:0,
-				max:300
-			},
-			{
-				type: 'chorus',
-				values: {
-					rate:0,
-					feedback:0,
-					delay:0,
-					bypass:0,
-				},
-				setValue: 'rate',
-				value: 0,
-				min:0,
-				max:300
-			},
-			{
-				type: 'tremelo',
-				values: {
-					intensity: 0,
-					rate: 0.001,
-					stereoPhase: 0,   
-					bypass: 0
-				},
-				setValue:'intensity',
-				value: 0,
-				min:0,
-				max:300
-			},
-			{
-				type: 'wahwah',
-				values:{
-				    automode: true,            
-				    baseFrequency: 0,
-				    excursionOctaves: 2,
-				    sweep: 1,           
-				    resonance: 10,      
-				    sensitivity: 0.5,              
-				    bypass: 0
-				},
-				setValue:'baseFrequency',
-				value: 0,
-				min:0,
-				max:1
-			}
-		];
+		var sound = [
+			  {
+			    type: "pingpong",
+			    values: {
+			      feedback: 0,
+			      delayTime: 0,
+			    },
+			    setValue: "delayTime",
+			    value: 0,
+			    min: 0,
+			    max: 300
+			  },
+			  {
+			    type: "chorus",
+			    values: {
+			      feedback:0,
+					delayTime: 0
+			    },
+			    setValue: "feedback",
+			    value: 0,
+			    min: 0,
+			    max: 300
+			  },
+			  {
+			    type: "tremelo",
+			    values: {
+			      frequency: 0,
+			      depth: 0,
+			    },
+			    setValue: "depth",
+			    value: 0,
+			    min: 0,
+			    max: 1
+			  },
+			  {
+			    type: "wahwah",
+			    values: {
+					baseFrequency: 100,
+					gain         : 0,
+					q            : 0
+			    },
+			    setValue: "q",
+			    value: 0,
+			    min: 0,
+			    max: 20
+			  },
+			  {
+			    type: "distortion",
+			    values: {
+					distortion: 0.8,
+					oversample : 'none'
+			    },
+			    setValue: "distortion",
+			    value: 0.8,
+			    min: 0,
+			    max: 2
+			  }
+			]
 		return sound;
 	},
 	randomSequenceValues: function () {

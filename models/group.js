@@ -28,7 +28,8 @@ var groupSchema = new Schema({
 	effects: Boolean,
 	pp: Array,
 	adsr: Object,
-	wavetypes: Array
+	wavetypes: Array,
+	synth:Object
 })
 
 

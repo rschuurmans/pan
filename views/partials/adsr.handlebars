@@ -1,0 +1,22 @@
+	<ul class='list list-adsr list-clear container-padding-md '>
+		{{#each adsr}}
+
+			<li class='list-adsr-item'>
+				{{#ifCond type '==' 'sustain'}}				
+				<label for="active" class='text-yellow right' >
+					<h5>SUSTAIN</h5>
+				</label>
+				
+				<input type="checkbox" id='sustain' class='input-switch fn-sustain right' {{#if value}} checked{{/if}}>
+				{{else}}
+				<div class="list-adsr-item-inner btn btn-adsr fn-adsr-button "style="transform:rotate({{{rotatePercentage value 0 max}}}deg)"  type={{type}} value={{value}} max={{max}}>
+					<span class='btn-label  unclickable'>{{type}}</span>
+					
+					<span class="ic-value" ></span>
+					</div>
+
+				{{/ifCond}}
+			</li>
+		{{/each}}
+	</ul>
+	
