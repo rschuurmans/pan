@@ -555,6 +555,8 @@ var filters = {
 	create: {
 		pingpong: function (data) {
 			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
+			console.log(pingPong.wet);
+			pingPong.wet.value = 0;
 			audio.filters.pingpong = pingPong;
 			
 			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
@@ -565,6 +567,7 @@ var filters = {
 				frequency    :data.values.frequency,
 				depth        :data.values.depth,
 			}).toMaster().start();
+			autoFilter.wet.value = 0;
 			audio.filters.tremelo = autoFilter;
 		},
 		chorus: function (data) {
@@ -574,6 +577,7 @@ var filters = {
 				depth: data.values.delayTime/2,
 				feedback: data.values.feedback
 			}).toMaster();
+			chorus.wet.value = 0;
 			audio.filters.chorus = chorus
 		},
 		wahwah: function (data) {
@@ -585,6 +589,7 @@ var filters = {
 				gain         :data.values.gain,
 				
 			}).toMaster();
+			autoWah.wet.value = 0;
 			
 			audio.filters.wahwah = autoWah;
 
@@ -600,6 +605,7 @@ var filters = {
 				distortion: data.values.distortion,
 				oversample: data.values.oversample
 			}).toMaster();
+			dist.wet.value = 0;
 			audio.filters.distortion = dist;
 
 		},
@@ -610,7 +616,6 @@ var filters = {
 			console.log('receiving an update for', type, value);
 			audio.filters[type].wet.value = value/100;
 			console.log(audio.filters[type]);
-
 	}
 }
 
@@ -1542,19 +1547,39 @@ var cameraTracker = {
   calibrated: 0,
   tracker: null,
   stop: false,
+  
+
   init: function () {
-    console.log('tracker init');
+    
+     cameraTracker.video   = document.querySelector('.fn-video-calibrate');
+     cameraTracker.canvas  = document.querySelector('.fn-canvas-calibrate');
+     cameraTracker.context = cameraTracker.canvas.getContext('2d');
       cameraTracker.calibrate();
   },  
   
   calibrate: function () {
     var buttonTop    = document.querySelector('.fn-calibrate-top');
+    var buttonStop   = document.querySelector('.fn-calibrate-top');
     var buttonBottom = document.querySelector('.fn-calibrate-bottom');
-    var video        = document.querySelector('.fn-video-calibrate');
-    var canvas       = document.querySelector('.fn-canvas-calibrate');
+    var first        = true;
+    var tracker      = new tracking.ColorTracker(['yellow']);
+    var trackThing   = tracking.track(cameraTracker.video, tracker, { camera: true });
+  
+    tracker.on('track', function(event) {
+      
+      if(first) {
+        first = !first;
+        cameraTracker.canvas.height = cameraTracker.video.offsetHeight;
+        cameraTracker.canvas.width  = cameraTracker.video.offsetWidth;
+      }
+      cameraTracker.context.clearRect(0, 0, 600, 500);
+      cameraTracker.drawRectangle(event.data, cameraTracker.context, tracker.colors[0])
+    });
 
-    cameraTracker.showCamera(video, canvas, true, document.querySelector('.calibrate-done'),false, function () {
-      changePage.showPage('filters')
+    document.querySelector('.calibrate-done').addEventListener('click', function(e) {
+        trackThing.stop();
+        changePage.showPage('filters')
+        
     });
 
     buttonTop.addEventListener('click', function (e) {
@@ -1566,81 +1591,51 @@ var cameraTracker = {
     })
   },
 
-  saveCalibrate: function (button, type, value) {
-    if(value !== 0) {
-      
-      button.classList.add('checked')
-      cameraTracker.lowSize = button.innerHTML = cameraTracker.size;
-      cameraTracker.finishCalibrate();
-    }
+  startElementTracking: function (callback, element) {
+    var tracker = new tracking.ColorTracker(['yellow']);
+    var trackThing = tracking.track(cameraTracker.video, tracker, { camera: true})
+    
+
+    tracker.on('track', function(event, trackThing) {
+        var data = event.data[0];
+        if(data) {
+          var size = data.width * data.height;
+          
+          if(size < cameraTracker.highSize) {
+            body.setAttribute('tracking-status', 'high');
+          } else if (size > cameraTracker.lowSize) {
+            body.setAttribute('tracking-status', 'low');
+          } else {
+            body.setAttribute('tracking-status', 'ok');
+            var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
+            var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
+            callback(percentage)
+          }
+           
+         
+        }
+    });
+    element.addEventListener('click', function (e) {
+      trackThing.stop();
+      e.target.removeEventListener('click', arguments.callee)
+    })
+
   },
 
-  finishCalibrate: function () {
+  saveCalibrate: function (button, type, value) {
     var buttonTop    = document.querySelector('.fn-calibrate-top');
     var buttonBottom = document.querySelector('.fn-calibrate-bottom');
-    console.log('can we fiish?');
-    if(buttonTop.classList.contains('checked') && buttonBottom.classList.contains('checked')) {
-      document.querySelector('.fn-calibrate-buttons').classList.add('finished');
-    }
-  },
-  
-  trackerData: function (data, max, callback) {
-    console.log('the new size is', data.width * data.height);
-    var size = data.width * data.height;
-    if(size > cameraTracker.highSize) {
-      console.log('je gaat over de max');
-    } else if (size < cameraTracker.lowSize) {
-      console.log('je bent de laag');
-    } else {
-      // console.log('je zit er tussen');
-      var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
-      // var percentage = ((size - cameraTracker.highSize) * 100) / cameraTracker.highSize;
-      var percentage = ((size - cameraTracker.highSize) / calculateableNum) * 100;
-      console.log('het percentage is ', percentage);
-      // cameraTracker.parseData(percentage, max)
-      // filters.update('pingpong', percentage)
-      callback(percentage)
-    }
-  },
-  parseData: function (percentage, max, sendValue) {
-    
-    var newValue = (max * percentage)/100;
-    console.log(newValue);
-    
 
-    // var oldPercentage = (oldData.value * 100) / oldData.max;
+    if(value !== 0) {
+      button.classList.add('checked')
+      cameraTracker[type] = button.innerHTML = cameraTracker.size;
 
-  },
-  showCamera: function (video, canvas, showTrack, stopButton, max, callback) {
-    var first   = true;
-    var context = canvas.getContext('2d');
-    var tracker = new tracking.ColorTracker(['yellow']);
-    var trackThing = tracking.track(video, tracker, { camera: true , fps:1});
-  
-    tracker.on('track', function(event) {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-     if(showTrack) {
-      if(first) {
-        first = !first;
-        canvas.height = video.offsetHeight;
-        canvas.width  = video.offsetWidth;
+      if(buttonTop.classList.contains('checked') && buttonBottom.classList.contains('checked')) {
+      buttonTop.parentNode.classList.add('finished');
       }
-      cameraTracker.drawRectangle(event.data, context, tracker.colors[0])
-      
-     } else {
-      if(event.data.length) {cameraTracker.trackerData(event.data[0], max, callback);}
-
-
-     }
-    });
-
-
-    stopButton.addEventListener('click', function(e) {
-        trackThing.stop();
-        callback(); 
-        
-    });
+    }
   },
+  
   drawRectangle: function (data, context, color) {
     data.forEach(function(rect) {
       rect.color         = color;
@@ -1652,31 +1647,21 @@ var cameraTracker = {
       
   },
   trackElement: function(element) {
-    var video        = document.querySelector('.fn-video-calibrate');
-    var canvas       = document.querySelector('.fn-canvas-calibrate');
-
-    if(!element.classList.contains('active')) {
+      if(!element.classList.contains('active')) {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
-      
-       cameraTracker.showCamera(video, canvas, false, element,20, function (value) {
-        // changePage.showPage('filters')
-        console.log(element);
-        filters.update(element.getAttribute('modulate-type'), value)
-      });
+        cameraTracker.startElementTracking(function (value) {
+          filters.update(element.getAttribute('modulate-type'), value)
+        }, element);
+       
     } else {
       body.removeAttribute('tracking')
       element.classList.remove('active');
+      cameraTracker.stop = true;
     }
   },
-  stopTracking: function (element) {
-
-  }
-  
-
- 
-
 }
+  
 var user = {
 	username: null
 }

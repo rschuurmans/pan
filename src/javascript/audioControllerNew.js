@@ -397,6 +397,8 @@ var filters = {
 	create: {
 		pingpong: function (data) {
 			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
+			console.log(pingPong.wet);
+			pingPong.wet.value = 0;
 			audio.filters.pingpong = pingPong;
 			
 			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
@@ -407,6 +409,7 @@ var filters = {
 				frequency    :data.values.frequency,
 				depth        :data.values.depth,
 			}).toMaster().start();
+			autoFilter.wet.value = 0;
 			audio.filters.tremelo = autoFilter;
 		},
 		chorus: function (data) {
@@ -416,6 +419,7 @@ var filters = {
 				depth: data.values.delayTime/2,
 				feedback: data.values.feedback
 			}).toMaster();
+			chorus.wet.value = 0;
 			audio.filters.chorus = chorus
 		},
 		wahwah: function (data) {
@@ -427,6 +431,7 @@ var filters = {
 				gain         :data.values.gain,
 				
 			}).toMaster();
+			autoWah.wet.value = 0;
 			
 			audio.filters.wahwah = autoWah;
 
@@ -442,6 +447,7 @@ var filters = {
 				distortion: data.values.distortion,
 				oversample: data.values.oversample
 			}).toMaster();
+			dist.wet.value = 0;
 			audio.filters.distortion = dist;
 
 		},
@@ -452,7 +458,6 @@ var filters = {
 			console.log('receiving an update for', type, value);
 			audio.filters[type].wet.value = value/100;
 			console.log(audio.filters[type]);
-
 	}
 }
 

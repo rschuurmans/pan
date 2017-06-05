@@ -199,7 +199,7 @@ html, body, .container-fixed, .block-overlay {
   opacity: 0; }
 
 body[splash='finished'] .place-color, body[splash='finished'] .place-stroke {
-  fill: rgba(225, 225, 225, 0.2) !important;
+  fill: rgba(225, 225, 225, 0.4) !important;
   opacity: .4; }
 
 @-webkit-keyframes scale-icon {
