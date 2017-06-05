@@ -51,6 +51,9 @@ var events = {
 	
 	
 }
+
+
+
 var modulator = {
 	init: function () {
 		var filters = document.querySelectorAll('.fn-modulate-btn');
@@ -60,7 +63,88 @@ var modulator = {
 	          cameraTracker.trackElement(e.currentTarget);
 	        });
 	      });
-	}
+	      
+	      changePage.selector();
+	      modulator.events.init();
+	},
+	events:  {
+		init: function () {
+			var form = document.querySelector('.fn-form-modulate');
+
+			form.addEventListener('input', function (e) {
+				var index = body.getAttribute('current-element');
+				modulator.events[e.target.getAttribute('name')](e.target, index)
+			})
+			form.addEventListener('change', function (e) {
+				var index = body.getAttribute('current-element');
+				modulator.events[e.target.getAttribute('name')](e.target, index)
+			})
+		},
+		active: function (element, index) {
+			data.group.sources[index].active = element.checked;
+			console.log(element.checked);
+			modulator.events.sendSocket({
+				value: element.checked,
+				type: 'active', 
+				id: index});
+
+		},
+		wavetype: function (element, index) {
+			console.log('update waetype', element, index);
+			data.group.sources[index].type = element.wavetype;
+			modulator.events.sendSocket({
+				value: element.getAttribute('wavetype'),
+				type: 'wavetype', 
+				id: index});
+
+		},
+		detune: function (element, index) {
+			console.log('update detune', element, index);
+			data.group.sources[index].detune = element.value;
+			modulator.events.sendSocket({
+				value: element.value,
+				type: 'detune', 
+				id: index});
+		},
+		sendSocket: function (newdata) {
+			console.log('updating', newdata);
+			sources.update[newdata.type](newdata)
+			socket.emit('updateSources', {
+				room: data.group._id,
+				data: newdata
+			});
+		}
+	},
+	fillData: function (index) {
+		inputEvent.slider();
+
+		var elementData  = data.group.sources[parseInt(index)]
+		var form         = document.querySelector('.fn-form-modulate');
+		var wavetypes    = form.querySelectorAll('.fn-wavetype .fn-input'); 
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+
+		form.setAttribute('active-index', index);
+		form.querySelector('.fn-slider').value             = elementData.detune;
+		form.querySelector('.fn-active').checked           = elementData.active;
+		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
+
+		wavetypes.forEach(function(wavetype) {
+			if(wavetype.getAttribute('wavetype') == elementData.type) {
+				wavetype.checked = true;
+			} else {
+				wavetype.checked = false;
+			}
+		});
+
+		inputEvent.setSliderBg(elementData.detune);
+		inputEvent.radioSlider();
+
+		
+	},
+	updateData: function (index) {
+		
+		
+	},
 }
 var sequencer = {
 	isRecording: false,
@@ -281,30 +365,7 @@ var pp = {
 
 
 var modulate = {
-	events: function() {
-		var form = document.querySelector('.fn-form-modulate');
-		
-		
-
-		
-		form.querySelector('.fn-active').addEventListener('change', function (e) {
-			var currentData = modulate.getCurrentData();
-			
-			currentData.active = e.currentTarget.checked;
-
-			modulate.sendSocket({value: currentData.active, type: 'active', id: currentData.id});
-		});
-		form.querySelector('.fn-slider').addEventListener('change', function (e){
-			var currentData = modulate.getCurrentData();
-			currentData.detune = e.currentTarget.value;
-			modulate.sendSocket({value: currentData.detune, type: 'detune', id: currentData.id});
-		})
-		inputEvent.radioSlider();
-
-		
 	
-		
-	},
 	sendSocket: function (newdata) {
 		
 		socket.emit('updateSources', {
@@ -313,10 +374,10 @@ var modulate = {
 		});
 
 	},
-	changeWavetype: function (newtype) {
+	changewavetype: function (newtype) {
 		var currentData = modulate.getCurrentData();
 		currentData.type = newtype;
-		modulate.sendSocket({value: currentData.type, type: 'waveType', id: currentData.id});
+		modulate.sendSocket({value: currentData.type, type: 'wavetype', id: currentData.id});
 
 	},
 	changeDetune: function (newvalue) {
@@ -327,7 +388,7 @@ var modulate = {
 		var thisdata = data.group.sources[parseInt(form.getAttribute('active-index'))];
 		return thisdata
 	},
-	waveType: function () {
+	wavetype: function () {
 		var form = document.querySelector('.fn-wavetype');
 		form.querySelector('.fn-input');
 	}

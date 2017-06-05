@@ -28,7 +28,7 @@
 			
 // 		return _oscillator;
 // 	},
-// 	setWavetype(osc, type) {
+// 	setwavetype(osc, type) {
 // 		osc.type = type
 // 	},
 // 	setFrequency(osc, freq) {
@@ -91,7 +91,7 @@
 
 // 		// audioData.sources.forEach(function(source) {
 // 		// 	source.audio = setOsc.create();
-// 		// 	setOsc.setWavetype(source.audio, source.type);
+// 		// 	setOsc.setwavetype(source.audio, source.type);
 // 		// 	setOsc.connect(source.audio, audioData.vca);
 // 		// });
 // 		// audioData.effects = {

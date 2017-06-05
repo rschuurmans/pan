@@ -1,10 +1,10 @@
-	<div class='container-fixed container-padding-lg'>
+	
 		<ul class='list list-clear list-grid '>
 
 		{{#each group.modulate}}
 			<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type='{{type}}' filter-index={{@key}} modulate-value={{value}}>
 				<span class='ic-value' style='transform:rotate({{{rotatePercentage 50 min max}}}deg)'></span>
-				<span class='text-blue btn-label-abs'>{{type}}</span>
+				<span class='text-white btn-label-abs'>{{type}}</span>
 			</li>
 
 			{{/each}}

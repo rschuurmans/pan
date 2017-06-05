@@ -1,25 +1,21 @@
 var express = require('express');  
 var app     = express();
-var server    = require('http').Server(app);
+var server  = require('http').Server(app);
 var router  = express.Router();
-var io           = require('../socket.js').listen(server);
+var io      = require('../socket.js').listen(server);
 var fs      = require('fs');
-var modular = require('../helpers/modular.js');
 var db      = require('./../helpers/db');
+
 router.get('/', function (req, res, next) {
 
 })
-
-
-
-// clearInterval(interval);
 
 router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 	
 
 
 	db.getData(req.params.groupid, req.params.userid, function (data) {
-		// data.pp =  [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+		
 		data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
 		data.alert = {
 			text: 'Als sequencer ben je verantwoordelijk voor de melodie. Je kunt hem vervormen en een nieuwe melodie beginnen met de step sequencer',
@@ -57,7 +53,7 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 			cond : 'adsr'
 		}
 		]
-			data.group.synth.type = 'MembraneSynth'
+			data.group.synth.type = 'synth'
 		res.render('rol/sequencer', data)
 	})
 
@@ -99,7 +95,7 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 			links: ['filters', 'null', 'null']
 		}
 		]
-		data.group.synth.type = 'MembraneSynth'
+		data.group.synth.type = 'synth'
 		
 		
 
@@ -110,7 +106,6 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 
 })
 router.post('/data', function (req, res, next) {
-	// console.log('from post:',req.body);
 	var newGroup = req.body;
 
 	db.updateGroup(newGroup._id, newGroup, function (group) {

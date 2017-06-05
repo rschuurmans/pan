@@ -7,6 +7,9 @@
 	}
 
 	&[active='false'] {
+		&[origin='null'] {
+			transform:translate(100%,0);
+		}
 
 		&[origin='left'] {
 			transform:translate(-100%,0);

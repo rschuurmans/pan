@@ -10,7 +10,7 @@ socket.on('connect', function () {
 	}
 
 	socket.on('updateSources', function (received) {
-		console.log('received a socket', received);
+		console.log('received a updateSources', received);
 		sources.update(received);
 	})
 	

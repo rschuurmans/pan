@@ -50,6 +50,9 @@ var audio = {
 			audio.sources[i].triggerRelease()
 		}
 	},
+	triggerReleaseSingle: function (index) {
+		audio.sources[index].triggerRelease()
+	},
 
 	testValues: function() {
 		
@@ -170,9 +173,9 @@ var loop = {
 		loop.start(4000);
 	},
 	playStep: function (active, frequency, time) {
+		
 		if(active && !loop.hold && !recording.isRecording) {
 			audio.triggerAttack(frequency);
-			console.log('step');
 			if(!data.group.adsr[0].value) {
 				window.setTimeout(function () {
 				audio.triggerRelease();
@@ -235,34 +238,41 @@ var sources = {
 		
 		for(var i in data.group.sources) {
 			if(data.group.sources[i].active) {
-				console.log(data.group.synth.type);
+				
 				sources.create[data.group.synth.type](i);
 
 			}
 
 		};
 	},
-	update: function (received) {
+	update: {
+		wavetype: function (received) {
+			for(var i in audio.sources) {
 
-		data.group.sources[received.id][received.type] == received.value;
-		if(received.type == 'active') {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].oscillator.type = received.value;
+				}
+			}
+		},
+		
+		active: function (received) {
+			if(received.value) {
+				sources.create[data.group.synth.type](received.id);
+				filters.connectSingleSource(received.id);
+			} else {
+				sources.remove(received.id);
+			}
+		},
+		detune: function (received) {
+			for(var i in audio.sources) {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].detune.input.value = received.value;
+				}
+			}
 
-			sources.toggleActive(received.id, received.value)
-		} else if(received.type == 'detune') {
-			sources.updateDetune(received.id, received.value);
-		} else if (received.type == 'waveType') {
-			sources.changeWavetype(received.id, received.value);
-		}
-		// data.group.sources = received.sources;
-		// for(var i in received.sources) {
-		// 	for(var y in audio.sources) {
-		// 		if(audio.sources[y].id == i) {
-		// 			audio.sources[y].detune.input.value = received.sources[i].detune;
-		// 		}
-		// 	}
-		// }
+		},
 	},
-	changeWavetype: function (id, value) {
+	changewavetype: function (id, value) {
 		for(var i in audio.sources) {
 
 			if(audio.sources[i].id == id) {
@@ -270,32 +280,15 @@ var sources = {
 			}
 		}
 	},
-	toggleActive: function (id, active) {
-		if(active) {
-			sources.create(id);
-		} else {
-			sources.remove(id);
-		}
-	},
-	updateDetune: function (id, value) {
-		for(var i in audio.sources) {
-			if(audio.sources[i].id == id) {
-				audio.sources[i].detune.input.value = value;
-			}
-		}
-	},
+	
 	create: {
 		synth: function (id) {
-			console.log('creating a synth');
-			
 
 			var synth = new Tone.Synth(sources.create.parseData(id))
 			synth.id = id;
-
 			audio.sources.push(synth)
 		},
 		amSynth: function (id) {
-			console.log('running amSynth');
 			var synth = new Tone.AMSynth(sources.create.parseData(id))
 			synth.id = id;
 
@@ -360,8 +353,8 @@ var sources = {
 	
 	
 	remove: function (id) {
+		audio.triggerRelease(id)
 		for(var i in audio.sources) {
-			
 			if(audio.sources[i].id == id) {
 				audio.sources.splice(i, 1);
 			}
@@ -384,12 +377,27 @@ var filters = {
 		for(var i in data.group.modulate) {
 			filters.create[data.group.modulate[i].type](data.group.modulate[i])
 		}
-		filters.create.connect();
+		filters.connect();
 	},
+	connect: function () {
+			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
+		for(var i in audio.sources) {
+			for(var y in audio.filters) {
+				audio.sources[i].connect(audio.filters[y])
+			}
+
+		}
+
+	},
+	connectSingleSource: function (id) {
+		for(var y in audio.filters) {
+				audio.sources[id].connect(audio.filters[y])
+			}
+		},
 	create: {
 		pingpong: function (data) {
-			var pingPong = new Tone.PingPongDelay(data.values.delayTime , data.values.feedback).toMaster();;
-			audio.filters.push(pingPong);
+			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
+			audio.filters.pingpong = pingPong;
 			
 			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
 
@@ -399,6 +407,7 @@ var filters = {
 				frequency    :data.values.frequency,
 				depth        :data.values.depth,
 			}).toMaster().start();
+			audio.filters.tremelo = autoFilter;
 		},
 		chorus: function (data) {
 			var chorus = new Tone.Chorus({
@@ -407,7 +416,7 @@ var filters = {
 				depth: data.values.delayTime/2,
 				feedback: data.values.feedback
 			}).toMaster();
-			audio.filters.push(chorus);
+			audio.filters.chorus = chorus
 		},
 		wahwah: function (data) {
 			var autoWah = new Tone.AutoWah({
@@ -419,7 +428,7 @@ var filters = {
 				
 			}).toMaster();
 			
-			audio.filters.push(autoWah);
+			audio.filters.wahwah = autoWah;
 
 		},
 		lowpass: function () {
@@ -433,19 +442,17 @@ var filters = {
 				distortion: data.values.distortion,
 				oversample: data.values.oversample
 			}).toMaster();
-			audio.filters.push(dist);
+			audio.filters.distortion = dist;
 
 		},
-		connect: function () {
-			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
-			for(var i in audio.sources) {
-				for(var y in audio.filters) {
-					audio.sources[i].connect(audio.filters[y])
-				}
+		
 
-			}
-
-		},
+	},
+	update: function (type, value) {
+			console.log('receiving an update for', type, value);
+			audio.filters[type].wet.value = value/100;
+			console.log(audio.filters[type]);
 
 	}
 }
+

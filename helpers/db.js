@@ -5,19 +5,6 @@ var mongoose         = require('mongoose');
 var CMajor = [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
 
 var db = {
-	initDemo: function (username,res, cb ) {
-		db.createOrFindGroup(function (group) {
-			db.createUser(username, group, function (user) {
-				db.updateRole(user, group, function (user, group) {
-					res.cookie('userId', user._id.toString());
-					res.cookie('groupId', group._id.toString());
-					
-
-					cb(user, group, '/role/sequencer')
-				})
-			})
-		})
-	},
 	createNewGroup: function (username,res ,  cb) {
 		db.createGroup(function (group) {
 			db.createUser(username, group, function (user) {
@@ -67,16 +54,6 @@ var db = {
 		   cb(res);
 		})
 
-
-		// Group.findById(groupId, function (err, group) {
-		// 	console.log('found it?',group);
-			
-		// 	group.save(function () {
-		// 		console.log('did it work?', group);
-		// 		cb(group);
-		// 	})
-
-		// })
 	},
 	updateRole: function (user, group, cb) {
 		
@@ -93,21 +70,6 @@ var db = {
 			})
 		})
 	},
-	saveRole: function (id, isSequencer, cb) {
-		var role = 'modulate'
-		if(isSequencer) {
-			role = 'sequencer'
-		}
-		User.findById(id, function (err, user) {
-			if(err) { console.log( err) }
-			user.role = role;
-			user.save(function (err) {
-				if(err) { console.log( err) }
-				cb(user)
-			})
-		})
-		
-	},
 	createUser:function (username, group, cb) {
 		var user = new User({
 			username: username,
@@ -120,58 +82,7 @@ var db = {
 			cb(user)
 		});
 	},
-	getDemoUser: function (username,group, cb) {
-		db.userByName(username, function (user) {
-			if(user) {
-				cb(user)
-			} else {
-				var user  = new User({
-					username:username,
-					active: true,
-					startDate: new Date(),
-					role: 'none'
-				})
-
-				user.save(function () {
-					cb(user)
-				});
-			}
-		})
-	},
-	createOrFindGroup: function (cb) {
-		Group.findOne({$or:[{'sequencer': null},{'modulator':null} ]}, function (err, group) {
-			if(err) throw err;
-			if(group) {
-				cb(group);
-			} else {
-				db.countGroups(function (count) {
-						var melody = db.randomSequenceValues();
-						var source = db.randomSource(melody.length);
-						var sound = db.randomSound();
-						var adsr = db.randomADSR();
-						var wavetypes = db.getwavetypes();
-						var synth = db.getSynth();
-					group = new Group({
-						steps: melody,
-						sources: source,
-						modulate: sound,
-						timestamp: new Date(),
-						sequencer: null,
-						modulator: null,
-						groupCounter: count,
-						vca: false,
-						effects: false,
-						adsr: adsr,
-						wavetypes:wavetypes,
-						synth:synth
-					})
-					group.save(function () {
-						cb(group);
-					})
-				})
-			}
-		})
-	},
+	
 	getwavetypes: function () {
 		var wavetypes = ['sine', 'square', 'sawtooth', 'triangle', 'noise'];
 		return wavetypes;
@@ -238,23 +149,6 @@ var db = {
 					cb(group)
 				})
 			}
-		})
-	},
-	userByName: function (username, cb) {
-		User.findOne({username:username}, function(err, user) {
-			cb(user)
-		})
-	},
-	userById: function(id, cb) {
-		// return true;
-		User.findById(new mongoose.mongo.ObjectId(id), function (err, user) {
-			if(err) throw err;
-			if(cb) {
-				cb(user);
-			} else {
-				return user
-			}
-			
 		})
 	},
 	randomSound: function () {
@@ -345,7 +239,6 @@ var db = {
 			})
 		};
 
-		// var data = [{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":440,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":392,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":true,"sustain":null,"min":0,"max":2200},{"frequency":329.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":493.88,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":293.66,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":349.23,"active":false,"sustain":null,"min":0,"max":2200},{"frequency":261.63,"active":true,"sustain":null,"min":0,"max":2200}];
 		return data;
 	},
 	randomSource: function (steps) {
@@ -373,26 +266,6 @@ var db = {
 			})
 		})
 	},
-	getSoundData: function (userId, cb) {
-		db.getDemoGroup(function (group) {
-			var activeSoundDuo = null;
-			for(var i = 0; i < group.activeSounds.length;i++) {
-				for(var y = 0; y < group.activeSounds[i].members.length;y++) {
-					if(group.activeSounds[i].members[y].id == userId) {
-						activeSoundDuo = group.activeSounds[i];
-							
-						break;
-					}
-				}
-				
-			}
-
-			db.userById(userId, function (user) {
-				cb(activeSoundDuo, user)
-			})
-
-		})
-	}
 }
 
 

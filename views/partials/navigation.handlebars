@@ -7,7 +7,7 @@
 			<li></li>
 			{{/ifCond}}
 			{{#ifCond this '==' 'pp'}}
-			<li class='text text-icon text-white fn-nav-buttons'  target-page='pp'>
+			<li class='text text-icon text-white fn-changepage-btn'  target-page='pp'>
 				<div>PP <span class='ic ic_back ic_text'></span></div>
 			</li>
 			{{/ifCond}}
@@ -17,24 +17,24 @@
 	 		{{/ifCond}}
 
 	 		{{#ifCond this '==' 'osc'}}
-	 		<li class='text text-icon text-white fn-nav-buttons' target-page='osc'>SOURCE <span class='ic ic_back ic_text' ></span></li>
+	 		<li class='text text-icon text-white fn-changepage-btn' target-page='osc'>SOURCE <span class='ic ic_back ic_text' ></span></li>
 	 		{{/ifCond}}
 
 	 		{{#ifCond this '==' 'filters'}}
-	 		<li class='text text-icon text-white fn-nav-buttons' target-page='filters'>FILTERS <span class='ic ic_back ic_text' ></span></li>
+	 		<li class='text text-icon text-white fn-changepage-btn' target-page='filters'>FILTERS <span class='ic ic_back ic_text' ></span></li>
 	 		{{/ifCond}}
 
 	 		
 
 			{{#ifCond this '==' 'sequencer'}}
-			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'>SEQ <span class='ic ic_back ic_text' ></span></li>
+			<li class='text text-icon text-white fn-changepage-btn' target-page='sequencer'>SEQ <span class='ic ic_back ic_text' ></span></li>
 			{{/ifCond}}
 
 			{{#ifCond this '==' 'sequencerLeft'}}
-			<li class='text text-icon text-white fn-nav-buttons' target-page='sequencer'><span class='ic ic_back ic_text' ></span>SEQ </li>
+			<li class='text text-icon text-white fn-changepage-btn' target-page='sequencer'><span class='ic ic_back ic_text' ></span>SEQ </li>
 			{{/ifCond}}
 			{{#ifCond this '==' 'adsr'}}
-			<li class='text text-icon text-white fn-nav-buttons' target-page='adsr'><div><span class='ic ic_forward ic_text'></span>ADSR</div></li>
+			<li class='text text-icon text-white fn-changepage-btn' target-page='adsr'><div><span class='ic ic_forward ic_text'></span>ADSR</div></li>
 			{{/ifCond}}
 
 		{{/each}}

@@ -39,9 +39,9 @@
 
 	{{#each module.parameters}}
 		
-			{{#ifCond type "===" "waveType"}}
+			{{#ifCond type "===" "wavetype"}}
 				<div class="radio-slider">
-					{{#each waveTypes}}
+					{{#each wavetypes}}
 						<input type="radio" id="input-{{@index}}" name='toggle_option' {{#ifCond @index "===" 0}} checked {{/ifCond}}>
 
 						<label for="input-{{@index}}"><span>{{type}}</span></label>
@@ -89,10 +89,10 @@
 {{#ifCond input "===" 'radio'}}
     <ul class='list list-radio list-clear list-wavetypes grid_row'>
 
-    	{{#each waveTypes}}
+    	{{#each wavetypes}}
 
 			<li class='grid_row_item input_container_radio'>
-				<input type="radio" class='input input_radio' name='waveTypes' data-type='{{../type}}' value='{{type}}' id='{{type}}' 
+				<input type="radio" class='input input_radio' name='wavetypes' data-type='{{../type}}' value='{{type}}' id='{{type}}' 
 					{{#if active}}checked{{/if}}
 				>
 				<label for='{{type}}' class="ic ic_wave input_img" style="background-image:url('/images/{{img}}')"></label>

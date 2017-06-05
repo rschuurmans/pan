@@ -9,6 +9,7 @@ var inputEvent = {
 			inputEvent.setSliderBg(e.currentTarget.value);
 		})
 	},
+
 	setSliderBg: function (value) {
 		var sliderBg = document.querySelector('.fn-slider-bg');
 		sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
@@ -27,8 +28,10 @@ var inputEvent = {
 		}
 		element.addEventListener('change', function (e) {
 			radioWrapper.setAttribute('active-radio', e.currentTarget.id);
-			modulate.changeWavetype(e.currentTarget.getAttribute('wavetype'))
 		})
+	},
+	sources: function (index) {
+		var form = document.querySelector('.fn-form-modulate');
 	}
 }
 

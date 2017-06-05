@@ -1,20 +1,28 @@
-{{> alert alert}}
 
-<div class='fn-page-container'>
-	<div class='container container-fixed pagetransition fn-transition-page container-yellow above text-black text-center pagetransition-slide ' origin='right' active='false' current-page='calibrate'>
-		
-		{{> calibrate}}
-	</div>
-
-	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
-		
-		{{> filters this}}
-	</div>
-
-	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='right' active='false' current-page='osc'>
-		{{> sources this}}
-	</div>
+<div class='pagetransition splashtransition-active container container-yellow fn-alert text-center text-black above container-fixed fn-changepage-page ' order='0' origin='up' active='true' current-page='alert'>
+	{{> pages/alert alert}}
 </div>
+
+
+<div class="pagetransition splashtransition-active container-fixed fn-changepage-page container-yellow above text-black text-center" current-page='calibrate' active='true' order="1" origin='null'>
+		{{> pages/calibrate}}
+		
+</div>
+
+
+<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='filters' active='false'  order="2" origin='null'>
+	
+		{{> pages/filters this}}
+	
+</div>
+
+<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='osc' active='false'  order="3" origin='null'>
+	
+		{{> pages/sources this}}
+	
+</div>
+
+
 <div class='hide'>
 			{{> tipBox tips.0.text}}
 	<div class='video-container'>

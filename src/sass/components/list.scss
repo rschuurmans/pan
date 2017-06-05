@@ -87,6 +87,8 @@
 		
 		&:before, &:after {
 			@extend %absolute-100;
+			right:1px;
+			left:auto;
 			border-radius:8px;
 			width:1rem;
 		}

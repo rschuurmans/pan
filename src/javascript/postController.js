@@ -23,7 +23,10 @@ var postData = {
 		});
 	},
 	groupListPost: function (data) {
-		postData.request('/createGroup', 'POST', JSON.stringify(data), function (response) {
+		console.log(data);
+		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
+
+		postData.request('/createGroup', 'POST', query, function (response) {
 			window.location = '/role/' + response.role + '/' + response.userId + '/' + response.groupId;
 		});
 	},
@@ -44,16 +47,21 @@ var postData = {
 			
 		})
 	},
-	request: function (url, type, data, cb) {
-		$.ajax({
-			type:type,
-			data: data,
-			contentType: 'application/json',
-			url:url,
-			success: function (response) {
-				cb(response)
-				
-			}
-		})
+	request: function (url, type, query, cb) {
+		var xhr = new XMLHttpRequest();
+		xhr.open(type, url, true);
+
+		//Send the proper header information along with the request
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+		xhr.onreadystatechange = function() {//Call a function when the state changes.
+		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+		        // Request finished. Do processing here.
+		        console.log(xhr);
+		        cb(JSON.parse(xhr.response))
+		    }
+		}
+		xhr.send(query); 
+		
 	}
 }

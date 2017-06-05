@@ -1,18 +1,20 @@
+
 var body = document.querySelector('body');
-console.log('hey');
+
 var init = function () {
 
 	var path = window.location.pathname;
-	console.log(path, path.length);
+	
 	if(path.indexOf('/role') !== -1) {
-		changePage.onboarding();
+		changePage.onboarding()
+		// changePage.init();
 		deviceRotation.start();
 		tips.init();
 
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();
-			changePage.sequencerNavigation();
+			
 		} else {
 			cameraTracker.init();
 			modulator.init();
@@ -28,6 +30,7 @@ var init = function () {
 		animate.loginTransition();
 		postData.username();
 		postData.groupList();
+		changePage.init();
 	}
 	
 }

@@ -1,18 +1,20 @@
+
 var body = document.querySelector('body');
-console.log('hey');
+
 var init = function () {
 
 	var path = window.location.pathname;
-	console.log(path, path.length);
+	
 	if(path.indexOf('/role') !== -1) {
-		changePage.onboarding();
+		changePage.onboarding()
+		// changePage.init();
 		deviceRotation.start();
 		tips.init();
 
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
 			pp.setup();
-			changePage.sequencerNavigation();
+			
 		} else {
 			cameraTracker.init();
 			modulator.init();
@@ -28,6 +30,7 @@ var init = function () {
 		animate.loginTransition();
 		postData.username();
 		postData.groupList();
+		changePage.init();
 	}
 	
 }
@@ -49,7 +52,7 @@ socket.on('connect', function () {
 	}
 
 	socket.on('updateSources', function (received) {
-		console.log('received a socket', received);
+		console.log('received a updateSources', received);
 		sources.update(received);
 	})
 	
@@ -75,10 +78,11 @@ var animate = {
 		
 		for(var i = 0; i < animations.length;i++) {
 				animations[i].classList.remove('animate-stagger');
-				animations[i].style.opacity=0;
+				animations[i].style.opacity = 0;
+				
 				window.setTimeout(function (item) {
 					item.classList.add('animate-stagger');
-					item.style.opacity=1;
+					item.style.opacity=  1;
 
 				},5, animations[i])
 		}
@@ -204,6 +208,9 @@ var audio = {
 			audio.sources[i].triggerRelease()
 		}
 	},
+	triggerReleaseSingle: function (index) {
+		audio.sources[index].triggerRelease()
+	},
 
 	testValues: function() {
 		
@@ -324,9 +331,9 @@ var loop = {
 		loop.start(4000);
 	},
 	playStep: function (active, frequency, time) {
+		
 		if(active && !loop.hold && !recording.isRecording) {
 			audio.triggerAttack(frequency);
-			console.log('step');
 			if(!data.group.adsr[0].value) {
 				window.setTimeout(function () {
 				audio.triggerRelease();
@@ -389,34 +396,41 @@ var sources = {
 		
 		for(var i in data.group.sources) {
 			if(data.group.sources[i].active) {
-				console.log(data.group.synth.type);
+				
 				sources.create[data.group.synth.type](i);
 
 			}
 
 		};
 	},
-	update: function (received) {
+	update: {
+		wavetype: function (received) {
+			for(var i in audio.sources) {
 
-		data.group.sources[received.id][received.type] == received.value;
-		if(received.type == 'active') {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].oscillator.type = received.value;
+				}
+			}
+		},
+		
+		active: function (received) {
+			if(received.value) {
+				sources.create[data.group.synth.type](received.id);
+				filters.connectSingleSource(received.id);
+			} else {
+				sources.remove(received.id);
+			}
+		},
+		detune: function (received) {
+			for(var i in audio.sources) {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].detune.input.value = received.value;
+				}
+			}
 
-			sources.toggleActive(received.id, received.value)
-		} else if(received.type == 'detune') {
-			sources.updateDetune(received.id, received.value);
-		} else if (received.type == 'waveType') {
-			sources.changeWavetype(received.id, received.value);
-		}
-		// data.group.sources = received.sources;
-		// for(var i in received.sources) {
-		// 	for(var y in audio.sources) {
-		// 		if(audio.sources[y].id == i) {
-		// 			audio.sources[y].detune.input.value = received.sources[i].detune;
-		// 		}
-		// 	}
-		// }
+		},
 	},
-	changeWavetype: function (id, value) {
+	changewavetype: function (id, value) {
 		for(var i in audio.sources) {
 
 			if(audio.sources[i].id == id) {
@@ -424,32 +438,15 @@ var sources = {
 			}
 		}
 	},
-	toggleActive: function (id, active) {
-		if(active) {
-			sources.create(id);
-		} else {
-			sources.remove(id);
-		}
-	},
-	updateDetune: function (id, value) {
-		for(var i in audio.sources) {
-			if(audio.sources[i].id == id) {
-				audio.sources[i].detune.input.value = value;
-			}
-		}
-	},
+	
 	create: {
 		synth: function (id) {
-			console.log('creating a synth');
-			
 
 			var synth = new Tone.Synth(sources.create.parseData(id))
 			synth.id = id;
-
 			audio.sources.push(synth)
 		},
 		amSynth: function (id) {
-			console.log('running amSynth');
 			var synth = new Tone.AMSynth(sources.create.parseData(id))
 			synth.id = id;
 
@@ -514,8 +511,8 @@ var sources = {
 	
 	
 	remove: function (id) {
+		audio.triggerRelease(id)
 		for(var i in audio.sources) {
-			
 			if(audio.sources[i].id == id) {
 				audio.sources.splice(i, 1);
 			}
@@ -538,12 +535,27 @@ var filters = {
 		for(var i in data.group.modulate) {
 			filters.create[data.group.modulate[i].type](data.group.modulate[i])
 		}
-		filters.create.connect();
+		filters.connect();
 	},
+	connect: function () {
+			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
+		for(var i in audio.sources) {
+			for(var y in audio.filters) {
+				audio.sources[i].connect(audio.filters[y])
+			}
+
+		}
+
+	},
+	connectSingleSource: function (id) {
+		for(var y in audio.filters) {
+				audio.sources[id].connect(audio.filters[y])
+			}
+		},
 	create: {
 		pingpong: function (data) {
-			var pingPong = new Tone.PingPongDelay(data.values.delayTime , data.values.feedback).toMaster();;
-			audio.filters.push(pingPong);
+			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
+			audio.filters.pingpong = pingPong;
 			
 			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
 
@@ -553,6 +565,7 @@ var filters = {
 				frequency    :data.values.frequency,
 				depth        :data.values.depth,
 			}).toMaster().start();
+			audio.filters.tremelo = autoFilter;
 		},
 		chorus: function (data) {
 			var chorus = new Tone.Chorus({
@@ -561,7 +574,7 @@ var filters = {
 				depth: data.values.delayTime/2,
 				feedback: data.values.feedback
 			}).toMaster();
-			audio.filters.push(chorus);
+			audio.filters.chorus = chorus
 		},
 		wahwah: function (data) {
 			var autoWah = new Tone.AutoWah({
@@ -573,7 +586,7 @@ var filters = {
 				
 			}).toMaster();
 			
-			audio.filters.push(autoWah);
+			audio.filters.wahwah = autoWah;
 
 		},
 		lowpass: function () {
@@ -587,22 +600,20 @@ var filters = {
 				distortion: data.values.distortion,
 				oversample: data.values.oversample
 			}).toMaster();
-			audio.filters.push(dist);
+			audio.filters.distortion = dist;
 
 		},
-		connect: function () {
-			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
-			for(var i in audio.sources) {
-				for(var y in audio.filters) {
-					audio.sources[i].connect(audio.filters[y])
-				}
+		
 
-			}
-
-		},
+	},
+	update: function (type, value) {
+			console.log('receiving an update for', type, value);
+			audio.filters[type].wet.value = value/100;
+			console.log(audio.filters[type]);
 
 	}
 }
+
 
 
 
@@ -657,6 +668,9 @@ var events = {
 	
 	
 }
+
+
+
 var modulator = {
 	init: function () {
 		var filters = document.querySelectorAll('.fn-modulate-btn');
@@ -666,7 +680,88 @@ var modulator = {
 	          cameraTracker.trackElement(e.currentTarget);
 	        });
 	      });
-	}
+	      
+	      changePage.selector();
+	      modulator.events.init();
+	},
+	events:  {
+		init: function () {
+			var form = document.querySelector('.fn-form-modulate');
+
+			form.addEventListener('input', function (e) {
+				var index = body.getAttribute('current-element');
+				modulator.events[e.target.getAttribute('name')](e.target, index)
+			})
+			form.addEventListener('change', function (e) {
+				var index = body.getAttribute('current-element');
+				modulator.events[e.target.getAttribute('name')](e.target, index)
+			})
+		},
+		active: function (element, index) {
+			data.group.sources[index].active = element.checked;
+			console.log(element.checked);
+			modulator.events.sendSocket({
+				value: element.checked,
+				type: 'active', 
+				id: index});
+
+		},
+		wavetype: function (element, index) {
+			console.log('update waetype', element, index);
+			data.group.sources[index].type = element.wavetype;
+			modulator.events.sendSocket({
+				value: element.getAttribute('wavetype'),
+				type: 'wavetype', 
+				id: index});
+
+		},
+		detune: function (element, index) {
+			console.log('update detune', element, index);
+			data.group.sources[index].detune = element.value;
+			modulator.events.sendSocket({
+				value: element.value,
+				type: 'detune', 
+				id: index});
+		},
+		sendSocket: function (newdata) {
+			console.log('updating', newdata);
+			sources.update[newdata.type](newdata)
+			socket.emit('updateSources', {
+				room: data.group._id,
+				data: newdata
+			});
+		}
+	},
+	fillData: function (index) {
+		inputEvent.slider();
+
+		var elementData  = data.group.sources[parseInt(index)]
+		var form         = document.querySelector('.fn-form-modulate');
+		var wavetypes    = form.querySelectorAll('.fn-wavetype .fn-input'); 
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+
+		form.setAttribute('active-index', index);
+		form.querySelector('.fn-slider').value             = elementData.detune;
+		form.querySelector('.fn-active').checked           = elementData.active;
+		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
+
+		wavetypes.forEach(function(wavetype) {
+			if(wavetype.getAttribute('wavetype') == elementData.type) {
+				wavetype.checked = true;
+			} else {
+				wavetype.checked = false;
+			}
+		});
+
+		inputEvent.setSliderBg(elementData.detune);
+		inputEvent.radioSlider();
+
+		
+	},
+	updateData: function (index) {
+		
+		
+	},
 }
 var sequencer = {
 	isRecording: false,
@@ -887,30 +982,7 @@ var pp = {
 
 
 var modulate = {
-	events: function() {
-		var form = document.querySelector('.fn-form-modulate');
-		
-		
-
-		
-		form.querySelector('.fn-active').addEventListener('change', function (e) {
-			var currentData = modulate.getCurrentData();
-			
-			currentData.active = e.currentTarget.checked;
-
-			modulate.sendSocket({value: currentData.active, type: 'active', id: currentData.id});
-		});
-		form.querySelector('.fn-slider').addEventListener('change', function (e){
-			var currentData = modulate.getCurrentData();
-			currentData.detune = e.currentTarget.value;
-			modulate.sendSocket({value: currentData.detune, type: 'detune', id: currentData.id});
-		})
-		inputEvent.radioSlider();
-
-		
 	
-		
-	},
 	sendSocket: function (newdata) {
 		
 		socket.emit('updateSources', {
@@ -919,10 +991,10 @@ var modulate = {
 		});
 
 	},
-	changeWavetype: function (newtype) {
+	changewavetype: function (newtype) {
 		var currentData = modulate.getCurrentData();
 		currentData.type = newtype;
-		modulate.sendSocket({value: currentData.type, type: 'waveType', id: currentData.id});
+		modulate.sendSocket({value: currentData.type, type: 'wavetype', id: currentData.id});
 
 	},
 	changeDetune: function (newvalue) {
@@ -933,7 +1005,7 @@ var modulate = {
 		var thisdata = data.group.sources[parseInt(form.getAttribute('active-index'))];
 		return thisdata
 	},
-	waveType: function () {
+	wavetype: function () {
 		var form = document.querySelector('.fn-wavetype');
 		form.querySelector('.fn-input');
 	}
@@ -941,48 +1013,52 @@ var modulate = {
 
 
 var changePage = {
-	showPage: function (page)  {
-		console.log(page);
-		var allPages = document.querySelectorAll('.fn-transition-page');
-		var body     = document.querySelector('body');
+	showPage : function (page) {
+		var allPages = document.querySelectorAll('.fn-changepage-page');
+		body.setAttribute('current-page', page);
 
-		body.setAttribute('current-page', page)
 		for(var i = 0; i < allPages.length ; i++) {
 			if(allPages[i].getAttribute('current-page') == page) {
 				allPages[i].setAttribute('active', true);
+				var pageIndex = parseInt(allPages[i].getAttribute('order'));
+				body.setAttribute('current-index', pageIndex);
+
+				changePage.setOrigin(allPages, pageIndex)
+				
 			} else {
 				allPages[i].setAttribute('active', false);
 			}
 		}
+
 	},
-	sequencerNavigation: function () {
-		var buttons = document.querySelectorAll('.fn-nav-buttons');
-		console.log(buttons);
-		animate.restartAnimations();
-		
-		for(var i = 0; i < buttons.length; i++) {
+	setOrigin: function (pages, activeIndex) {
+		for(var i = 0; i < pages.length;i++) {
 
-			buttons[i].addEventListener('click', function (e) {
+			if(parseInt(pages[i].getAttribute('order')) == activeIndex) {
+			} else if (parseInt(pages[i].getAttribute('order')) > activeIndex) {
+				pages[i].setAttribute('origin', 'right')
+			} else if (parseInt(pages[i].getAttribute('order')) < activeIndex ) {
+				pages[i].setAttribute('origin', 'left')
+			}
+			pages[i].classList.add('pagetransition-slide')
+		}
+	},
+	init: function () {
+		var buttons = document.querySelectorAll('.fn-changepage-btn');
+		changePage.setOrigin(document.querySelectorAll('.fn-changepage-page'), 0)
+		for(var i = 0; i < buttons.length;i++) {
+			buttons[i].addEventListener('click', function(e) {
 				console.log(e.currentTarget);
-				var page  = e.currentTarget.getAttribute('target-page');
-				body.setAttribute('current-page', page)
-
-				if(page == 'calibrate') {
-					window.setTimeout(function () { 
-						changePage.showPage(page);
-						animate.restartAnimations();
-					}, 2000)
-				} else {
-					changePage.showPage(page);
-					animate.restartAnimations();
-				}
-			})
-		};
+				changePage.showPage(e.currentTarget.getAttribute('target-page'))
+			});
+		}
 	},
 	onboarding: function () {
-		
-		
+		changePage.init();
 		changePage.showPage('alert')
+		// changePage.showPage('osc');
+		// audio.setup();
+		
 		var buttonSeq = document.querySelector('.fn-start-sequence');
 		if(buttonSeq) {
 			buttonSeq.addEventListener('click', function () {
@@ -1003,92 +1079,25 @@ var changePage = {
 
 		
 	},
-	swipeSlider: function (callback) {
-		var panels = document.querySelectorAll('.fn-slider-item');
-		var slider = document.querySelector('.fn-slider');
-		var sensitivity = 25;
-		var activeSlide = 0;
-		var slideCount = panels.length;
-		var timer;
-		console.log(slideCount);
+	selector: function (){
+		var buttons = document.querySelectorAll('.fn-selector-buttons');
+		changePage.showElement('0');
 
-		
-		// slider from: https://codepen.io/dangodev/pen/bpjrRg?editors=0011
-		var goTo =  function (number) {
-			console.log('go to', number);
-			if( number < 0 ) {
-				activeSlide = 0;
-			} else if( number > slideCount - 1 ) {
-				console.log('last');
-				activeSlide = slideCount - 1;
-			} else {
-				activeSlide = number;
-			}
-
-			slider.classList.add( 'is-animating');
-
-			var percentage = -( 100 / slideCount ) * activeSlide;
-
-			slider.style.transform = 'translateX( ' + percentage + '% )';
-			console.log(percentage, slider);
-			clearTimeout( timer );
-			callback(activeSlide)
-
-			timer = setTimeout( function() {
-				slider.classList.remove( 'is-animating' );
-			}, 400 );
-
-		}
-
-		var sliderManager = new Hammer.Manager(slider);
-		sliderManager.add(new Hammer.Pan({threshold: 0, pointers:0}))
-		sliderManager.on('pan', function (e) {
-
-		var percentage           = 100 / slideCount * e.deltaX / window.innerWidth;
-		var percentageCalculated = percentage - 100 / slideCount * activeSlide;
-
-		slider.style.transform = 'translateX( ' + percentageCalculated + '% )';
-
-		if( e.isFinal ) {
-			if( e.velocityX > 1 ) {
-				goTo( activeSlide - 1 );
-			} else if( e.velocityX < -1 ) {
-				goTo( activeSlide + 1 )
-			} else {
-				if( percentage <= -( sensitivity / slideCount ) ) {
-					goTo( activeSlide + 1 );
-				}
-				else if( percentage >= ( sensitivity / slideCount ) ) {
-					goTo( activeSlide - 1 );
-				} else {
-					goTo( activeSlide );
-				}
-				
-			}
-		}
-		})
-			  
-	},	
-	
-	swipePages: function (startPage) {
-		changePage.showPage(startPage);
-		
-		var body       = document.querySelector('body');
-		var hammertime = new Hammer(body, {});
-		hammertime.on('swipeleft', function(ev) {
-			changePage.showPage('osc');
-		});
-		hammertime.on('swiperight', function(ev) {
-			changePage.showPage('filters');
-		});
+		for(var i = 0; i < buttons.length; i++) {
+			buttons[i].addEventListener('click', function (e) {
+				changePage.showElement(e.currentTarget.getAttribute('target-element'));
+			})
+		};
 	},
 	showElement: function (index, button) {
-		changePage.updateData(index);
+		modulator.fillData(index);
 
 		var buttons = document.querySelectorAll('.fn-selector-buttons');
 
 		body.setAttribute('current-element', index)
+
 		document.querySelector('.fn-active-bar-container').setAttribute('active', index);
+
 		for(var i = 0; i < buttons.length ; i++) {
 			if(i == index) {
 				buttons[i].classList.add('active');
@@ -1097,80 +1106,91 @@ var changePage = {
 			}
 			
 		}
-	},
-	updateSettingValues: function (index) {
-		console.log('updating the data', data);
-		var elementData = data.group.modulate[parseInt(index)]
-		
-
-		
-		var form        = document.querySelector('.fn-modulate-settings');
-		for(var i = 0; i < elementData.settings.length;i++) {
-			
-			var settings = elementData.settings[i];
-			var form        = document.querySelector('.fn-modulate-settings');
-			var listItem = form.querySelectorAll('.fn-setting')[i];
-
-			var input = listItem.querySelector('.fn-filter-settings');
-			var label = listItem.querySelector('.fn-label');
-			
-			listItem.classList.remove('hide');
-			console.log(settings.adjustable);
-			if(!settings.adjustable) {
-				listItem.classList.add('hide');
-			}
-			input.setAttribute('id', settings.type);
-			input.setAttribute('min', settings.min);
-			input.setAttribute('max', settings.max);
-			input.setAttribute('steps', settings.step);
-			input.setAttribute('value', settings.value);
-
-			label.innerHTML = settings.type;
-		}
-	},
-	updateData: function (index) {
-		console.log('updating the data', data);
-		var elementData = data.group.sources[parseInt(index)]
-
-		var form        = document.querySelector('.fn-form-modulate');
-		var wavetypes   = form.querySelectorAll('.fn-wavetype .fn-input'); 
-		var radioWrapper = document.querySelector('.fn-radio-slider');
-		form.setAttribute('active-index', index);
-		form.querySelector('.fn-slider').value = elementData.detune;
-		form.querySelector('.fn-active').checked = elementData.active;
-		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
-
-		wavetypes.forEach(function(wavetype) {
-			console.log(wavetype.getAttribute('wavetype') , elementData.type, wavetype.getAttribute('wavetype') == elementData.type);
-			if(wavetype.getAttribute('wavetype') == elementData.type) {
-				wavetype.checked = true;
-			} else {
-				wavetype.checked = false;
-			}
-			inputEvent.radioSliderEvent(wavetype, radioWrapper)
-		});
-		
-
-		inputEvent.setSliderBg(elementData.detune);
-
-	},
-	selector: function (){
-		var buttons = document.querySelectorAll('.fn-selector-buttons');
-		changePage.showElement('0');
-		console.log('e');
-		
-		for(var i = 0; i < buttons.length; i++) {
-
-			buttons[i].addEventListener('click', function (e) {
-				changePage.showElement(e.currentTarget.getAttribute('target-element'));
-
-
-			})
-		};
 	}
+	
 }
 
 
+
+// 	swipeSlider: function (callback) {
+// 		var panels = document.querySelectorAll('.fn-slider-item');
+// 		var slider = document.querySelector('.fn-slider');
+// 		var sensitivity = 25;
+// 		var activeSlide = 0;
+// 		var slideCount = panels.length;
+// 		var timer;
+// 		console.log(slideCount);
+
+		
+// 		// slider from: https://codepen.io/dangodev/pen/bpjrRg?editors=0011
+// 		var goTo =  function (number) {
+// 			console.log('go to', number);
+// 			if( number < 0 ) {
+// 				activeSlide = 0;
+// 			} else if( number > slideCount - 1 ) {
+// 				console.log('last');
+// 				activeSlide = slideCount - 1;
+// 			} else {
+// 				activeSlide = number;
+// 			}
+
+// 			slider.classList.add( 'is-animating');
+
+// 			var percentage = -( 100 / slideCount ) * activeSlide;
+
+// 			slider.style.transform = 'translateX( ' + percentage + '% )';
+// 			console.log(percentage, slider);
+// 			clearTimeout( timer );
+// 			callback(activeSlide)
+
+// 			timer = setTimeout( function() {
+// 				slider.classList.remove( 'is-animating' );
+// 			}, 400 );
+
+// 		}
+
+// 		var sliderManager = new Hammer.Manager(slider);
+// 		sliderManager.add(new Hammer.Pan({threshold: 0, pointers:0}))
+// 		sliderManager.on('pan', function (e) {
+
+// 		var percentage           = 100 / slideCount * e.deltaX / window.innerWidth;
+// 		var percentageCalculated = percentage - 100 / slideCount * activeSlide;
+
+// 		slider.style.transform = 'translateX( ' + percentageCalculated + '% )';
+
+// 		if( e.isFinal ) {
+// 			if( e.velocityX > 1 ) {
+// 				goTo( activeSlide - 1 );
+// 			} else if( e.velocityX < -1 ) {
+// 				goTo( activeSlide + 1 )
+// 			} else {
+// 				if( percentage <= -( sensitivity / slideCount ) ) {
+// 					goTo( activeSlide + 1 );
+// 				}
+// 				else if( percentage >= ( sensitivity / slideCount ) ) {
+// 					goTo( activeSlide - 1 );
+// 				} else {
+// 					goTo( activeSlide );
+// 				}
+				
+// 			}
+// 		}
+// 		})
+			  
+// 	},	
+	
+// 	swipePages: function (startPage) {
+// 		changePage.showPage(startPage);
+		
+// 		var body       = document.querySelector('body');
+// 		var hammertime = new Hammer(body, {});
+// 		hammertime.on('swipeleft', function(ev) {
+// 			changePage.showPage('osc');
+// 		});
+// 		hammertime.on('swiperight', function(ev) {
+// 			changePage.showPage('filters');
+// 		});
+// 	},
 
 
 
@@ -1183,6 +1203,7 @@ var inputEvent = {
 			inputEvent.setSliderBg(e.currentTarget.value);
 		})
 	},
+
 	setSliderBg: function (value) {
 		var sliderBg = document.querySelector('.fn-slider-bg');
 		sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
@@ -1201,8 +1222,10 @@ var inputEvent = {
 		}
 		element.addEventListener('change', function (e) {
 			radioWrapper.setAttribute('active-radio', e.currentTarget.id);
-			modulate.changeWavetype(e.currentTarget.getAttribute('wavetype'))
 		})
+	},
+	sources: function (index) {
+		var form = document.querySelector('.fn-form-modulate');
 	}
 }
 
@@ -1342,7 +1365,10 @@ var postData = {
 		});
 	},
 	groupListPost: function (data) {
-		postData.request('/createGroup', 'POST', JSON.stringify(data), function (response) {
+		console.log(data);
+		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
+
+		postData.request('/createGroup', 'POST', query, function (response) {
 			window.location = '/role/' + response.role + '/' + response.userId + '/' + response.groupId;
 		});
 	},
@@ -1363,17 +1389,22 @@ var postData = {
 			
 		})
 	},
-	request: function (url, type, data, cb) {
-		$.ajax({
-			type:type,
-			data: data,
-			contentType: 'application/json',
-			url:url,
-			success: function (response) {
-				cb(response)
-				
-			}
-		})
+	request: function (url, type, query, cb) {
+		var xhr = new XMLHttpRequest();
+		xhr.open(type, url, true);
+
+		//Send the proper header information along with the request
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+		xhr.onreadystatechange = function() {//Call a function when the state changes.
+		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+		        // Request finished. Do processing here.
+		        console.log(xhr);
+		        cb(JSON.parse(xhr.response))
+		    }
+		}
+		xhr.send(query); 
+		
 	}
 }
 var tips = {
@@ -1500,44 +1531,6 @@ var tools = {
 	}
 }
 
-var tooltip = {
-	getHelper: function (name) {
-		var sawcookie = this.getCookie(name);
-		if(sawcookie) {
-			console.log('ive already seen this tooltip');
-		} else {
-			var item = document.querySelector('.fn-' + name);
-			item.classList.remove('closed');
-
-		}
-	},
-	removeHelper: function (name) {
-		var text = document.querySelector('.fn-' + name);
-		text.classList.add('closed');
-		document.cookie = name + '=true';
-	},
-	getCookie : function (name) {
-		name = name + '=';
-		var decodedCookie = decodeURIComponent(document.cookie);
-
-		var ca = decodedCookie.split(';');
-		var result = '';
-	    for(var i = 0; i <ca.length; i++) {
-	        var c = ca[i];
-	        while (c.charAt(0) == ' ') {
-	            c = c.substring(1);
-	        }
-	        if (c.indexOf(name) == 0) {
-	            result =  c.substring(name.length, c.length);
-	        }
-	    }
-	    return result;
-	},
-	createCookie: function (name, value) {
-		document.cookie = name + '=' + value;
-	}
-};
-
 var cameraTracker = {
   first: true,
   base: 440,
@@ -1591,7 +1584,7 @@ var cameraTracker = {
     }
   },
   
-  trackerData: function (data, max) {
+  trackerData: function (data, max, callback) {
     console.log('the new size is', data.width * data.height);
     var size = data.width * data.height;
     if(size > cameraTracker.highSize) {
@@ -1604,13 +1597,17 @@ var cameraTracker = {
       // var percentage = ((size - cameraTracker.highSize) * 100) / cameraTracker.highSize;
       var percentage = ((size - cameraTracker.highSize) / calculateableNum) * 100;
       console.log('het percentage is ', percentage);
-      cameraTracker.parseData(percentage, max)
+      // cameraTracker.parseData(percentage, max)
+      // filters.update('pingpong', percentage)
+      callback(percentage)
     }
   },
-  parseData: function (percentage, max) {
+  parseData: function (percentage, max, sendValue) {
     
     var newValue = (max * percentage)/100;
     console.log(newValue);
+    
+
     // var oldPercentage = (oldData.value * 100) / oldData.max;
 
   },
@@ -1619,7 +1616,7 @@ var cameraTracker = {
     var context = canvas.getContext('2d');
     var tracker = new tracking.ColorTracker(['yellow']);
     var trackThing = tracking.track(video, tracker, { camera: true , fps:1});
- 
+  
     tracker.on('track', function(event) {
       context.clearRect(0, 0, canvas.width, canvas.height);
      if(showTrack) {
@@ -1631,7 +1628,7 @@ var cameraTracker = {
       cameraTracker.drawRectangle(event.data, context, tracker.colors[0])
       
      } else {
-      if(event.data.length) {cameraTracker.trackerData(event.data[0], oldData);}
+      if(event.data.length) {cameraTracker.trackerData(event.data[0], max, callback);}
 
 
      }
@@ -1662,8 +1659,10 @@ var cameraTracker = {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
       
-       cameraTracker.showCamera(video, canvas, false, element,20, function () {
+       cameraTracker.showCamera(video, canvas, false, element,20, function (value) {
         // changePage.showPage('filters')
+        console.log(element);
+        filters.update(element.getAttribute('modulate-type'), value)
       });
     } else {
       body.removeAttribute('tracking')

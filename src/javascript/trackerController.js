@@ -51,7 +51,7 @@ var cameraTracker = {
     }
   },
   
-  trackerData: function (data, max) {
+  trackerData: function (data, max, callback) {
     console.log('the new size is', data.width * data.height);
     var size = data.width * data.height;
     if(size > cameraTracker.highSize) {
@@ -64,13 +64,17 @@ var cameraTracker = {
       // var percentage = ((size - cameraTracker.highSize) * 100) / cameraTracker.highSize;
       var percentage = ((size - cameraTracker.highSize) / calculateableNum) * 100;
       console.log('het percentage is ', percentage);
-      cameraTracker.parseData(percentage, max)
+      // cameraTracker.parseData(percentage, max)
+      // filters.update('pingpong', percentage)
+      callback(percentage)
     }
   },
-  parseData: function (percentage, max) {
+  parseData: function (percentage, max, sendValue) {
     
     var newValue = (max * percentage)/100;
     console.log(newValue);
+    
+
     // var oldPercentage = (oldData.value * 100) / oldData.max;
 
   },
@@ -79,7 +83,7 @@ var cameraTracker = {
     var context = canvas.getContext('2d');
     var tracker = new tracking.ColorTracker(['yellow']);
     var trackThing = tracking.track(video, tracker, { camera: true , fps:1});
- 
+  
     tracker.on('track', function(event) {
       context.clearRect(0, 0, canvas.width, canvas.height);
      if(showTrack) {
@@ -91,7 +95,7 @@ var cameraTracker = {
       cameraTracker.drawRectangle(event.data, context, tracker.colors[0])
       
      } else {
-      if(event.data.length) {cameraTracker.trackerData(event.data[0], oldData);}
+      if(event.data.length) {cameraTracker.trackerData(event.data[0], max, callback);}
 
 
      }
@@ -122,8 +126,10 @@ var cameraTracker = {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
       
-       cameraTracker.showCamera(video, canvas, false, element,20, function () {
+       cameraTracker.showCamera(video, canvas, false, element,20, function (value) {
         // changePage.showPage('filters')
+        console.log(element);
+        filters.update(element.getAttribute('modulate-type'), value)
       });
     } else {
       body.removeAttribute('tracking')

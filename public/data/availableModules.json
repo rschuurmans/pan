@@ -55,9 +55,9 @@
             "active": true,
             "parameters": [
                 {
-                    "type":"waveType",
+                    "type":"wavetype",
                     "input":"radio",
-                    "waveTypes": [
+                    "wavetypes": [
                         {
                             "type": "sine",
                             "img": "ic_wave_sine.svg",

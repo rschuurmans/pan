@@ -1,33 +1,33 @@
-{{> alert alert}}
 
-<div class='fn-page-container'>
-	
-
-<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='sequencer' active='false' origin='left'>
-	<div class="container container-padding-lg container-fixed ">
-	{{> tipBox tips.0.text}}
-
-	
-		{{> stepSequencer group}}
-
-	</div>
+<div class='pagetransition splashtransition-active container container-yellow fn-alert text-center text-black above container-fixed fn-changepage-page ' order='0' origin='up' active='true' current-page='alert'>
+	{{> pages/alert alert}}
 </div>
 
-<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='pp' active='false' origin='right'>
 
-	{{> pressurePads group}}
-	
-</div>
+<div class="pagetransition splashtransition-active container-fixed fn-changepage-page " current-page='sequencer' active='true' order="2" origin='null'>
+		<div class="container container-padding-lg container-fixed ">
+				{{> tipBox tips.0.text}}
 
-<div class="container container-fixed pagetransition pagetransition-slide fn-transition-page" current-page='adsr' active='false' origin='left'>
-	
-{{>adsr group }}
-	
+			
+				{{> pages/stepSequencer group}}
+
+			</div>
 		
 </div>
 
-{{> navigation this.navigation}}
+
+<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='pressurePads' active='false'  order="3" origin='null'>
+	
+			{{> pages/pressurePads group}}
+	
 </div>
 
 
+
+<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='adsr' active='false'  order="1" origin='null'>
+	
+			{{> pages/adsr group }}
+	
+</div>
+{{> navigation this.navigation}}
 {{> data-client this}}

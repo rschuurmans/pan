@@ -1,0 +1,38 @@
+
+<h4 class='head h4 text-white'>Pan wordt gespeeld in duo's. Kies een leuke uit</h4>
+
+
+
+
+		{{#if groups}}
+			<ul class='list list-clear list-margin-bottom'>
+				{{#each groups}}
+					<li class='block block-notification block
+						{{#openGroup modulator.username sequencer.username}}fn-grouplist-item
+						{{/openGroup}}' group-id='{{_id}}'>
+
+						{{#openGroup modulator.username sequencer.username}}
+							<span class="ic ic-notification"></span>
+						{{/openGroup}}
+						
+						<div class="list-content">
+							<h4 class='head h4 text-white text-condensed'> 
+								{{{groupMembers modulator.username sequencer.username}}}
+							</h4>
+							<p class='text text-small text-blue'>
+								{{{groupText modulator.username sequencer.username }}}
+							</p>
+						</div>
+						{{#openGroup modulator.username sequencer.username}}
+							<span class="ic ic-next"></span>
+						{{/openGroup}}
+					</li>
+				{{/each}}
+			</ul>
+		{{else}}
+			<p class='text-small text-white'>Je bent de eerste!</p>
+		{{/if}}
+		
+
+	
+

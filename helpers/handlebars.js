@@ -7,53 +7,12 @@ function hbsHelpers(hbs) {
 		'views/partials/'
 		],
 		helpers: {
-			inc: function (value, options) {
-				return parseInt(value) +1;
-			},
-			indexArray: function (index, array) {
-				
-				return array.split(',')[index];
-			},
 			json: function (context) {
 				return JSON.stringify(context)
 			},
-			percentageRadial: function (value, min, max) {
-				var percentage = 70 * value;
-				percentage = percentage / max;
-				return percentage;
-
-
-			},
-			withArray: function (array, num, options) {
-				return options.fn(array[num]);
-			},
+			
 			rotatePercentage: function (value, min, max) {
 				return (value * 360) / max;
-			},
-			percentageMax: function (value, max, min) {
-				var percentage =  value * 100 / max;
-				if(min) {
-					percentage += min;
-				}
-				return percentage
-				
-			},
-			eachNumber: function (number, options) {
-				 var ret = "";
-
-				  for(var i=0;  i<number; i++) {
-				    ret = ret + options.fn(i, {data:{index : i}});
-				  }
-				  
-			  return ret;
-			},
-			groupOpen : function (modulator, sequencer) {
-				var returntext = '';
-
-				if (modulator && !sequencer || !modulator && sequencer) {
-					returntext = 'list-group-active'
-				} 
-				return returntext
 			},
 			groupText: function (modulator, sequencer) {
 				var returntext = 'vol';
@@ -72,9 +31,7 @@ function hbsHelpers(hbs) {
 			arrayLength: function (arr) {
 				return arr.length;
 			},
-			prettyDate: function (timestamp) {
-				 return timeago().format(timestamp)
-			},
+			
 			openGroup: function (modulator, sequencer, options) {
 
 				if (modulator && !sequencer || !modulator && sequencer) {

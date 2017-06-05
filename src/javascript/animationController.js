@@ -8,10 +8,11 @@ var animate = {
 		
 		for(var i = 0; i < animations.length;i++) {
 				animations[i].classList.remove('animate-stagger');
-				animations[i].style.opacity=0;
+				animations[i].style.opacity = 0;
+				
 				window.setTimeout(function (item) {
 					item.classList.add('animate-stagger');
-					item.style.opacity=1;
+					item.style.opacity=  1;
 
 				},5, animations[i])
 		}
