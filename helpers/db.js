@@ -1,5 +1,6 @@
 var User             = require('./../models/user');
 var Group            = require('./../models/group');
+var audioSetup       = require('./audio');
 var mongoose         = require('mongoose');
 
 var CMajor = [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
@@ -19,11 +20,13 @@ var db = {
 		})
 	},
 	joinGroup: function (username, groupId, cb) {
-		
+		console.log(username, groupId);
 		Group.findById(groupId, function (err, group) {
+			if(err) throw err;
 			db.createUser(username, group, function (user) {
-			
+				if(err) throw err;
 				db.updateRole(user, group, function (user, group) {
+					if(err) throw err;
 					cb(user, group);
 				})
 			})
@@ -42,18 +45,17 @@ var db = {
 		})
 	},
 	updateGroup: function (groupId, newGroup, cb) {
-		Group.update({_id: groupId}, {
-		    effects: newGroup.effects,
-		    modulate: newGroup.modulate,
-		    sources: newGroup.sources,
-		    steps: newGroup.steps,
-		    vca: newGroup.vca
-		}, function(err, res) {
-		   //handle it
-		   console.log(err, res);
-		   cb(res);
-		})
+		
+		Group.findById(groupId, function (err, group) {
+			if(err) throw err;
+			
+			group = newGroup;
+			
+			group.save(function (group) {
+				cb(group)
+			})
 
+		})
 	},
 	updateRole: function (user, group, cb) {
 		
@@ -68,6 +70,19 @@ var db = {
 			group.save(function () {
 				cb(user, group);
 			})
+		})
+	},
+	leaveGroup: function (groupId, roleLeaving, newGroup, cb) {
+		console.log('-- ', groupId, roleLeaving);
+		Group.findById(groupId, function (err, group) {
+			if(err) throw err;
+			
+			group = newGroup;
+			group[roleLeaving] = null;
+			group.save(function (group) {
+				cb(group)
+			})
+
 		})
 	},
 	createUser:function (username, group, cb) {
@@ -106,6 +121,8 @@ var db = {
 	},
 	createGroup: function (cb) {
 		db.countGroups(function (count) {
+			var audioData = audioSetup.generate();
+			console.log(audioData);
 			var melody = db.randomSequenceValues();
 			var source = db.randomSource(melody.length);
 			var sound  = db.randomSound();
@@ -131,6 +148,9 @@ var db = {
 				cb(group);
 			})
 		})
+	},
+	generateAudio: function () {
+		return 'not'
 	},
 	getDemoGroup: function (cb) {
 		Group.findOne({demo: true}, function (err, group) {

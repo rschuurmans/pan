@@ -47,7 +47,18 @@ var events = {
 	updateStepLocation: function () {
 		// to be implemented, dot as in filter
 	},
-	
+	unload: function () {
+		window.addEventListener('unload', function() {
+			socket.emit('groupUpdate', {
+				room: data.group._id,
+				data: {
+					text: data.user.username + ' heeft de groep verlaten'
+				}
+			});
+			postData.leaveGroup();
+
+		})
+	}
 	
 	
 }
@@ -113,6 +124,9 @@ var modulator = {
 				room: data.group._id,
 				data: newdata
 			});
+		},
+		visualTrackerStep: function (value) {
+			
 		}
 	},
 	fillData: function (index) {

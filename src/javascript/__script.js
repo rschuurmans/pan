@@ -7,9 +7,9 @@ var init = function () {
 	
 	if(path.indexOf('/role') !== -1) {
 		changePage.onboarding()
-		// changePage.init();
 		deviceRotation.start();
 		tips.init();
+		events.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();

@@ -44,19 +44,19 @@ var changePage = {
 		changePage.showPage('alert')
 		// changePage.showPage('osc');
 		// audio.setup();
-		
+
 		var buttonSeq = document.querySelector('.fn-start-sequence');
 		if(buttonSeq) {
 			buttonSeq.addEventListener('click', function () {
 				audio.setup();
-				changePage.showPage('sequencer')
+				changePage.showPage('sequencer');
 			})
 		}
 		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
 		if(buttonCalibrate) {
 			buttonCalibrate.addEventListener('click', function () {
 				// document.querySelector('.fn-page-container').classList.remove(fil
-				audio.setup();
+				
 				// cameraTracker.calibrate();
 				changePage.showPage('calibrate')
 			})

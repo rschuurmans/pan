@@ -1,25 +1,18 @@
 // // todo : 
-// - adsr
-// 	update
-// - filters
-// 	update
-// 	init
-// - save data to backend
-// - sockets
-// - leave group on leave website
-// - presstart ios 
-// - border size sequencer based on value
-// - test rotate steps frequency
+// - implement all new filters/synths
+// - sockets -> test
+// - connect with groupmember
+// 	grouplist login real time / refreshknop
+// camera hand fallback
+// camera hand als pp
+// camera hand pp fallback is zon scherm met drukpunten
+// volume en speed tilt
 // - scss cleanup
-// - start rotate listener at open
-// - tilt for volume
-// - visual connect with sequencer/modulator
 // - group.sources is just one in modulator
-// tooltips/tutorial
+// group.sources non active blijft spelen na even kutten android
+// tooltips
 // remove unused functions
-// ipv decay een knop om de toon te holden
-// check if this is the way S&H actually works
-// also: sample and hold doesnt work if step is not active - problem?
+// rec rooltip boxhsadow keilelijk
 
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
@@ -320,7 +313,7 @@ var sources = {
 			audio.sources.push(synth)
 		},
 		
-		MembraneSynth: function (id) {
+		drum: function (id) {
 			data.group.adsr[0].value = false;
 			for(var i in data.group.steps) {
 				data.group.steps[i].frequency = data.group.steps[i].frequency - 400;
@@ -381,10 +374,14 @@ var filters = {
 	},
 	connect: function () {
 			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
-		for(var i in audio.sources) {
+			var gainNode = Tone.context.createGain()
+			
 			for(var y in audio.filters) {
-				audio.sources[i].connect(audio.filters[y])
+				gainNode.connect(audio.filters[y])
 			}
+		for(var i in audio.sources) {
+			audio.sources[i].connect(gainNode);
+			
 
 		}
 
@@ -395,6 +392,9 @@ var filters = {
 			}
 		},
 	create: {
+		// max 2 eckte filters pp, rest is de synth vervormen.
+		// meerdere filters kunnen aangeklikt wordne
+		// filter 2 max op 20 zetten ipv 100
 		pingpong: function (data) {
 			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
 			console.log(pingPong.wet);

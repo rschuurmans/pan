@@ -7,9 +7,9 @@ var init = function () {
 	
 	if(path.indexOf('/role') !== -1) {
 		changePage.onboarding()
-		// changePage.init();
 		deviceRotation.start();
 		tips.init();
+		events.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
 			sequencer.init();
@@ -157,27 +157,20 @@ var animate = {
 }
 
 // // todo : 
-// - adsr
-// 	update
-// - filters
-// 	update
-// 	init
-// - save data to backend
-// - sockets
-// - leave group on leave website
-// - presstart ios 
-// - border size sequencer based on value
-// - test rotate steps frequency
+// - implement all new filters/synths
+// - sockets -> test
+// - connect with groupmember
+// 	grouplist login real time / refreshknop
+// camera hand fallback
+// camera hand als pp
+// camera hand pp fallback is zon scherm met drukpunten
+// volume en speed tilt
 // - scss cleanup
-// - start rotate listener at open
-// - tilt for volume
-// - visual connect with sequencer/modulator
 // - group.sources is just one in modulator
-// tooltips/tutorial
+// group.sources non active blijft spelen na even kutten android
+// tooltips
 // remove unused functions
-// ipv decay een knop om de toon te holden
-// check if this is the way S&H actually works
-// also: sample and hold doesnt work if step is not active - problem?
+// rec rooltip boxhsadow keilelijk
 
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
@@ -478,7 +471,7 @@ var sources = {
 			audio.sources.push(synth)
 		},
 		
-		MembraneSynth: function (id) {
+		drum: function (id) {
 			data.group.adsr[0].value = false;
 			for(var i in data.group.steps) {
 				data.group.steps[i].frequency = data.group.steps[i].frequency - 400;
@@ -539,10 +532,14 @@ var filters = {
 	},
 	connect: function () {
 			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
-		for(var i in audio.sources) {
+			var gainNode = Tone.context.createGain()
+			
 			for(var y in audio.filters) {
-				audio.sources[i].connect(audio.filters[y])
+				gainNode.connect(audio.filters[y])
 			}
+		for(var i in audio.sources) {
+			audio.sources[i].connect(gainNode);
+			
 
 		}
 
@@ -553,6 +550,9 @@ var filters = {
 			}
 		},
 	create: {
+		// max 2 eckte filters pp, rest is de synth vervormen.
+		// meerdere filters kunnen aangeklikt wordne
+		// filter 2 max op 20 zetten ipv 100
 		pingpong: function (data) {
 			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
 			console.log(pingPong.wet);
@@ -669,7 +669,18 @@ var events = {
 	updateStepLocation: function () {
 		// to be implemented, dot as in filter
 	},
-	
+	unload: function () {
+		window.addEventListener('unload', function() {
+			socket.emit('groupUpdate', {
+				room: data.group._id,
+				data: {
+					text: data.user.username + ' heeft de groep verlaten'
+				}
+			});
+			postData.leaveGroup();
+
+		})
+	}
 	
 	
 }
@@ -735,6 +746,9 @@ var modulator = {
 				room: data.group._id,
 				data: newdata
 			});
+		},
+		visualTrackerStep: function (value) {
+			
 		}
 	},
 	fillData: function (index) {
@@ -1063,19 +1077,19 @@ var changePage = {
 		changePage.showPage('alert')
 		// changePage.showPage('osc');
 		// audio.setup();
-		
+
 		var buttonSeq = document.querySelector('.fn-start-sequence');
 		if(buttonSeq) {
 			buttonSeq.addEventListener('click', function () {
 				audio.setup();
-				changePage.showPage('sequencer')
+				changePage.showPage('sequencer');
 			})
 		}
 		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
 		if(buttonCalibrate) {
 			buttonCalibrate.addEventListener('click', function () {
 				// document.querySelector('.fn-page-container').classList.remove(fil
-				audio.setup();
+				
 				// cameraTracker.calibrate();
 				changePage.showPage('calibrate')
 			})
@@ -1370,10 +1384,10 @@ var postData = {
 		});
 	},
 	groupListPost: function (data) {
-		console.log(data);
+		
 		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
 
-		postData.request('/createGroup', 'POST', query, function (response) {
+		postData.postRequest('/createGroup', data,  function (response) {
 			window.location = '/role/' + response.role + '/' + response.userId + '/' + response.groupId;
 		});
 	},
@@ -1394,6 +1408,26 @@ var postData = {
 			
 		})
 	},
+	saveAudioData: function () {
+		
+		postData.postRequest('/role/save', data.group, function (res) {
+			console.log('het is gelukt!', res);
+		})
+	},
+
+	leaveGroup: function () {
+		var send =  {
+			group:data.group,
+			role:data.user.role,
+			groupid: data.group._id
+		};
+		console.log(send)
+		postData.postRequest('/role/leave',send, function (res) {
+			console.log('het is gelukt!', res);
+			data = res;
+		})
+	},
+
 	request: function (url, type, query, cb) {
 		var xhr = new XMLHttpRequest();
 		xhr.open(type, url, true);
@@ -1410,6 +1444,24 @@ var postData = {
 		}
 		xhr.send(query); 
 		
+	},
+	postRequest(url, data, success) {
+		
+	    var params = typeof data == 'string' ? data : Object.keys(data).map(
+	            function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) }
+	        ).join('&');
+
+	    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+	    xhr.open('POST', url);
+	    xhr.onreadystatechange = function() {
+	        if (xhr.readyState>3 && xhr.status==200) { success(xhr.responseText); }
+	    };
+	    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+	    xhr.send(params);
+
+	    return xhr;
 	}
 }
 var tips = {
@@ -1542,8 +1594,8 @@ var cameraTracker = {
   maxValue:880,
   baseNum: 0,
   size:0,
-  lowSize:1023,
-  highSize:11554,
+  lowSize:null,
+  highSize:null,
   calibrated: 0,
   tracker: null,
   stop: false,
@@ -1578,6 +1630,7 @@ var cameraTracker = {
 
     document.querySelector('.calibrate-done').addEventListener('click', function(e) {
         trackThing.stop();
+        audio.setup();
         changePage.showPage('filters')
         
     });
@@ -1600,7 +1653,7 @@ var cameraTracker = {
         var data = event.data[0];
         if(data) {
           var size = data.width * data.height;
-          
+          console.log(size);
           if(size < cameraTracker.highSize) {
             body.setAttribute('tracking-status', 'high');
           } else if (size > cameraTracker.lowSize) {
@@ -1609,6 +1662,7 @@ var cameraTracker = {
             body.setAttribute('tracking-status', 'ok');
             var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
             var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
+            console.log(percentage);
             callback(percentage)
           }
            
@@ -1651,6 +1705,7 @@ var cameraTracker = {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
         cameraTracker.startElementTracking(function (value) {
+          console.log('value:', value);
           filters.update(element.getAttribute('modulate-type'), value)
         }, element);
        

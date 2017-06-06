@@ -23,10 +23,10 @@ var postData = {
 		});
 	},
 	groupListPost: function (data) {
-		console.log(data);
+		
 		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
 
-		postData.request('/createGroup', 'POST', query, function (response) {
+		postData.postRequest('/createGroup', data,  function (response) {
 			window.location = '/role/' + response.role + '/' + response.userId + '/' + response.groupId;
 		});
 	},
@@ -47,6 +47,26 @@ var postData = {
 			
 		})
 	},
+	saveAudioData: function () {
+		
+		postData.postRequest('/role/save', data.group, function (res) {
+			console.log('het is gelukt!', res);
+		})
+	},
+
+	leaveGroup: function () {
+		var send =  {
+			group:data.group,
+			role:data.user.role,
+			groupid: data.group._id
+		};
+		console.log(send)
+		postData.postRequest('/role/leave',send, function (res) {
+			console.log('het is gelukt!', res);
+			data = res;
+		})
+	},
+
 	request: function (url, type, query, cb) {
 		var xhr = new XMLHttpRequest();
 		xhr.open(type, url, true);
@@ -63,5 +83,23 @@ var postData = {
 		}
 		xhr.send(query); 
 		
+	},
+	postRequest(url, data, success) {
+		
+	    var params = typeof data == 'string' ? data : Object.keys(data).map(
+	            function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) }
+	        ).join('&');
+
+	    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+	    xhr.open('POST', url);
+	    xhr.onreadystatechange = function() {
+	        if (xhr.readyState>3 && xhr.status==200) { success(xhr.responseText); }
+	    };
+	    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+	    xhr.send(params);
+
+	    return xhr;
 	}
 }

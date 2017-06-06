@@ -4,8 +4,8 @@ var cameraTracker = {
   maxValue:880,
   baseNum: 0,
   size:0,
-  lowSize:1023,
-  highSize:11554,
+  lowSize:null,
+  highSize:null,
   calibrated: 0,
   tracker: null,
   stop: false,
@@ -40,6 +40,7 @@ var cameraTracker = {
 
     document.querySelector('.calibrate-done').addEventListener('click', function(e) {
         trackThing.stop();
+        audio.setup();
         changePage.showPage('filters')
         
     });
@@ -62,7 +63,7 @@ var cameraTracker = {
         var data = event.data[0];
         if(data) {
           var size = data.width * data.height;
-          
+          console.log(size);
           if(size < cameraTracker.highSize) {
             body.setAttribute('tracking-status', 'high');
           } else if (size > cameraTracker.lowSize) {
@@ -71,6 +72,7 @@ var cameraTracker = {
             body.setAttribute('tracking-status', 'ok');
             var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
             var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
+            console.log(percentage);
             callback(percentage)
           }
            
@@ -113,6 +115,7 @@ var cameraTracker = {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
         cameraTracker.startElementTracking(function (value) {
+          console.log('value:', value);
           filters.update(element.getAttribute('modulate-type'), value)
         }, element);
        

@@ -1,6 +1,4 @@
-<script>
-	var audioSetup = {
-		cMajor: [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25,587.33	, 659.25,698.46	,783.99	, 880.00	, 987.77	,1046.50 ],
+var audioSetup = {
 	generate: function () {
 		
 		var type = ['slow', 'slow', 'slow', 'mid', 'fast'][Math.floor(Math.random()*3)];
@@ -9,11 +7,11 @@
 			synth    : audioSetup.getSynth(type),
 			adsr     : audioSetup.getADSR(type),
 			wavetypes: audioSetup.getwavetypes(type),
+			sources: audioSetup.getSources(type, newSynth.synth, newSynth.wavetypes),
 			steps    : audioSetup.getSteps(type),
 			filters  : audioSetup.getFilters(type)
 		}
-		newSynth.sources = audioSetup.getSources(type, newSynth.synth, newSynth.wavetypes);
-		console.log(newSynth);
+		return newSynth;
 	},
 	getSources: function (type, synth, wavetype) {
 
@@ -73,125 +71,20 @@
 		return wavetypes[Math.floor(Math.random()*wavetypes.length)];
 	},
 	getSteps: function (type) {
-		var stepsChoices = {
+		var steps = {
 			slow: [4,8],
-			mid: [8],
-			fast: [16]
+			mid: [8,16],
+			fast: [16,32]
 		}
-
-		var steps = stepsChoices[type][Math.floor(Math.random()*stepsChoices.length)];
-		console.log(steps);
-		var data = {};
-		for(var i = 0; i < steps; i++) {
-			data.push({
-				frequency: audioSetup.CMajor[Math.floor(Math.random()*CMajor.length)],
-				active: Math.random() >= 0.5,
-				min:0,
-				max:1200,
-			})
-		};
-		console.log(data);
-
-		return data;
+		return steps[type][Math.floor(Math.random()*steps[type].length)];
 	},
 	getSpeed: function () {
 		var speed = ['1', '2', '3', '4'];
 		return speed[0];
 	},
-	
 	getFilters: function (type) {
 		var array = [];
-		
-		var effects = [{
-			    type: "pingpong",
-			    values: {
-			      feedback: Math.random()*3,
-			      delayTime: Math.random()*3
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "chorus",
-			    values: {
-					feedback:Math.random()*2,
-					delayTime: Math.random()*5
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "tremelo",
-			    values: {
-			      frequency: Math.floor(Math.random()*10),
-			      depth: Math.random()*2
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "wahwah",
-			    values: {
-					baseFrequency: Math.floor(Math.random()*300) + 50,
-					gain         : Math.random()*3
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "distortion",
-			    values: {
-					distortion: 3,
-					oversample : ['none', '2x', '4x'][Math.floor(Math.random()*['none', '2x', '4x'].length)]
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "Lowpass",
-			    values: {
-					resonance: Math.random()*3,
-					dampening : Math.floor(Math.random()*3000) + 500
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "highpass",
-			    values: {
-					type: 'highpass',
-					frequency :  Math.floor(Math.random()*1500) + 0,
-					rollOff: Math.floor(Math.random()*15) + 1
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "delay",
-			    values: {
-					delayTime: Math.random()*2
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  },
-			  {
-			    type: "reverb",
-			    values: {
-					roomSize: Math.random(),
-			    },
-			    value: 0,
-			    min: 0,
-			    max: 50
-			  }
-			]
+		var effects = ['pingpong', 'tremelo', 'chorus', 'wahwah', 'lowpass', 'highpass', 'delay', 'reverb', 'lowpass', 'highpass'];
 
 		shuffle(effects);
 
@@ -230,5 +123,4 @@
 }
 
 
-audioSetup.generate();
-</script>
+module.exports = audioSetup;

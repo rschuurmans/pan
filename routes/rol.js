@@ -105,12 +105,23 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 
 
 })
-router.post('/data', function (req, res, next) {
-	var newGroup = req.body;
-
-	db.updateGroup(newGroup._id, newGroup, function (group) {
-
+router.post('/save', function (req, res, next) {
+	console.log(req.body);
+	
+	db.updateGroup(req.body.groupid,req.body.group, function (group) {
+		res.end();
 	})
+	// db.updateGroup
+})
+router.post('/leave', function (req, res, next) {
+	
+	
+	db.leaveGroup(req.body.groupid, req.body.role, req.body.group, function (group) {
+
+		res.send(group);
+		res.end();
+	})
+	// db.updateGroup
 })
 
 module.exports = router;
