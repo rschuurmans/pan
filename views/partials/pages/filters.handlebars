@@ -1,4 +1,13 @@
 	
+	<div class="block-filter-wrapper">
+		{{#each group.modulate}}
+	<div class="input-range-wrapper block-filter fn-fallback-filter" type={{type}}>
+	  <input type="range" class='input-range'  min="0" max="100" step="1" id='{{@index}}' value={{value}} modulate-type={{type}} />
+	  
+	</div>
+	{{/each}}
+	</div>
+
 		<ul class='list list-clear list-grid '>
 
 		{{#each group.modulate}}
@@ -9,32 +18,4 @@
 
 			{{/each}}
 		</ul>
-	{{!-- 	<div class="slider-container-container ">
-			<div class="slider-container fn-slider">
-				{{#each group.modulate}}
-					<div class="slider-item fn-slider-item">
-						<div class='block-filter-top'>
-							<div class='btn-round btn-filter btn-xlg btn-rectangle fn-modulate-btn'>
-								<span class='btn-label-abs'> {{type}} </span>
-							</div>
-						</div>
-					</div>
-				{{/each}}
-				
-			</div>
-		</div>
-		<form class='fn-modulate-settings block-modulate-settings' active-index={{@index}}>
-						
-				<ul class='list-clear text-white'>
-					{{#each group.modulate.0.settings}}
-					
-						
-							<li class='fn-setting {{#if adjustable}}{{else}}hide{{/if}}'>
-								<input class='input input-range fn-filter-settings ' type='range' name='points' min='{{min}}' max='{{max}}' steps={{steps}} value='{{value}}' id={{type}} >
-								<label class='fn-label text-small'for="{{type}}" > {{type}}:</label>
-							</li>
-					{{/each}}
-				</ul>
-			</form>
-
-		</div> --}}
+	

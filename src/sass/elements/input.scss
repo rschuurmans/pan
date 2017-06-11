@@ -7,7 +7,9 @@
 	padding:$padding;
 	color:$color;
 }
-
+input[type='range']::-webkit-slider-thumb {
+	
+}
 %before-absolute {
 	content: ' ';
 	position:absolute;
@@ -63,6 +65,13 @@
 		height:$icon-width*2;
 		-webkit-appearance:none;
 		font-size:$font-size-base;
+		vertical-align:middle;
+		&-label {
+			vertical-align:middle;
+			height:100%;
+			line-height:3em;
+			padding-right:1em;
+		}
 		&:before, &:after {
 			@extend %before-absolute;
 			height:50%;
@@ -76,7 +85,7 @@
 		}
 		&:after {
 			top:50%;
-			background-color:darken($color-turq,8);
+			background-color:darken($color-yellow,8);
 
 		}
 		&:checked {
@@ -85,10 +94,11 @@
 			}
 			&:after {
 				top:0%;
-				background-color:$color-turq;
+				background-color:$color-yellow;
 			}
 		}
 	}
+
 	&-range {
 		-webkit-appearance:none;
 		width:100%;
@@ -108,6 +118,92 @@
 		}
 
 	}
+	&-range-vert {
+		&-container {
+			display:flex;
+			justify-content:space-around;
+			height:100%;
+			position:absolute;
+			width:100%;
+		
+
+		}
+		&-wrapper {
+			display:inline-block;
+			width:25%;
+			height:100%;
+			position:relative;
+
+			label {
+				position:absolute;
+				top:104%;
+				
+				width:100%;
+				text-align:center;
+				// font-weight:bold;
+				transition:.06s ease-in;
+				font-family:'Futura', sans-serif;
+				color:$color-white;
+				border-bottom:2px solid $color-black;
+				&.active {
+					border-color:$color-blue;
+					color:$color-blue;
+				}
+
+			}
+			input {
+				width:50vh;
+				position:absolute;
+				height:1px;
+				display:block;
+				top:-2px;
+				left:50%;
+				transform:rotate(-90deg);
+				transform-origin:25vh 25vh;
+				-webkit-appearance:none;
+				
+				background:transparent;
+				&:before {
+					width:100%;
+					background:rgba(225,225,225,.2);
+					border-radius:50px;
+					content : ' ';
+					height:10px;
+					top:calc(50% - 5px);
+					left:0;
+					z-index:-1;
+					position:absolute;
+				}
+				&-wrapper {
+					height:2.5em;
+				}
+				&::-webkit-slider-thumb {
+					background-color:darken($color-yellow, 10);
+					border:2px solid $color-yellow;
+					width:$icon-width*2;
+					height:$icon-width*2;
+					// margin-bottom:8px;
+					-webkit-appearance:none;
+					border-radius:100%;
+					position:relative;
+					&:before {
+						content: 'sustain';
+						width:100%;
+						height:100%;
+						border:2px solid red;
+						position:absolute;
+						top:0;
+						left:0;
+					}
+				}	
+				
+			}
+
+		}
+
+		
+	}
+
 	&-range-color {
 		-webkit-appearance:none;
 		width:100%;
@@ -149,7 +245,7 @@
 		}
 		&-wrapper {
 			position:relative;
-			height:5em;
+			height:2.5em;
 		}
 
 	}

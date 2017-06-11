@@ -1,5 +1,45 @@
-	<ul class='list list-adsr list-clear container-padding-md '>
-		{{#each adsr}}
+
+<div class='block-adsr'>
+	<div class="top">
+		<div class='btn btn-question right fn-question' target-question='adsr'><span class="ic ic-quest " ></span></div>
+		<label for="active" class='text-yellow left input-switch-label' >
+			<h5>SUSTAIN :</h5>
+		</label>
+			<input type="checkbox" id='sustain' class='input-switch fn-sustain left' {{#if sustain}} checked{{/if}}>
+	</div>
+	
+
+
+	<div class='graph-container fn-adsr'>
+		<svg preserveAspectRatio="none" viewbox=" 0 0 100 100">
+		    <path d="" class="line-shadow"></path>
+		    <path d="" class="line"></path>     
+		     <polyline id="polyline-id" class='poly' points=""  />
+		</svg>
+
+		
+
+		<div class="input-range-vert-container">
+			{{#each adsr}}
+				
+				<div class="input-range-vert-wrapper">
+				  <input type="range" class='input-rage-vert fn-adsr-range-item'  min="0" max="{{max}}" step="0.1" id='adsr-{{@index}}' value={{value}} modulate-type={{@key}} />
+				  <label for="adsr-{{@index}}" class='text-label btn-label text-white fn-label-adsr'>{{@key}}</label>
+				</div>
+			{{/each}}
+			
+
+		</div>
+	</div>
+</div>
+
+<div class='block-question fn-question-modal' question='adsr'>
+	<h2>ADSR</h2>
+	<p>Vervorm de lengte van het geluid door de Attack, Decay of release aan te passen. Door de sustain op actief te zetten blijft het een doorlopende toon.</p>
+</div>
+
+
+		{{!-- {{#each adsr}}
 
 			<li class='list-adsr-item'>
 				{{#ifCond type '==' 'sustain'}}				
@@ -17,6 +57,31 @@
 
 				{{/ifCond}}
 			</li>
-		{{/each}}
-	</ul>
+		{{/each}} --}}
+	
+
+{{!-- bovenin een vraagteken met hulp over wat is adsr --}}
+
+
+
+		{{!-- {{#each adsr}}
+
+			<li class='list-adsr-item'>
+				{{#ifCond type '==' 'sustain'}}				
+				<label for="active" class='text-yellow right' >
+					<h5>SUSTAIN</h5>
+				</label>
+				
+				<input type="checkbox" id='sustain' class='input-switch fn-sustain right' {{#if value}} checked{{/if}}>
+				{{else}}
+				<div class="list-adsr-item-inner btn btn-adsr fn-adsr-button "style="transform:rotate({{{rotatePercentage value 0 max}}}deg)"  type={{type}} value={{value}} max={{max}}>
+					<span class='btn-label  unclickable'>{{type}}</span>
+					
+					<span class="ic-value" ></span>
+					</div>
+
+				{{/ifCond}}
+			</li>
+		{{/each}} --}}
+	
 	

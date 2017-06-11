@@ -6,6 +6,7 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
+		cameraTracker.checkSupport();
 		changePage.onboarding()
 		deviceRotation.start();
 		tips.init();

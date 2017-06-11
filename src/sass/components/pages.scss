@@ -57,8 +57,18 @@ body {
 			// @extend .unclickable
 			opacity:0;
 		}
-		.text-white {
+		.btn-label-abs {
+			color:$color-white;
+		}
+		.block-info {
 			color:$color-black !important;
+		}
+		.btn-rotate-trans {
+			transform:rotateY(180deg);
+			.btn-label-abs {
+				transform:rotateY(180deg);
+			}
+			
 		}
 		.btn-grid-item {
 			background-color:$color-black;

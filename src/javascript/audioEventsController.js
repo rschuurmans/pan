@@ -67,16 +67,25 @@ var events = {
 
 var modulator = {
 	init: function () {
-		var filters = document.querySelectorAll('.fn-modulate-btn');
-      
-	      filters.forEach(function(button) {
+
+		var filterButtons = document.querySelectorAll('.fn-modulate-btn');
+      	var filterSlide = document.querySelectorAll('.fn-fallback-filter');
+	      filterButtons.forEach(function(button) {
 	        button.addEventListener('click', function(e) {
 	          cameraTracker.trackElement(e.currentTarget);
 	        });
 	      });
+	      filterSlide.forEach(function(slider) {
+	      	slider.addEventListener('input', function(e) {
+	      		
+	      		filters.update(e.currentTarget.getAttribute('type'), e.target.value)
+	      		
+	      	});
+	      });
 	      
 	      changePage.selector();
 	      modulator.events.init();
+	      
 	},
 	events:  {
 		init: function () {
@@ -93,7 +102,8 @@ var modulator = {
 		},
 		active: function (element, index) {
 			data.group.sources[index].active = element.checked;
-			console.log(element.checked);
+			
+
 			modulator.events.sendSocket({
 				value: element.checked,
 				type: 'active', 
@@ -101,8 +111,7 @@ var modulator = {
 
 		},
 		wavetype: function (element, index) {
-			console.log('update waetype', element, index);
-			data.group.sources[index].type = element.wavetype;
+			data.group.sources[index].type = element.getAttribute('wavetype');
 			modulator.events.sendSocket({
 				value: element.getAttribute('wavetype'),
 				type: 'wavetype', 
@@ -110,15 +119,23 @@ var modulator = {
 
 		},
 		detune: function (element, index) {
-			console.log('update detune', element, index);
+			
 			data.group.sources[index].detune = element.value;
 			modulator.events.sendSocket({
 				value: element.value,
 				type: 'detune', 
 				id: index});
 		},
+		volume: function (element, index) {
+			
+			data.group.sources[index].volume = element.value;
+			modulator.events.sendSocket({
+				value: element.value,
+				type: 'volume', 
+				id: index});
+		},
 		sendSocket: function (newdata) {
-			console.log('updating', newdata);
+			
 			sources.update[newdata.type](newdata)
 			socket.emit('updateSources', {
 				room: data.group._id,
@@ -138,11 +155,13 @@ var modulator = {
 		var radioWrapper = document.querySelector('.fn-radio-slider');
 
 		form.setAttribute('active-index', index);
-		form.querySelector('.fn-slider').value             = elementData.detune;
+		form.querySelector('.fn-slider-detune').value             = elementData.detune;
+		form.querySelector('.fn-slider-volume').value             = elementData.volume;
 		form.querySelector('.fn-active').checked           = elementData.active;
 		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
 
 		wavetypes.forEach(function(wavetype) {
+			
 			if(wavetype.getAttribute('wavetype') == elementData.type) {
 				wavetype.checked = true;
 			} else {
@@ -150,7 +169,8 @@ var modulator = {
 			}
 		});
 
-		inputEvent.setSliderBg(elementData.detune);
+		inputEvent.setSliderBg('detune', elementData.detune);
+		inputEvent.setSliderBg('volume', elementData.volume);
 		inputEvent.radioSlider();
 
 		
@@ -165,13 +185,14 @@ var sequencer = {
 	newMelody: [],
 	init: function() {
 		tools.eachDomElement('.fn-sequencer-item', function (item) {
+			
 			events.updateStepLocation(item)
 			var hammertime = new Hammer(item, {})
 			sequencer.changeFrequency(hammertime);
 			sequencer.toggleActive(hammertime)
 		})
 		recording.setup();
-		adsr.changeEvent();
+		adsr.init();
 	},
 	getItemStep : function (item) {
 		var step = data.group.steps[parseInt(item.getAttribute('sequence-index'))];
@@ -192,9 +213,9 @@ var sequencer = {
 	},
 	calculatePercentage: function (item) {
 		var step = sequencer.getItemStep(item);
-		console.log(step);
+		
 		var perc = (step.frequency * 100) / step.max;
-		console.log('percentage is ', perc);
+		
 		
 		return perc;
 	
@@ -213,7 +234,7 @@ var sequencer = {
 			e.preventDefault();
 			item = e.target;
 			var percentage = sequencer.calculatePercentage(item);
-			console.log(e.target);
+			
 			deviceRotation.listen(item, 'frequency', percentage);
 			
 			events.showRotate(item);
@@ -229,12 +250,11 @@ var sequencer = {
 	},
 	toggleActive: function (hammertime) {
 		hammertime.on('tap', function (e) {
-			console.log(e.target);
 			if(!recording.isRecording) {
 				var index = e.target.getAttribute('sequence-index');
 				tips.increaseTip('clickActive');
-				console.log(data.group.steps[index], index);
-				data.group.steps[index].active = !data.group.steps[index].active;
+				
+				data.group.steps[parseInt(index)].active = !data.group.steps[parseInt(index)].active;
 				
 				e.target.classList.toggle('active');
 				sequencer.sendSocket(data.group.steps[index], index)
@@ -243,7 +263,7 @@ var sequencer = {
 		});
 	},
 	updateActive: function () {
-		var steps = document.querySelectorAll('.btn-sequencer');
+		var steps = document.querySelectorAll('.fn-step-item');
 		for(var i = 0; i < steps.length;i++) {
 			if(data.group.steps[i].active) {
 				steps[i].classList.add('active')
@@ -268,7 +288,7 @@ var sequencer = {
 		// 
 	},
 	sendSocket: function (step, index) {
-		console.log(step);
+		
 		socket.emit('updateSteps', {
 			room: data.group._id,
 			step: data.group.steps[index],
@@ -278,8 +298,6 @@ var sequencer = {
 }
 var adsr = {
 	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		console.log('updating this in adsr', type, value);
 		data.group.adsr[type] = value;
 		var string = '[envelope][' + type + ']';
 		for(var i in audio.sources) {
@@ -291,92 +309,202 @@ var adsr = {
 		console.log('saving this new value ', percentage, item);
 
 	},
+	init: function () {
+		// adsr.drawSVG();
+		adsr.changeEvent();
+		var svgLine = document.querySelector('svg .poly');
+		var width   = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width)/8;
+		var inputs  = document.querySelectorAll('.fn-adsr-range-item');
+		
+		var points = []
+		for(var i = 0; i < inputs.length ;i++) {
+			var point = adsr.getPoints(i);
+			points.push(point)
+
+		    inputs[i].addEventListener('input', function (e) {
+		    	adsr.showActive(e.currentTarget.id);
+		    	adsr.svgUpdate(svgLine, points, parseInt(e.currentTarget.id.split('adsr-')[1]))
+		    	adsr.update(e.currentTarget.getAttribute('modulate-type'), e.currentTarget.value)
+		    })
+		}
+		adsr.drawSVGInit(svgLine, points);
+
+	},
+	showActive: function (id) {
+		var labels = document.querySelectorAll('.fn-label-adsr');
+		
+		for(var i = 0; i < labels.length;i++) {
+			if(labels[i].getAttribute('for') == id ) {
+				labels[i].classList.add('active');
+			} else {
+				labels[i].classList.remove('active');
+			}
+		}
+
+	},
+	getPoints: function (index) {
+		var inputs = document.querySelectorAll('.fn-adsr-range-item');
+		
+		var pos    = inputs[index].getBoundingClientRect();
+		
+		var value  = document.querySelectorAll('.fn-adsr-range-item')[index].value;
+		var max    = inputs[index].getAttribute('max');
+		value      = max - value;
+		var perc   = (value*100)/max;
+		var left   = ((100/inputs.length) * index) + ((100/inputs.length)/2);
+
+	    
+	    var points = {
+	    	x: left,
+	    	y: perc
+	    }
+	    return points
+	},
+	drawSVGInit: function (line, points) {
+		var width     = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width);
+		var height    = (document.querySelector('.input-range-vert-container').getBoundingClientRect().height);
+		var attribute =  '0 100';
+		
+		for(var i in points) {
+			attribute += ',' + points[i].x + ' ' + points[i].y
+		}
+		attribute +=  ',100 100';
+		line.setAttribute('points', attribute);
+	},
+	svgUpdate: function (line, points, index) {
+		var attribute        = line.getAttribute('points').split(',');
+		var point            = adsr.getPoints(index);
+		var currentAttribute = attribute[index + 1].split(' ');
+		attribute[index + 1] = currentAttribute[0] + " " + point.y;
+		line.setAttribute('points', attribute)
+	},
 	changeEvent: function () {
 		var sustainButton = document.querySelector('.fn-sustain');
 		sustainButton.addEventListener('change', function (e) {
-			console.log(e.currentTarget.value, e.currentTarget.checked);
-			data.group.adsr[0].value = e.currentTarget.checked;
+
+			data.group.sustain = e.currentTarget.checked;
 		})
-
-		tools.eachDomElement('.fn-adsr-button', function (item) {
-			var closeRotate = function () {
-				deviceRotation.stopListen(function (percentage, item) {
-					
-					var type = item.getAttribute('type');
-					var value = (percentage*parseInt(item.getAttribute('max')))/100;
-
-					adsr.update(type, value);
-
-					item.removeEventListener('mouseup', closeRotate)
-					item.removeEventListener('touchend', closeRotate)
-					item.removeEventListener('touchcancel', closeRotate)
-
-				});
-			};
-			var openRotate = function (e) {
-
-				var currentItem = e.target.getAttribute('type') ? e.target : e.target.parentNode;
-				var type        = currentItem.getAttribute('type')
-				var value       = data.group.adsr[type];
-				
-				var max = parseInt(currentItem.getAttribute('max'))
-				var percentage = (value *100)/max;
-
-				deviceRotation.listen(currentItem, 'adsr', percentage);
-
-				e.target.addEventListener('mouseup', closeRotate)
-				e.target.addEventListener('touchend', closeRotate)
-				e.target.addEventListener('touchcancel', closeRotate)
-			}
-			var hammertime = new Hammer(item, {})
-			hammertime.on('press', function (e) {
-				e.preventDefault();
-		
-				openRotate(e);
-			})
-		})
-		
 	},
-	receiveNewValue: function (perc, item) {
-		
-		var circle = item.querySelector('.rotate-extra-circle');
-		circle.style.transform = 'scale('+( perc * 3)/100 +')';
-	},
+	updateValue: function (id) {
+
+	}
 	
 }
 
+
 var pp = {
-	setup: function () {
-		tools.eachDomElement('.fn-pp-button', function (button) {
-			button.addEventListener('touchstart',pp.openGate)
-			button.addEventListener('touchend',pp.closeGate)
-			button.addEventListener('touchcancel', pp.closeGate)
-		});
-	},
-	openGate: function (e) {
-		var value = e.currentTarget.getAttribute('pp-value');
+	touchBlok: null,
+	setup:function () {
+		
+		pp.touchBlok  = document.querySelector('.fn-pp');
+		var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+		var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+	
 
-		loop.holdTone(true, value);
-		e.currentTarget.classList.add('active');
-		pp.sendSocket(true);
+		pp.touchBlok.addEventListener('touchmove', pp.touchMove)
+		
+		pp.touchBlok.addEventListener('touchstart',pp.touchOpen)
+		pp.touchBlok.addEventListener('touchend',pp.touchEnd)
+		pp.touchBlok.addEventListener('touchcancel', pp.touchEnd)
+		
+		// document.body.addEventListener('touchmove',function(evt){
+		// 	evt.preventDefault();
+		// },false);
 	},
-	closeGate: function(e) {
-		var value = e.currentTarget.getAttribute('pp-value');
+	touchPosition: function (touches) {
+		var touch = touches[0] || toches[0];
+		
+		var values = {};
+		var elm = pp.touchBlok.getBoundingClientRect();
+		var x = touch.pageX - elm.left;
+		var y = touch.clientY - elm.top;
 
-		e.currentTarget.classList.remove('active');
-		loop.holdTone(false);
-		pp.sendSocket(false, value)
+		if(x < elm.width && x > 0 && y < elm.height && y > 0) {
+			
+		} else {
+			
+		}
+		return {
+			xpercentage : (x * 100)/elm.width,
+			ypercentage : (y * 100)/elm.height,
+			x: x - elm.left,
+			y: y- elm.top
+		}
+
 	},
-	sendSocket: function (start, value) {
-		socket.emit('holdStep', {
-			room: data.group._id,
-			frequency: value,
-			start:start
-		});
+	touchValues: function (touches) {
+		var position = pp.touchPosition(touches);
+		
+		var data = {
+			freq : (position.ypercentage * 1200)/100,
+			volume : (position.xpercentage)/20,
+		}
+		data.volume = 5 - data.volume;
+
+		return data
+	},
+	touchOpen: function (e) {
+		// audio.triggerRelease();
+		// loop.hold = true;
+		pp.createShadow(e.touches);
+		var position = pp.touchValues(e.touches);
+		// audio.setFrequency(300);
+		audio.ppFreq = position.freq;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:position.volume});
+
+		}
+		// var newSource = data.group.sources[0].type + position.part;
+		// sources.update.wavetype({id:0, value:newSource})
+		// audio.triggerAttack(position.freq);
+
+
+	},
+	createShadow: function (touches) {
+		var position = pp.touchPosition(touches);
+		var element  = document.createElement('span');
+
+		element.classList.add('shadow');
+		element.style.position = 'absolute';
+		
+		element.style.top      = position.ypercentage + '%';
+		element.style.left     = position.xpercentage + '%';
+
+		pp.touchBlok.appendChild(element);
+	
+		setTimeout(function() {
+			element.style.opacity=0;
+			 setTimeout(function () {
+			 	element.parentNode.removeChild(element);
+			 }, 500)
+		}, 100)
+	},
+	touchMove: function (e) {
+		pp.createShadow(e.touches);
+		var position = pp.touchValues(e.touches);
+		audio.ppFreq = position.freq;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:position.volume});
+
+		}
+		// var newSource = data.group.sources[0].type + position.part;
+		
+		// sources.update.wavetype({id:0, value:newSource})
+		// audio.triggerAttack(position.freq);
+	},
+	touchEnd: function (e) {
+		
+		var oldSource = data.group.sources[0].type;
+		
+		audio.triggerRelease();
+		loop.hold = false;
+		audio.ppFreq = false;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:data.group.sources[audio.sources[i].id].volume });
+
+		}
 	}
-
 }
-
 
 var modulate = {
 	

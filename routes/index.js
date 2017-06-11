@@ -26,10 +26,10 @@ router.get('/demo', function(req, res, next) {
 });
 
 router.post('/createGroup', function (req, res, next) {
-	
+	console.log(req.body);
 	if(req.body.newGroup == 'true') {
 		db.createNewGroup(req.body.username, res, function (user, group) {
-
+			
 			res.send({redirect: '/role/sequencer', role: user.role, userId: user._id, groupId: group._id})
 		});
 	} else {

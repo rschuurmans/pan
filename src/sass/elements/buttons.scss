@@ -19,6 +19,10 @@
 	&-label-abs {
 		@extend %text-center-absolute;
 	}
+	&-question {
+		display:inline-block;
+		height:100%;
+	}
 	&-submit {	
 		background-image:url(./images/ic_enter.svg);
 	}
@@ -88,9 +92,18 @@
 	&-sequencer {
 		box-shadow: 0px 0px 0px 0px $color-yellow;
 		transition:.5s ease-in-out;
+		.btn-label-abs {
+			color:$color-blue;
+		}
+		& > * {
+			pointer-events:none;
+		}
 		&:not(.active) {
 			opacity:.5;
 
+		}
+		&:not([step-freq='true']) {
+			opacity:0;
 		}
 		&.highlight {
 			box-shadow: 0px 0px 9px 2px $color-yellow;
@@ -117,6 +130,11 @@
 			border:10px solid $color-pink;
 
 		}
+	}
+	&-rotate-trans {
+		transform-style:preserve-3d;
+		background-color:inherit;
+		transition:.5s ease-in !important;
 	}
 	&-rectangle {
 		

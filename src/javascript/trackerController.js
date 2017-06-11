@@ -16,9 +16,33 @@ var cameraTracker = {
      cameraTracker.video   = document.querySelector('.fn-video-calibrate');
      cameraTracker.canvas  = document.querySelector('.fn-canvas-calibrate');
      cameraTracker.context = cameraTracker.canvas.getContext('2d');
-      cameraTracker.calibrate();
+      // cameraTracker.calibrate();
+      if(data.supportMedia) {
+        cameraTracker.calibrate();
+        } else {
+        cameraTracker.removeCamera();
+      }
+      
   },  
-  
+  checkSupport: function (callback) {
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    navigator.getUserMedia = false;
+    data.supportMedia = navigator.getUserMedia ? true : false;
+    
+    return data.supportMedia;
+  },
+  removeCamera: function () {
+    
+    if(!data.supportMedia) {
+      var elements = document.querySelectorAll('.fn-hide-support');
+
+      if(elements.length) {
+        for(var i = 0; i < elements.length; i++) {
+          elements[i].parentNode.removeChild(elements[i]);
+        }
+      }
+    }
+  },
   calibrate: function () {
     var buttonTop    = document.querySelector('.fn-calibrate-top');
     var buttonStop   = document.querySelector('.fn-calibrate-top');
@@ -63,7 +87,6 @@ var cameraTracker = {
         var data = event.data[0];
         if(data) {
           var size = data.width * data.height;
-          console.log(size);
           if(size < cameraTracker.highSize) {
             body.setAttribute('tracking-status', 'high');
           } else if (size > cameraTracker.lowSize) {
@@ -72,7 +95,6 @@ var cameraTracker = {
             body.setAttribute('tracking-status', 'ok');
             var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
             var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
-            console.log(percentage);
             callback(percentage)
           }
            
@@ -111,18 +133,30 @@ var cameraTracker = {
       
   },
   trackElement: function(element) {
+    var type = element.getAttribute('modulate-type');
+    var slider = document.querySelector('.fn-fallback-filter[type="'+type+'"]');
+
+
       if(!element.classList.contains('active')) {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
-        cameraTracker.startElementTracking(function (value) {
-          console.log('value:', value);
+      if(data.supportMedia) {
+         cameraTracker.startElementTracking(function (value) {
+          
           filters.update(element.getAttribute('modulate-type'), value)
         }, element);
+       } else {
+        slider.classList.add('active');
+        
+        // element.getAttribute()
+       }
+       
        
     } else {
       body.removeAttribute('tracking')
       element.classList.remove('active');
       cameraTracker.stop = true;
+      slider.classList.remove('active');
     }
   },
 }

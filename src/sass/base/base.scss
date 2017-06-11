@@ -16,6 +16,9 @@ html, body {
 }
 * {
 	box-sizing:border-box;
+	&:focus {
+		outline:none;
+	}
 }
 
 h1,h2,h3,h4,h5 {

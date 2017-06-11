@@ -12,6 +12,10 @@
 		width:100%;
 		background-image:url(./images/ic_back.svg);
 	}
+	&-quest {
+		width:$icon-width*1.5;
+		background-image:url(./images/ic_question.svg);
+	}
 	&-calibrate {
 		margin:0 auto;
 		width:100%;

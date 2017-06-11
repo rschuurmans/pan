@@ -15,7 +15,10 @@ var groupSchema = new Schema({
 	pp: Array,
 	adsr: Object,
 	wavetypes: Array,
-	synth:Object
+	synth:String,
+	scale: Array,
+	sustain: Boolean
+
 })
 
 

@@ -6,6 +6,7 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
+		cameraTracker.checkSupport();
 		changePage.onboarding()
 		deviceRotation.start();
 		tips.init();
@@ -157,41 +158,42 @@ var animate = {
 }
 
 // // todo : 
-// - implement all new filters/synths
-// - sockets -> test
-// - connect with groupmember
-// 	grouplist login real time / refreshknop
-// camera hand fallback
-// camera hand als pp
-// camera hand pp fallback is zon scherm met drukpunten
+// lowpass en reverb
+// detune voor drum
+// noise (weghalen? wat voegt dit nog toe?)
+// - sockets -> test 
+// - connect with groupmember (?)
+// camera hand als pp + fallback
 // volume en speed tilt
 // - scss cleanup
-// - group.sources is just one in modulator
 // group.sources non active blijft spelen na even kutten android
 // tooltips
 // remove unused functions
-// rec rooltip boxhsadow keilelijk
 
+
+// later:
+// audiosetup.getsynth()
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
+
 var audio = {
 	sources:[],
-	filters:[],
-	scale: [261.63, 293.66	, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
+	filters:[],	
+	ppFreq:false,
 	envelope:null,
 	defTime: "8n",
 	setup: function () {
-		audio.testValues();
 		sources.setup();
 		loop.waitSocket();
-		// loop.startWithoutSocket();
 	},
 	triggerAttack: function (freq, time) {
 		audio.triggerRelease();
+		freq = audio.ppFreq ? audio.ppFreq : freq;
 		for(var i in audio.sources) {
 			if(time) {
 				audio.sources[i].triggerAttackRelease(freq, time )
 			} else {
+				
 				audio.sources[i].triggerAttack(freq)
 			}
 		}
@@ -204,10 +206,10 @@ var audio = {
 	triggerReleaseSingle: function (index) {
 		audio.sources[index].triggerRelease()
 	},
-
-	testValues: function() {
-		
-		
+	setFrequency: function (freq) {
+		for(var i in audio.sources) {
+			audio.sources[i].setNote(freq);
+		}
 	}
 }
 
@@ -229,6 +231,7 @@ var recording = {
 				body.setAttribute('recording', 'true');
 				
 				tips.textboxContent('rec: 0/8');
+				audio.triggerRelease();
 				
 				recording.buttons.forEach(function(button) {
 					button.addEventListener('click', recording.event)
@@ -239,10 +242,10 @@ var recording = {
 		})
 	},
 	event: function (e) {
-		var index = e.currentTarget.getAttribute('sequence-index');
-
-		recording.melody.push(audio.scale[index]);
-		audio.triggerAttack(audio.scale[index], '8n');
+		var index = parseInt(e.currentTarget.getAttribute('sequence-index'));
+		
+		recording.melody.push(data.group.scale[index]);
+		audio.triggerAttack(data.group.scale[index], '8n');
 		
 
 		tips.textboxContent('rec: ' + recording.melody.length + '/8');
@@ -320,17 +323,13 @@ var loop = {
 			}
 		})
 	},
-	startWithoutSocket: function () {
-		loop.start(4000);
-	},
 	playStep: function (active, frequency, time) {
-		
 		if(active && !loop.hold && !recording.isRecording) {
 			audio.triggerAttack(frequency);
-			if(!data.group.adsr[0].value) {
+			if(!data.group.sustain) {
 				window.setTimeout(function () {
-				audio.triggerRelease();
-			}, time)
+					audio.triggerRelease();
+				}, time)
 			}
 
 		} 
@@ -389,8 +388,8 @@ var sources = {
 		
 		for(var i in data.group.sources) {
 			if(data.group.sources[i].active) {
-				
-				sources.create[data.group.synth.type](i);
+				console.log(data.group.sources[i]);
+				sources.create[data.group.synth](i);
 
 			}
 
@@ -405,10 +404,18 @@ var sources = {
 				}
 			}
 		},
+		phase: function (received) {
+			for(var i in audio.sources) {
+
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].oscillator.phase = received.value;
+				}
+			}
+		},
 		
 		active: function (received) {
 			if(received.value) {
-				sources.create[data.group.synth.type](received.id);
+				sources.create[data.group.synth](received.id);
 				filters.connectSingleSource(received.id);
 			} else {
 				sources.remove(received.id);
@@ -417,7 +424,20 @@ var sources = {
 		detune: function (received) {
 			for(var i in audio.sources) {
 				if(audio.sources[i].id == received.id) {
-					audio.sources[i].detune.input.value = received.value;
+					
+					if(audio.sources[i].detune) {
+						audio.sources[i].detune.input.value = received.value;
+					} else {
+						audio.sources[i].oscillator.detune.input.value = received.value;
+					}
+				}
+			}
+
+		},
+		volume: function (received) {
+			for(var i in audio.sources) {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].volume.input.value = received.value;
 				}
 			}
 
@@ -434,54 +454,31 @@ var sources = {
 	
 	create: {
 		synth: function (id) {
-
 			var synth = new Tone.Synth(sources.create.parseData(id))
 			synth.id = id;
 			audio.sources.push(synth)
+			// audio.sources[0].triggerAttackRelease(400, '2n')
 		},
 		amSynth: function (id) {
 			var synth = new Tone.AMSynth(sources.create.parseData(id))
 			synth.id = id;
-
-			audio.sources.push(synth)
-
 		},
+		
 		fmSynth: function (id) {
 			
-			var sourceData = data.group.sources[id];
-			
-			var synth = new Tone.FMSynth({
-				oscillator: {
-					type: sourceData.type
-				},
-				harmonicity:1,
-				modulationIndex:1,
-				envelope: {
-					attack: data.group.adsr.attack,
-					decay: data.group.adsr.decay,
-					sustain: .5,
-					release: data.group.adsr.release
-				}
-			});
-
-			// could be a filteR: harmonicity:1 icm modulationIndex
-
+			var synth = new Tone.Synth(sources.create.parseData(id))
 			synth.id = id;
-
 			audio.sources.push(synth)
 		},
 		
 		drum: function (id) {
-			data.group.adsr[0].value = false;
-			for(var i in data.group.steps) {
-				data.group.steps[i].frequency = data.group.steps[i].frequency - 400;
-			}
+			data.group.sustain = false;
 
 			var synth = new Tone.MembraneSynth();
 			synth.id = id;
 
 			audio.sources.push(synth)
-			synth.triggerAttackRelease("C2", "8n");
+			// synth.triggerAttackRelease("C2", "8n");
 		},
 		parseData: function (id) {
 			// fm synth
@@ -492,12 +489,13 @@ var sources = {
 					type : sourceData.type
 				},
 				envelope: {
-					attack: data.group.adsr.attack,
-					decay: data.group.adsr.decay,
+					attack: data.group.adsr.attack.value,
+					decay: data.group.adsr.decay.value,
 					sustain: .5,
-					release: data.group.adsr.release
+					release: data.group.adsr.release.value
 				}
 			}
+			
 			return synthData 
 		}
 	},
@@ -525,18 +523,23 @@ var sources = {
 
 var filters = {
 	setup: function () {
+		
 		for(var i in data.group.modulate) {
+			
 			filters.create[data.group.modulate[i].type](data.group.modulate[i])
 		}
 		filters.connect();
 	},
 	connect: function () {
-			// var polySynth = new Tone.PolySynth(4, Tone.Synth).chain(distortion, tremolo, Tone.Master)
-			var gainNode = Tone.context.createGain()
 			
-			for(var y in audio.filters) {
-				gainNode.connect(audio.filters[y])
-			}
+		var gainNode = Tone.context.createGain()
+			
+		for(var y in audio.filters) {
+			gainNode.connect(audio.filters[y])
+		}
+		if(audio.filters.length == 0) {
+			gainNode.connect(Tone.Master);
+		}
 		for(var i in audio.sources) {
 			audio.sources[i].connect(gainNode);
 			
@@ -546,16 +549,21 @@ var filters = {
 	},
 	connectSingleSource: function (id) {
 		for(var y in audio.filters) {
-				audio.sources[id].connect(audio.filters[y])
+				// audio.sources[id].connect(audio.filters[y])
+				for(var i in audio.sources) {
+					if(audio.sources[i].id == id) {
+						audio.sources[i].connect(audio.filters[y])
+					}
+				}
 			}
-		},
+	},
 	create: {
 		// max 2 eckte filters pp, rest is de synth vervormen.
 		// meerdere filters kunnen aangeklikt wordne
 		// filter 2 max op 20 zetten ipv 100
 		pingpong: function (data) {
 			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
-			console.log(pingPong.wet);
+		
 			pingPong.wet.value = 0;
 			audio.filters.pingpong = pingPong;
 			
@@ -571,12 +579,8 @@ var filters = {
 			audio.filters.tremelo = autoFilter;
 		},
 		chorus: function (data) {
-			var chorus = new Tone.Chorus({
-				frequency:0,
-				delayTime: data.values.delayTime,
-				depth: data.values.delayTime/2,
-				feedback: data.values.feedback
-			}).toMaster();
+			var chorus = new Tone.Chorus().toMaster();
+			
 			chorus.wet.value = 0;
 			audio.filters.chorus = chorus
 		},
@@ -594,11 +598,40 @@ var filters = {
 			audio.filters.wahwah = autoWah;
 
 		},
-		lowpass: function () {
-			// ik hoor hier geen verschil
-			// var filter = new Tone.Filter(100, "lowshelf").toMaster();
-			// console.log(filter);
-			// audio.filters.push(filter)
+		lowpass: function (data) {
+			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
+			biquadFilter.type = "lowshelf";
+			biquadFilter.frequency.value = 2000;
+			biquadFilter.gain.value = 0;
+			audio.filters.lowpass = biquadFilter;
+			
+			
+		},
+		highpass: function(data) {
+			// var hpFilter = new Tone.Filter(data.values.frequency, "highpass").toMaster();
+			// // hpFilter.wet.value = 0;
+			// // hpFilter.q.value = 1;
+			// // hpFilter.rolloff = -96;
+			// // audio.filters.highpass = hpFilter;
+			// var autoFilter = new Tone.AutoFilter({
+			// 	frequency    :0,
+			// 	depth        :0,
+			// }).toMaster().start();
+			// autoFilter.filter.type = 'highpass';
+			// autoFilter.wet.value = 0;
+			// audio.filters.highpass = autoFilter;
+			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
+			biquadFilter.type = "highshelf";
+			biquadFilter.frequency.value = 200;
+			biquadFilter.gain.value = 0;
+			audio.filters.highpass = biquadFilter;
+			
+		},
+		
+		delay: function (data) {
+			var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
+			feedbackDelay.wet.value = 0;
+			audio.filters.delay = feedbackDelay;
 		},
 		distortion: function (data) {
 			var dist = new Tone.Distortion({
@@ -608,15 +641,20 @@ var filters = {
 			dist.wet.value = 0;
 			audio.filters.distortion = dist;
 
-		},
+		}
 		
 
 	},
 	update: function (type, value) {
-			console.log('receiving an update for', type, value);
-			audio.filters[type].wet.value = value/100;
-			console.log(audio.filters[type]);
-	}
+			console.log(type,value);
+			if(type == 'highpass' || type == 'lowpass') {
+				audio.filters[type].gain.value = value*2;
+			} else {
+				audio.filters[type].wet.value = value;
+			}
+			
+	},
+	
 }
 
 
@@ -689,16 +727,25 @@ var events = {
 
 var modulator = {
 	init: function () {
-		var filters = document.querySelectorAll('.fn-modulate-btn');
-      
-	      filters.forEach(function(button) {
+
+		var filterButtons = document.querySelectorAll('.fn-modulate-btn');
+      	var filterSlide = document.querySelectorAll('.fn-fallback-filter');
+	      filterButtons.forEach(function(button) {
 	        button.addEventListener('click', function(e) {
 	          cameraTracker.trackElement(e.currentTarget);
 	        });
 	      });
+	      filterSlide.forEach(function(slider) {
+	      	slider.addEventListener('input', function(e) {
+	      		
+	      		filters.update(e.currentTarget.getAttribute('type'), e.target.value)
+	      		
+	      	});
+	      });
 	      
 	      changePage.selector();
 	      modulator.events.init();
+	      
 	},
 	events:  {
 		init: function () {
@@ -715,7 +762,8 @@ var modulator = {
 		},
 		active: function (element, index) {
 			data.group.sources[index].active = element.checked;
-			console.log(element.checked);
+			
+
 			modulator.events.sendSocket({
 				value: element.checked,
 				type: 'active', 
@@ -723,8 +771,7 @@ var modulator = {
 
 		},
 		wavetype: function (element, index) {
-			console.log('update waetype', element, index);
-			data.group.sources[index].type = element.wavetype;
+			data.group.sources[index].type = element.getAttribute('wavetype');
 			modulator.events.sendSocket({
 				value: element.getAttribute('wavetype'),
 				type: 'wavetype', 
@@ -732,15 +779,23 @@ var modulator = {
 
 		},
 		detune: function (element, index) {
-			console.log('update detune', element, index);
+			
 			data.group.sources[index].detune = element.value;
 			modulator.events.sendSocket({
 				value: element.value,
 				type: 'detune', 
 				id: index});
 		},
+		volume: function (element, index) {
+			
+			data.group.sources[index].volume = element.value;
+			modulator.events.sendSocket({
+				value: element.value,
+				type: 'volume', 
+				id: index});
+		},
 		sendSocket: function (newdata) {
-			console.log('updating', newdata);
+			
 			sources.update[newdata.type](newdata)
 			socket.emit('updateSources', {
 				room: data.group._id,
@@ -760,11 +815,13 @@ var modulator = {
 		var radioWrapper = document.querySelector('.fn-radio-slider');
 
 		form.setAttribute('active-index', index);
-		form.querySelector('.fn-slider').value             = elementData.detune;
+		form.querySelector('.fn-slider-detune').value             = elementData.detune;
+		form.querySelector('.fn-slider-volume').value             = elementData.volume;
 		form.querySelector('.fn-active').checked           = elementData.active;
 		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
 
 		wavetypes.forEach(function(wavetype) {
+			
 			if(wavetype.getAttribute('wavetype') == elementData.type) {
 				wavetype.checked = true;
 			} else {
@@ -772,7 +829,8 @@ var modulator = {
 			}
 		});
 
-		inputEvent.setSliderBg(elementData.detune);
+		inputEvent.setSliderBg('detune', elementData.detune);
+		inputEvent.setSliderBg('volume', elementData.volume);
 		inputEvent.radioSlider();
 
 		
@@ -787,13 +845,14 @@ var sequencer = {
 	newMelody: [],
 	init: function() {
 		tools.eachDomElement('.fn-sequencer-item', function (item) {
+			
 			events.updateStepLocation(item)
 			var hammertime = new Hammer(item, {})
 			sequencer.changeFrequency(hammertime);
 			sequencer.toggleActive(hammertime)
 		})
 		recording.setup();
-		adsr.changeEvent();
+		adsr.init();
 	},
 	getItemStep : function (item) {
 		var step = data.group.steps[parseInt(item.getAttribute('sequence-index'))];
@@ -814,9 +873,9 @@ var sequencer = {
 	},
 	calculatePercentage: function (item) {
 		var step = sequencer.getItemStep(item);
-		console.log(step);
+		
 		var perc = (step.frequency * 100) / step.max;
-		console.log('percentage is ', perc);
+		
 		
 		return perc;
 	
@@ -835,7 +894,7 @@ var sequencer = {
 			e.preventDefault();
 			item = e.target;
 			var percentage = sequencer.calculatePercentage(item);
-			console.log(e.target);
+			
 			deviceRotation.listen(item, 'frequency', percentage);
 			
 			events.showRotate(item);
@@ -851,12 +910,11 @@ var sequencer = {
 	},
 	toggleActive: function (hammertime) {
 		hammertime.on('tap', function (e) {
-			console.log(e.target);
 			if(!recording.isRecording) {
 				var index = e.target.getAttribute('sequence-index');
 				tips.increaseTip('clickActive');
-				console.log(data.group.steps[index], index);
-				data.group.steps[index].active = !data.group.steps[index].active;
+				
+				data.group.steps[parseInt(index)].active = !data.group.steps[parseInt(index)].active;
 				
 				e.target.classList.toggle('active');
 				sequencer.sendSocket(data.group.steps[index], index)
@@ -865,7 +923,7 @@ var sequencer = {
 		});
 	},
 	updateActive: function () {
-		var steps = document.querySelectorAll('.btn-sequencer');
+		var steps = document.querySelectorAll('.fn-step-item');
 		for(var i = 0; i < steps.length;i++) {
 			if(data.group.steps[i].active) {
 				steps[i].classList.add('active')
@@ -890,7 +948,7 @@ var sequencer = {
 		// 
 	},
 	sendSocket: function (step, index) {
-		console.log(step);
+		
 		socket.emit('updateSteps', {
 			room: data.group._id,
 			step: data.group.steps[index],
@@ -900,8 +958,6 @@ var sequencer = {
 }
 var adsr = {
 	update: function (type, value) {
-		// usage: adsr.update('sustain', 0.1);
-		console.log('updating this in adsr', type, value);
 		data.group.adsr[type] = value;
 		var string = '[envelope][' + type + ']';
 		for(var i in audio.sources) {
@@ -913,92 +969,202 @@ var adsr = {
 		console.log('saving this new value ', percentage, item);
 
 	},
+	init: function () {
+		// adsr.drawSVG();
+		adsr.changeEvent();
+		var svgLine = document.querySelector('svg .poly');
+		var width   = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width)/8;
+		var inputs  = document.querySelectorAll('.fn-adsr-range-item');
+		
+		var points = []
+		for(var i = 0; i < inputs.length ;i++) {
+			var point = adsr.getPoints(i);
+			points.push(point)
+
+		    inputs[i].addEventListener('input', function (e) {
+		    	adsr.showActive(e.currentTarget.id);
+		    	adsr.svgUpdate(svgLine, points, parseInt(e.currentTarget.id.split('adsr-')[1]))
+		    	adsr.update(e.currentTarget.getAttribute('modulate-type'), e.currentTarget.value)
+		    })
+		}
+		adsr.drawSVGInit(svgLine, points);
+
+	},
+	showActive: function (id) {
+		var labels = document.querySelectorAll('.fn-label-adsr');
+		
+		for(var i = 0; i < labels.length;i++) {
+			if(labels[i].getAttribute('for') == id ) {
+				labels[i].classList.add('active');
+			} else {
+				labels[i].classList.remove('active');
+			}
+		}
+
+	},
+	getPoints: function (index) {
+		var inputs = document.querySelectorAll('.fn-adsr-range-item');
+		
+		var pos    = inputs[index].getBoundingClientRect();
+		
+		var value  = document.querySelectorAll('.fn-adsr-range-item')[index].value;
+		var max    = inputs[index].getAttribute('max');
+		value      = max - value;
+		var perc   = (value*100)/max;
+		var left   = ((100/inputs.length) * index) + ((100/inputs.length)/2);
+
+	    
+	    var points = {
+	    	x: left,
+	    	y: perc
+	    }
+	    return points
+	},
+	drawSVGInit: function (line, points) {
+		var width     = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width);
+		var height    = (document.querySelector('.input-range-vert-container').getBoundingClientRect().height);
+		var attribute =  '0 100';
+		
+		for(var i in points) {
+			attribute += ',' + points[i].x + ' ' + points[i].y
+		}
+		attribute +=  ',100 100';
+		line.setAttribute('points', attribute);
+	},
+	svgUpdate: function (line, points, index) {
+		var attribute        = line.getAttribute('points').split(',');
+		var point            = adsr.getPoints(index);
+		var currentAttribute = attribute[index + 1].split(' ');
+		attribute[index + 1] = currentAttribute[0] + " " + point.y;
+		line.setAttribute('points', attribute)
+	},
 	changeEvent: function () {
 		var sustainButton = document.querySelector('.fn-sustain');
 		sustainButton.addEventListener('change', function (e) {
-			console.log(e.currentTarget.value, e.currentTarget.checked);
-			data.group.adsr[0].value = e.currentTarget.checked;
+
+			data.group.sustain = e.currentTarget.checked;
 		})
-
-		tools.eachDomElement('.fn-adsr-button', function (item) {
-			var closeRotate = function () {
-				deviceRotation.stopListen(function (percentage, item) {
-					
-					var type = item.getAttribute('type');
-					var value = (percentage*parseInt(item.getAttribute('max')))/100;
-
-					adsr.update(type, value);
-
-					item.removeEventListener('mouseup', closeRotate)
-					item.removeEventListener('touchend', closeRotate)
-					item.removeEventListener('touchcancel', closeRotate)
-
-				});
-			};
-			var openRotate = function (e) {
-
-				var currentItem = e.target.getAttribute('type') ? e.target : e.target.parentNode;
-				var type        = currentItem.getAttribute('type')
-				var value       = data.group.adsr[type];
-				
-				var max = parseInt(currentItem.getAttribute('max'))
-				var percentage = (value *100)/max;
-
-				deviceRotation.listen(currentItem, 'adsr', percentage);
-
-				e.target.addEventListener('mouseup', closeRotate)
-				e.target.addEventListener('touchend', closeRotate)
-				e.target.addEventListener('touchcancel', closeRotate)
-			}
-			var hammertime = new Hammer(item, {})
-			hammertime.on('press', function (e) {
-				e.preventDefault();
-		
-				openRotate(e);
-			})
-		})
-		
 	},
-	receiveNewValue: function (perc, item) {
-		
-		var circle = item.querySelector('.rotate-extra-circle');
-		circle.style.transform = 'scale('+( perc * 3)/100 +')';
-	},
+	updateValue: function (id) {
+
+	}
 	
 }
 
+
 var pp = {
-	setup: function () {
-		tools.eachDomElement('.fn-pp-button', function (button) {
-			button.addEventListener('touchstart',pp.openGate)
-			button.addEventListener('touchend',pp.closeGate)
-			button.addEventListener('touchcancel', pp.closeGate)
-		});
-	},
-	openGate: function (e) {
-		var value = e.currentTarget.getAttribute('pp-value');
+	touchBlok: null,
+	setup:function () {
+		
+		pp.touchBlok  = document.querySelector('.fn-pp');
+		var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+		var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+	
 
-		loop.holdTone(true, value);
-		e.currentTarget.classList.add('active');
-		pp.sendSocket(true);
+		pp.touchBlok.addEventListener('touchmove', pp.touchMove)
+		
+		pp.touchBlok.addEventListener('touchstart',pp.touchOpen)
+		pp.touchBlok.addEventListener('touchend',pp.touchEnd)
+		pp.touchBlok.addEventListener('touchcancel', pp.touchEnd)
+		
+		// document.body.addEventListener('touchmove',function(evt){
+		// 	evt.preventDefault();
+		// },false);
 	},
-	closeGate: function(e) {
-		var value = e.currentTarget.getAttribute('pp-value');
+	touchPosition: function (touches) {
+		var touch = touches[0] || toches[0];
+		
+		var values = {};
+		var elm = pp.touchBlok.getBoundingClientRect();
+		var x = touch.pageX - elm.left;
+		var y = touch.clientY - elm.top;
 
-		e.currentTarget.classList.remove('active');
-		loop.holdTone(false);
-		pp.sendSocket(false, value)
+		if(x < elm.width && x > 0 && y < elm.height && y > 0) {
+			
+		} else {
+			
+		}
+		return {
+			xpercentage : (x * 100)/elm.width,
+			ypercentage : (y * 100)/elm.height,
+			x: x - elm.left,
+			y: y- elm.top
+		}
+
 	},
-	sendSocket: function (start, value) {
-		socket.emit('holdStep', {
-			room: data.group._id,
-			frequency: value,
-			start:start
-		});
+	touchValues: function (touches) {
+		var position = pp.touchPosition(touches);
+		
+		var data = {
+			freq : (position.ypercentage * 1200)/100,
+			volume : (position.xpercentage)/20,
+		}
+		data.volume = 5 - data.volume;
+
+		return data
+	},
+	touchOpen: function (e) {
+		// audio.triggerRelease();
+		// loop.hold = true;
+		pp.createShadow(e.touches);
+		var position = pp.touchValues(e.touches);
+		// audio.setFrequency(300);
+		audio.ppFreq = position.freq;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:position.volume});
+
+		}
+		// var newSource = data.group.sources[0].type + position.part;
+		// sources.update.wavetype({id:0, value:newSource})
+		// audio.triggerAttack(position.freq);
+
+
+	},
+	createShadow: function (touches) {
+		var position = pp.touchPosition(touches);
+		var element  = document.createElement('span');
+
+		element.classList.add('shadow');
+		element.style.position = 'absolute';
+		
+		element.style.top      = position.ypercentage + '%';
+		element.style.left     = position.xpercentage + '%';
+
+		pp.touchBlok.appendChild(element);
+	
+		setTimeout(function() {
+			element.style.opacity=0;
+			 setTimeout(function () {
+			 	element.parentNode.removeChild(element);
+			 }, 500)
+		}, 100)
+	},
+	touchMove: function (e) {
+		pp.createShadow(e.touches);
+		var position = pp.touchValues(e.touches);
+		audio.ppFreq = position.freq;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:position.volume});
+
+		}
+		// var newSource = data.group.sources[0].type + position.part;
+		
+		// sources.update.wavetype({id:0, value:newSource})
+		// audio.triggerAttack(position.freq);
+	},
+	touchEnd: function (e) {
+		
+		var oldSource = data.group.sources[0].type;
+		
+		audio.triggerRelease();
+		loop.hold = false;
+		audio.ppFreq = false;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:data.group.sources[audio.sources[i].id].volume });
+
+		}
 	}
-
 }
-
 
 var modulate = {
 	
@@ -1067,7 +1233,6 @@ var changePage = {
 		changePage.setOrigin(document.querySelectorAll('.fn-changepage-page'), 0)
 		for(var i = 0; i < buttons.length;i++) {
 			buttons[i].addEventListener('click', function(e) {
-				console.log(e.currentTarget);
 				changePage.showPage(e.currentTarget.getAttribute('target-page'))
 			});
 		}
@@ -1075,8 +1240,6 @@ var changePage = {
 	onboarding: function () {
 		changePage.init();
 		changePage.showPage('alert')
-		// changePage.showPage('osc');
-		// audio.setup();
 
 		var buttonSeq = document.querySelector('.fn-start-sequence');
 		if(buttonSeq) {
@@ -1088,10 +1251,13 @@ var changePage = {
 		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
 		if(buttonCalibrate) {
 			buttonCalibrate.addEventListener('click', function () {
-				// document.querySelector('.fn-page-container').classList.remove(fil
-				
-				// cameraTracker.calibrate();
-				changePage.showPage('calibrate')
+				if(data.supportMedia) {
+					changePage.showPage('calibrate');
+				} else {
+					audio.setup();
+					changePage.showPage('filters');
+					
+				}
 			})
 			
 		}
@@ -1131,117 +1297,44 @@ var changePage = {
 
 
 
-// 	swipeSlider: function (callback) {
-// 		var panels = document.querySelectorAll('.fn-slider-item');
-// 		var slider = document.querySelector('.fn-slider');
-// 		var sensitivity = 25;
-// 		var activeSlide = 0;
-// 		var slideCount = panels.length;
-// 		var timer;
-// 		console.log(slideCount);
-
-		
-// 		// slider from: https://codepen.io/dangodev/pen/bpjrRg?editors=0011
-// 		var goTo =  function (number) {
-// 			console.log('go to', number);
-// 			if( number < 0 ) {
-// 				activeSlide = 0;
-// 			} else if( number > slideCount - 1 ) {
-// 				console.log('last');
-// 				activeSlide = slideCount - 1;
-// 			} else {
-// 				activeSlide = number;
-// 			}
-
-// 			slider.classList.add( 'is-animating');
-
-// 			var percentage = -( 100 / slideCount ) * activeSlide;
-
-// 			slider.style.transform = 'translateX( ' + percentage + '% )';
-// 			console.log(percentage, slider);
-// 			clearTimeout( timer );
-// 			callback(activeSlide)
-
-// 			timer = setTimeout( function() {
-// 				slider.classList.remove( 'is-animating' );
-// 			}, 400 );
-
-// 		}
-
-// 		var sliderManager = new Hammer.Manager(slider);
-// 		sliderManager.add(new Hammer.Pan({threshold: 0, pointers:0}))
-// 		sliderManager.on('pan', function (e) {
-
-// 		var percentage           = 100 / slideCount * e.deltaX / window.innerWidth;
-// 		var percentageCalculated = percentage - 100 / slideCount * activeSlide;
-
-// 		slider.style.transform = 'translateX( ' + percentageCalculated + '% )';
-
-// 		if( e.isFinal ) {
-// 			if( e.velocityX > 1 ) {
-// 				goTo( activeSlide - 1 );
-// 			} else if( e.velocityX < -1 ) {
-// 				goTo( activeSlide + 1 )
-// 			} else {
-// 				if( percentage <= -( sensitivity / slideCount ) ) {
-// 					goTo( activeSlide + 1 );
-// 				}
-// 				else if( percentage >= ( sensitivity / slideCount ) ) {
-// 					goTo( activeSlide - 1 );
-// 				} else {
-// 					goTo( activeSlide );
-// 				}
-				
-// 			}
-// 		}
-// 		})
-			  
-// 	},	
-	
-// 	swipePages: function (startPage) {
-// 		changePage.showPage(startPage);
-		
-// 		var body       = document.querySelector('body');
-// 		var hammertime = new Hammer(body, {});
-// 		hammertime.on('swipeleft', function(ev) {
-// 			changePage.showPage('osc');
-// 		});
-// 		hammertime.on('swiperight', function(ev) {
-// 			changePage.showPage('filters');
-// 		});
-// 	},
-
-
-
 var inputEvent = {
 	slider: function () {
-		var slider = document.querySelector('.fn-slider');
-		
-		
-		slider.addEventListener('input', function (e) {
-			inputEvent.setSliderBg(e.currentTarget.value);
-		})
+		var sliders = document.querySelectorAll('.fn-slider');
+		for(var i = 0; i < sliders.length; i++ ) {
+			sliders[i].addEventListener('input', function (e) {
+				inputEvent.setSliderBg(e.currentTarget.getAttribute('name'), e.currentTarget.value)
+			})
+		}
 	},
 
-	setSliderBg: function (value) {
-		var sliderBg = document.querySelector('.fn-slider-bg');
-		sliderBg.style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
+	setSliderBg: function (name, value) {
+		var sliderBg = document.querySelectorAll('.fn-slider-bg');
+		if(name == 'volume') {
+			value = (value/2)*100;
+		}
+		console.log(name, value);
+		for(var i = 0; i < sliderBg.length;i++) {
+			if(sliderBg[i].getAttribute('name') == name) {
+				sliderBg[i].style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
+			}
+		}
 	},
 	radioSlider: function () {
 		var radioWrapper = document.querySelector('.fn-radio-slider');
 		var inputs = radioWrapper.querySelectorAll('.fn-input');
 		
 		inputs.forEach(function(element) {
-			inputEvent.radioSliderEvent(element, radioWrapper)
+			if(element.checked) {
+				radioWrapper.setAttribute('active-radio', element.id);
+			}
+			// inputEvent.radioSliderEvent(element, radioWrapper)
+			element.removeEventListener('change', inputEvent.radioSliderEvent);
+			element.addEventListener('change', inputEvent.radioSliderEvent);
 		});
 	},
-	radioSliderEvent: function (element, radioWrapper) {
-		if(element.checked) {
-			radioWrapper.setAttribute('active-radio', element.id);
-		}
-		element.addEventListener('change', function (e) {
-			radioWrapper.setAttribute('active-radio', e.currentTarget.id);
-		})
+	radioSliderEvent: function (e) {
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+		radioWrapper.setAttribute('active-radio', e.currentTarget.id);
 	},
 	sources: function (index) {
 		var form = document.querySelector('.fn-form-modulate');
@@ -1254,9 +1347,9 @@ var deviceRotation = {
 		lastCompass : null,
 		timesRotated: 0,
 		newValue    : null,
-		type:null,
-		currentItem: null,
-		startPerc: null,
+		type        :null,
+		currentItem : null,
+		startPerc   : null,
 		start: function (item) {
 			window.addEventListener('deviceorientation', deviceRotation.event);
 			
@@ -1267,19 +1360,16 @@ var deviceRotation = {
 			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
 			deviceRotation.firstTime    = null;
-			
 			deviceRotation.timesRotated = 0;
 			deviceRotation.lastCompass  = null;
 			
 		},
 		listen:function (item, type, perc) {
-			console.log('start listening', item, type);
 			deviceRotation.currentItem = item;
 			deviceRotation.type = type;
 			deviceRotation.startPerc = perc;
 		},
 		stopListen:function (callback) {
-			console.log('stop listen');
 			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
 			deviceRotation.startCompass = null;
@@ -1388,14 +1478,13 @@ var postData = {
 		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
 
 		postData.postRequest('/createGroup', data,  function (response) {
+			
 			window.location = '/role/' + response.role + '/' + response.userId + '/' + response.groupId;
 		});
 	},
 	username: function () {
-		console.log('username');
 		var form  = document.querySelector('form');
 		var input = form.querySelector('input[type="text"]');
-		console.log(form);
 		postData.formSubmit(form, input, function () {
 			changePage.showPage('group-list');
 		})
@@ -1411,7 +1500,6 @@ var postData = {
 	saveAudioData: function () {
 		
 		postData.postRequest('/role/save', data.group, function (res) {
-			console.log('het is gelukt!', res);
 		})
 	},
 
@@ -1421,9 +1509,8 @@ var postData = {
 			role:data.user.role,
 			groupid: data.group._id
 		};
-		console.log(send)
 		postData.postRequest('/role/leave',send, function (res) {
-			console.log('het is gelukt!', res);
+			
 			data = res;
 		})
 	},
@@ -1438,7 +1525,7 @@ var postData = {
 		xhr.onreadystatechange = function() {//Call a function when the state changes.
 		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
 		        // Request finished. Do processing here.
-		        console.log(xhr);
+		        
 		        cb(JSON.parse(xhr.response))
 		    }
 		}
@@ -1454,7 +1541,7 @@ var postData = {
 	    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
 	    xhr.open('POST', url);
 	    xhr.onreadystatechange = function() {
-	        if (xhr.readyState>3 && xhr.status==200) { success(xhr.responseText); }
+	        if (xhr.readyState>3 && xhr.status==200) { success(JSON.parse(xhr.response)); }
 	    };
 	    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -1469,20 +1556,42 @@ var tips = {
 	allTips:[],
 	tipMemory:null,
 	currentTip: 0,
+
 	init:function () {
+
 		tips.textDOM = document.querySelector('.fn-info');
 		tips.tipMemory =tips.textDOM.innerHTML;
 		tips.allTips = data.tips;
-
+		tips.questions();
 
 	},
+	questions: function () {
+		var buttons = document.querySelectorAll('.fn-question');
+
+		if(buttons) {
+			for(var i = 0; i < buttons.length; i++) {
+				buttons[i].addEventListener('click', function (e) {
+					var modal = document.querySelector('.fn-question-modal[question="' + e.currentTarget.getAttribute('target-question') + '"]');
+					
+					modal.classList.add('active');
+					var first = true;
+					var removeModal = function (e) {
+						if(!first) {
+							body.removeEventListener('click', removeModal)
+							modal.classList.remove('active');
+						} else {
+							first = false;
+						}
+					}
+					body.addEventListener('click', removeModal)
+				})
+			}
+		}
+
+	},
+
 	increaseTip: function (cond) {
-		console.log('trying to increase tip ', cond);
-		console.log(data.tips);
-		// for(var i in data.tips) {
-		// 	console.log(data.tips[i].cond, cond, data.tips[i].cond == cond );
-		// 	if(data.tups[i].cond)
-		// }
+		
 		if(cond == 'clickActive' && tips.currentTip == 0) {
 			tips.newTip();
 		} else if(cond == 'changefreq' && tips.currentTip == 1) {
@@ -1504,13 +1613,8 @@ var tips = {
 	},
 	textboxContent: function (content) {
 		var box = document.querySelector('.fn-info');
+		box.innerHTML = content ? content : tips.tipMemory;
 		
-		console.log(box, content);
-		if(!content) {
-			box.innerHTMLv= tips.tipMemory;
-		} else {
-			box.innerHTML = content;
-		}
 
 	}
 }
@@ -1606,9 +1710,33 @@ var cameraTracker = {
      cameraTracker.video   = document.querySelector('.fn-video-calibrate');
      cameraTracker.canvas  = document.querySelector('.fn-canvas-calibrate');
      cameraTracker.context = cameraTracker.canvas.getContext('2d');
-      cameraTracker.calibrate();
+      // cameraTracker.calibrate();
+      if(data.supportMedia) {
+        cameraTracker.calibrate();
+        } else {
+        cameraTracker.removeCamera();
+      }
+      
   },  
-  
+  checkSupport: function (callback) {
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    navigator.getUserMedia = false;
+    data.supportMedia = navigator.getUserMedia ? true : false;
+    
+    return data.supportMedia;
+  },
+  removeCamera: function () {
+    
+    if(!data.supportMedia) {
+      var elements = document.querySelectorAll('.fn-hide-support');
+
+      if(elements.length) {
+        for(var i = 0; i < elements.length; i++) {
+          elements[i].parentNode.removeChild(elements[i]);
+        }
+      }
+    }
+  },
   calibrate: function () {
     var buttonTop    = document.querySelector('.fn-calibrate-top');
     var buttonStop   = document.querySelector('.fn-calibrate-top');
@@ -1653,7 +1781,6 @@ var cameraTracker = {
         var data = event.data[0];
         if(data) {
           var size = data.width * data.height;
-          console.log(size);
           if(size < cameraTracker.highSize) {
             body.setAttribute('tracking-status', 'high');
           } else if (size > cameraTracker.lowSize) {
@@ -1662,7 +1789,6 @@ var cameraTracker = {
             body.setAttribute('tracking-status', 'ok');
             var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
             var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
-            console.log(percentage);
             callback(percentage)
           }
            
@@ -1701,18 +1827,30 @@ var cameraTracker = {
       
   },
   trackElement: function(element) {
+    var type = element.getAttribute('modulate-type');
+    var slider = document.querySelector('.fn-fallback-filter[type="'+type+'"]');
+
+
       if(!element.classList.contains('active')) {
       body.setAttribute('tracking', element.getAttribute('filter-index'))
       element.classList.add('active');
-        cameraTracker.startElementTracking(function (value) {
-          console.log('value:', value);
+      if(data.supportMedia) {
+         cameraTracker.startElementTracking(function (value) {
+          
           filters.update(element.getAttribute('modulate-type'), value)
         }, element);
+       } else {
+        slider.classList.add('active');
+        
+        // element.getAttribute()
+       }
+       
        
     } else {
       body.removeAttribute('tracking')
       element.classList.remove('active');
       cameraTracker.stop = true;
+      slider.classList.remove('active');
     }
   },
 }

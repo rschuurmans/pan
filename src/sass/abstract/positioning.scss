@@ -11,6 +11,20 @@
 .transperant {
 	opacity:0;
 }
+.clearfix {
+	border:2px solid red;
+	display:block;
+	width:100%;
+}
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+
 
 %fixed-full {
 	position:fixed;

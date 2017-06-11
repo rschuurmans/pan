@@ -1,13 +1,68 @@
-<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength steps}}'>
+<ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength scale}}' style='overflow:scroll'>
 			
-	{{#each steps}}
-		<li class='list-grid-item list-grid-item-25 btn-rectangle'>
-			<span  class='btn btn-round btn-grid-item btn-sequencer {{#if active}}active{{/if}} fn-sequencer-item' sequence-index={{@index}} frequency={{frequency}} max={{max}}>
-				<span class="rotate-extra-circle unclickable"></span>
-					<span class="ic-value  unclickable" style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
+	{{#each scale}}
+		{{#withIndex ../steps @index}}
+			
+		{{!-- 
+			
+			<li class='list-grid-item list-grid-item-25 btn-rectangle  btn-rotate-trans'>
+				<span  class='btn btn-round btn-grid-item btn-sequencer 
+					{{#if active}}active{{/if}} fn-sequencer-item' 
+					sequence-index="{{@index}} "
+					frequency="{{frequency}} "
+					max="{{max}} "
+					scale-freq="{{../this}} "
+					step-freq={{#ifExcists frequency}}"true"{{/ifExcists}}
 					
-				</li>
-			</span>
-		</li>
+					>
+					<span class="rotate-extra-circle unclickable"></span>
+						<span class="ic-value  unclickable" 
+							style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
+						<span class='btn-label-abs'>{{@index}}</span>
+						
+					</li>
+				</span>
+			</li>
+ --}}
+			{{#ifExcists frequency}}
+				<li class='list-grid-item list-grid-item-25 btn-rectangle  btn-rotate-trans'>
+				<span  class='btn btn-round btn-grid-item btn-sequencer fn-step-item
+					{{#if active}}active{{/if}} fn-sequencer-item fn-rec-item' 
+					sequence-index="{{@index}} "
+					frequency="{{frequency}} "
+					max="{{max}} "
+					scale-freq="{{../this}} "
+					step-freq="true"
+					
+					>
+					<span class="rotate-extra-circle unclickable"></span>
+						<span class="ic-value  unclickable" 
+							style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
+						<span class='btn-label-abs'>{{@index}}</span>
+						
+					</li>
+				</span>
+			</li>
+			{{else}}
+			<li class='list-grid-item list-grid-item-25 btn-rectangle  btn-rotate-trans'>
+				<span  class='btn btn-round btn-grid-item btn-sequencer fn-rec-item
+					{{#if active}}active{{/if}}' 
+					sequence-index="{{@index}} "
+					frequency="{{frequency}} "
+					max="{{max}} "
+					scale-freq="{{../this}} "
+					
+					
+					>
+					<span class="rotate-extra-circle unclickable"></span>
+						<span class="ic-value  unclickable" 
+							style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
+						<span class='btn-label-abs'>{{@index}}</span>
+						
+					</li>
+				</span>
+			</li>
+			{{/ifExcists}}
+		{{/withIndex}}
 	{{/each}}
 </ul>

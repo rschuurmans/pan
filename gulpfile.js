@@ -5,19 +5,38 @@ var browserSync  = require('browser-sync');
 var nodemon      = require('gulp-nodemon');
 var	sass         = require('gulp-sass');
 var concat       = require('gulp-concat');
-var jsonlint     = require('gulp-json-lint');
 var autoprefixer = require('gulp-autoprefixer');
+var imagemin     = require('gulp-imagemin');
+var cleanDest = require('gulp-clean-dest');
+var del = require('del');
 
 
-gulp.task('default', ['browser-sync', 'build', 'watch']);
 
-gulp.task('build', ['build-lib', 'build-js', 'build-css', 'jsonlint'])
 
 gulp.task('watch', function () {
 	gulp.watch('src/sass/**/*.scss', ['build-css'])
 	gulp.watch('src/javascript/*.js', ['build-js'])
-	gulp.watch('src/data/*.json', ['jsonlint'])
+	gulp.watch('src/images/*.*', ['build-images'])
 })
+
+gulp.task('default', ['clean'], function() {
+
+    gulp.start(
+        'build',
+        'browser-sync',
+        'watch'
+    );
+});
+
+gulp.task('build', function() {
+
+    gulp.start(
+        'build-lib',
+        'build-js',
+        'build-css',
+        'build-images'
+    );
+});
 
 gulp.task('browser-sync', ['nodemon'], function() {
 	browserSync.init(null, {
@@ -26,33 +45,43 @@ gulp.task('browser-sync', ['nodemon'], function() {
         port: 7000
 	});
 });
-
-gulp.task('jsonlint', function(){
-    return gulp.src('src/data/*.json')
-        .pipe(jsonlint())
-        .pipe(jsonlint.report('verbose'))
-        .pipe(gulp.dest('public/data'))
+    
+gulp.task('clean', function() {
+  // You can use multiple globbing patterns as you would with `gulp.src`
+  return del(['public']);
 });
 
 gulp.task('build-css', function() {
-  return gulp
-  	.src('src/sass/style.scss')
-    .pipe(sass())
-    .on('error', errorHandle)
-	.pipe(autoprefixer())
-    .pipe(gulp.dest('public'))    
+ 	return gulp.src('src/sass/style.scss')
+	    .pipe(sass())
+	    .on('error', errorHandle)
+		.pipe(autoprefixer())
+		.on('error', errorHandle)
+		.pipe(gulp.dest('public'))  
+	      
 });
 
 gulp.task('build-js', function () {
-	console.log('ee');
 	return gulp.src('src/javascript/*.js')
 		.pipe(concat('client.js'))
+		.on('error', errorHandle)
 		.pipe(gulp.dest('public'))
 })
 gulp.task('build-lib', function () {
 	return gulp.src('src/javascript/lib/*.js')
 		.pipe(concat('lib.js'))
+		.on('error', errorHandle)
 		.pipe(gulp.dest('public'))	
+		 
+		
+})
+
+gulp.task('build-images', function () {
+	return gulp.src('src/images/*.*')
+	    .pipe(imagemin())
+	    .on('error', errorHandle)
+	    .pipe(gulp.dest('public/images'))	
+		
 })
 
 gulp.task('nodemon', function (cb) {

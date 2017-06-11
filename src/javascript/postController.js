@@ -27,14 +27,13 @@ var postData = {
 		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
 
 		postData.postRequest('/createGroup', data,  function (response) {
+			
 			window.location = '/role/' + response.role + '/' + response.userId + '/' + response.groupId;
 		});
 	},
 	username: function () {
-		console.log('username');
 		var form  = document.querySelector('form');
 		var input = form.querySelector('input[type="text"]');
-		console.log(form);
 		postData.formSubmit(form, input, function () {
 			changePage.showPage('group-list');
 		})
@@ -50,7 +49,6 @@ var postData = {
 	saveAudioData: function () {
 		
 		postData.postRequest('/role/save', data.group, function (res) {
-			console.log('het is gelukt!', res);
 		})
 	},
 
@@ -60,9 +58,8 @@ var postData = {
 			role:data.user.role,
 			groupid: data.group._id
 		};
-		console.log(send)
 		postData.postRequest('/role/leave',send, function (res) {
-			console.log('het is gelukt!', res);
+			
 			data = res;
 		})
 	},
@@ -77,7 +74,7 @@ var postData = {
 		xhr.onreadystatechange = function() {//Call a function when the state changes.
 		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
 		        // Request finished. Do processing here.
-		        console.log(xhr);
+		        
 		        cb(JSON.parse(xhr.response))
 		    }
 		}
@@ -93,7 +90,7 @@ var postData = {
 	    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
 	    xhr.open('POST', url);
 	    xhr.onreadystatechange = function() {
-	        if (xhr.readyState>3 && xhr.status==200) { success(xhr.responseText); }
+	        if (xhr.readyState>3 && xhr.status==200) { success(JSON.parse(xhr.response)); }
 	    };
 	    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

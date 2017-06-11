@@ -4,7 +4,7 @@
 </div>
 
 
-<div class="pagetransition splashtransition-active container-fixed fn-changepage-page container-yellow above text-black text-center" current-page='calibrate' active='true' order="1" origin='null'>
+<div class="pagetransition splashtransition-active container-fixed fn-changepage-page container-yellow above text-black text-center fn-hide-support" current-page='calibrate' active='true' order="1" origin='null'>
 		{{> pages/calibrate}}
 		
 </div>
@@ -34,74 +34,3 @@
 
 {{> navigation this.navigation}}
 {{> data-client this}}
-{{!-- <div class='fn-page-container hide'>
-	<div class='container container-fixed pagetransition pagetransition-slide fn-transition-page' origin='left' active='true' current-page='filters'>
-		<div class='container-bottom container-padding-lg'>
-		<ul class='list list-clear list-grid '>
-		
-		{{#each group.modulate}}
-			<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type='{{type}}' modulate-value={{value}}>
-				<span class='ic-value' style='transform:rotate({{{rotatePercentage 50 min max}}}deg)'></span>
-					<span class='text-blue btn-label-abs'>{{type}}</span>
-				</li>
-			{{/each}}
-		</ul>
-		</div>
-	</div>
-	<div class='container container-fixed container-padding-lg pagetransition pagetransition-slide fn-transition-page' origin='right' active='false' current-page='osc'>
-		
-		<ul class='list list-clear list-selector'>
-			{{#each group.sources}}
-				<li class='list-selector-item btn-selector fn-selector-buttons' target-element={{@index}}>
-					<h5>OSC{{@index}}</h5>
-				</li>
-			{{/each}} 
-			<div class='active-bar-container fn-active-bar-container' active='0'>
-				<span class='active-bar'></span>
-			</div>
-		 	
-		 </ul>
-
-			
-		 	
-			 <form class='form form-osc fn-element fn-form-radio fn-form-modulate' active='false'>
-				
-				<label for='range' class='text-yellow col col-50'><h5>DETUNE</h5></label>
-				<div class='col col-50 text-right'>
-					<label for='active' class='text-yellow'>
-						<h5>ACTIVE</h5>
-					</label>
-					<input type='checkbox' id='active' class='input-switch fn-active'>
-					
-				</div>
-
-				  <div class='input-range-color-wrapper col col-100'>
-				  	<input class='input input-range-color fn-slider fn-input' id='range' type='range' name='points' min='0' max='100' value='0'>
-				  <div class='input-bg fn-slider-bg'>
-				  </div>
-				  	
-				  </div>
-				
-				<div class='list-meter-wrapper col col-100'>
-				
-					<ul class='list list-clear list-meter text-right fn-radio-slider fn-wavetype' index={{@index}}>
-					{{#each group.wavetypes}}
-						<li>
-							<input type='radio' name='wavetype'  id='{{@index}}' class='input-radio fn-input' value='0' wavetype='{{this}}'>
-							<label for='{{@index}}' class='input-radio-label'><h5 class='text-yellow text-uppercase' >{{this}}</h5></label>
-						</li>
-					{{/each}}
-					
-				</ul>
-
-
-				</div>
-			 </form>
-
-	</div>
-</div>
- --}}
-<script>
-	var data  = {{{json this}}};
-	console.log({{{json this}}});
-</script> 

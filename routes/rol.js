@@ -16,7 +16,7 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 
 	db.getData(req.params.groupid, req.params.userid, function (data) {
 		
-		data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
+		// data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
 		data.alert = {
 			text: 'Als sequencer ben je verantwoordelijk voor de melodie. Je kunt hem vervormen en een nieuwe melodie beginnen met de step sequencer',
 			action: 'start',
@@ -36,12 +36,14 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 			links: ['adsr', 'rec', 'pp' ]
 		}
 		]
+		
+		
 
 	data.tips = [{
 			text: 'Tik op de steps van de sequencer om een step aan of uit te zetten',
 			cond: 'clickActive'
 		}, {
-			text: 'houd de step lang ingedrukt en draai je telefoon om de toonhoogte te veranderen',
+			text: 'houd de step ingedrukt en draai je telefoon om de toonhoogte te veranderen',
 			cond : 'changeFreq'
 		},
 		{
@@ -53,7 +55,8 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 			cond : 'adsr'
 		}
 		]
-			data.group.synth.type = 'synth'
+
+			
 		res.render('rol/sequencer', data)
 	})
 
@@ -63,7 +66,7 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 	
 
 	db.getData(req.params.groupid, req.params.userid, function (data) {
-		data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
+		// data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
 		data.alert = {
 			text: 'Als modulator vervorm je het geluid. Gebruik filters e.d. om wat vets te maken. Begin als eerste met het calibreren van je camera',
 			action: 'calibrate',
@@ -95,11 +98,10 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 			links: ['filters', 'null', 'null']
 		}
 		]
-		data.group.synth.type = 'synth'
 		
 		
 
-		console.log(data.group);
+		
 		res.render('rol/modulator', data)
 	})
 

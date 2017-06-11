@@ -1,4 +1,3 @@
-
 function hbsHelpers(hbs) {
 	
 	return hbs.create({
@@ -10,9 +9,33 @@ function hbsHelpers(hbs) {
 			json: function (context) {
 				return JSON.stringify(context)
 			},
-			
+			support: function (options) {
+				
+				navigator.getUserMedia = navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia;
+                         
+			    if (navigator.getUserMedia) {
+			       return options.fn(this)
+			    } else {
+			       return options.inverse(this)
+			    }
+			},
+			ifExcists: function (thing, options) {
+				// console.log(thing.length);
+				if(thing) {
+					return options.fn(this);
+				} else {
+					return options.inverse(this);
+				}
+				
+			},
 			rotatePercentage: function (value, min, max) {
 				return (value * 360) / max;
+			},
+			withIndex: function (object, index, options) {
+				
+				return options.fn(object[index])
 			},
 			groupText: function (modulator, sequencer) {
 				var returntext = 'vol';
