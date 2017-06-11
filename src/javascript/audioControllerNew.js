@@ -1,16 +1,10 @@
 // // todo : 
-// lowpass en reverb
-// detune voor drum
-// noise (weghalen? wat voegt dit nog toe?)
-// - sockets -> test 
-// - connect with groupmember (?)
+// reverb
 // camera hand als pp + fallback
 // volume en speed tilt
 // - scss cleanup
-// group.sources non active blijft spelen na even kutten android
-// tooltips
 // remove unused functions
-
+// kijken naar tools van for element in met callback
 
 // later:
 // audiosetup.getsynth()
@@ -22,10 +16,11 @@ var audio = {
 	filters:[],	
 	ppFreq:false,
 	envelope:null,
+	gain: null,
 	defTime: "8n",
 	setup: function () {
 		sources.setup();
-		loop.waitSocket();
+		listenStartSocket();
 	},
 	triggerAttack: function (freq, time) {
 		audio.triggerRelease();
@@ -33,9 +28,14 @@ var audio = {
 		for(var i in audio.sources) {
 			if(time) {
 				audio.sources[i].triggerAttackRelease(freq, time )
+				console.log(audio.sources[i]);
 			} else {
 				
-				audio.sources[i].triggerAttack(freq)
+				if(audio.sources[i].noise) {
+					audio.sources[i].triggerAttack()
+				} else {
+					audio.sources[i].triggerAttack(freq)
+				}
 			}
 		}
 	},
@@ -52,88 +52,6 @@ var audio = {
 			audio.sources[i].setNote(freq);
 		}
 	}
-}
-
-var recording = {
-	buttons: null,
-	isRecording: false,
-	melody:[],
-	startButton: null,
-	setup: function () {
-		recording.startButton = document.querySelector('.fn-seq-rec');
-		recording.buttons = document.querySelectorAll('.btn-sequencer');
-
-		recording.startButton.addEventListener('click', function (e) {
-			recording.isRecording = !recording.isRecording;
-
-			if(recording.isRecording) {
-				
-				e.currentTarget.classList.add('active');
-				body.setAttribute('recording', 'true');
-				
-				tips.textboxContent('rec: 0/8');
-				audio.triggerRelease();
-				
-				recording.buttons.forEach(function(button) {
-					button.addEventListener('click', recording.event)
-				});
-			} else {
-				recording.finishRecording(e);
-			}
-		})
-	},
-	event: function (e) {
-		var index = parseInt(e.currentTarget.getAttribute('sequence-index'));
-		
-		recording.melody.push(data.group.scale[index]);
-		audio.triggerAttack(data.group.scale[index], '8n');
-		
-
-		tips.textboxContent('rec: ' + recording.melody.length + '/8');
-
-		if(recording.melody.length == 8) {
-			recording.finishRecording(e);
-		}
-	},
-	finishRecording: function (e) {
-		recording.startButton.classList.remove('active');
-		body.removeAttribute('recording', 'true');
-		recording.isRecording = false;
-
-		if(recording.melody.length == 0) {
-			console.log('didnt record anything');
-		} else {
-			recording.updateMelody(recording.melody);
-			
-			recording.melody = [];
-		}
-		tips.textboxContent(false);
-		
-		recording.buttons.forEach(function(button) {
-			button.removeEventListener('click', recording.event)
-		});
-	},
-	updateMelody: function (melody) {
-		var newMelody = recording.fillMelody(melody)
-		for(var i in newMelody) {
-			data.group.steps[i].active = true;
-			data.group.steps[i].frequency = newMelody[i];
-		}
-		sequencer.updateActive();
-	},
-	fillMelody: function (melody) {
-		var actualMeldoy = [];
-		var n = i = 0;
-		while(i < 8) {
-			actualMeldoy.push(melody[n])
-			i++;n++;
-			if(n == melody.length) {
-				n = 0;
-			}
-		}
-		return actualMeldoy
-	}
-
 }
 
 var loop = {
@@ -156,14 +74,7 @@ var loop = {
 
 		}
 	},
-	waitSocket: function () {
-		socket.on('startSequence', function (fulldelay) {
-			
-			if(loop.stopped) {
-				loop.start(fulldelay);
-			}
-		})
-	},
+	
 	playStep: function (active, frequency, time) {
 		if(active && !loop.hold && !recording.isRecording) {
 			audio.triggerAttack(frequency);
@@ -229,8 +140,11 @@ var sources = {
 		
 		for(var i in data.group.sources) {
 			if(data.group.sources[i].active) {
-				console.log(data.group.sources[i]);
-				sources.create[data.group.synth](i);
+				if(data.group.sources[i].type == 'noise') {
+					sources.create['noise'](i);
+				} else {
+					sources.create[data.group.synth](i);
+				}
 
 			}
 
@@ -238,25 +152,46 @@ var sources = {
 	},
 	update: {
 		wavetype: function (received) {
-			for(var i in audio.sources) {
+			
+			if(received.value == 'noise') {
+				if(data.group.sources[received.id].active) {
+					sources.remove(received.id);
+					sources.create.noise(received.id);
+					filters.connectSingleSource(received.id);
+				} else {
+					data.group.sources[received.id].type = 'noise'
+				}
 
-				if(audio.sources[i].id == received.id) {
-					audio.sources[i].oscillator.type = received.value;
+			}  else {
+				for(var i in audio.sources) {
+
+					if(audio.sources[i].id == received.id) {
+						
+						if(audio.sources[i].noise) {
+							sources.remove(received.id);
+							sources.create[data.group.synth](received.id);
+							filters.connectSingleSource(received.id);
+						} else {
+							audio.sources[i].oscillator.type = received.value;
+						}
+					}
 				}
 			}
 		},
 		phase: function (received) {
 			for(var i in audio.sources) {
-
 				if(audio.sources[i].id == received.id) {
 					audio.sources[i].oscillator.phase = received.value;
 				}
 			}
-		},
-		
+		},		
 		active: function (received) {
 			if(received.value) {
-				sources.create[data.group.synth](received.id);
+				if(data.group.sources[received.id].type == 'noise') {
+					sources.create['noise'](received.id);
+				} else {
+					sources.create[data.group.synth](received.id);
+				}
 				filters.connectSingleSource(received.id);
 			} else {
 				sources.remove(received.id);
@@ -265,7 +200,6 @@ var sources = {
 		detune: function (received) {
 			for(var i in audio.sources) {
 				if(audio.sources[i].id == received.id) {
-					
 					if(audio.sources[i].detune) {
 						audio.sources[i].detune.input.value = received.value;
 					} else {
@@ -281,18 +215,15 @@ var sources = {
 					audio.sources[i].volume.input.value = received.value;
 				}
 			}
-
 		},
 	},
 	changewavetype: function (id, value) {
 		for(var i in audio.sources) {
-
 			if(audio.sources[i].id == id) {
 				audio.sources[i].oscillator.type = value;
 			}
 		}
 	},
-	
 	create: {
 		synth: function (id) {
 			var synth = new Tone.Synth(sources.create.parseData(id))
@@ -300,13 +231,24 @@ var sources = {
 			audio.sources.push(synth)
 			// audio.sources[0].triggerAttackRelease(400, '2n')
 		},
+		noise: function (id) {
+			var noiseSynth = new Tone.NoiseSynth({
+				envelope: {
+					attack: data.group.adsr.attack.value,
+					decay: data.group.adsr.decay.value,
+					sustain: .1,
+					release: data.group.adsr.release.value
+				}
+			});
+			noiseSynth.id = id;
+			audio.sources.push(noiseSynth);
+		},
 		amSynth: function (id) {
 			var synth = new Tone.AMSynth(sources.create.parseData(id))
 			synth.id = id;
 		},
 		
 		fmSynth: function (id) {
-			
 			var synth = new Tone.Synth(sources.create.parseData(id))
 			synth.id = id;
 			audio.sources.push(synth)
@@ -314,16 +256,11 @@ var sources = {
 		
 		drum: function (id) {
 			data.group.sustain = false;
-
 			var synth = new Tone.MembraneSynth();
 			synth.id = id;
-
 			audio.sources.push(synth)
-			// synth.triggerAttackRelease("C2", "8n");
 		},
 		parseData: function (id) {
-			// fm synth
-			// membrane
 			var sourceData = data.group.sources[id];
 			var synthData = {
 				oscillator: {
@@ -340,8 +277,6 @@ var sources = {
 			return synthData 
 		}
 	},
-	
-	
 	remove: function (id) {
 		audio.triggerRelease(id)
 		for(var i in audio.sources) {
@@ -364,51 +299,39 @@ var sources = {
 
 var filters = {
 	setup: function () {
-		
 		for(var i in data.group.modulate) {
-			
 			filters.create[data.group.modulate[i].type](data.group.modulate[i])
 		}
 		filters.connect();
 	},
 	connect: function () {
 			
-		var gainNode = Tone.context.createGain()
+		audio.gain = Tone.context.createGain()
 			
 		for(var y in audio.filters) {
-			gainNode.connect(audio.filters[y])
+			audio.gain.connect(audio.filters[y])
 		}
 		if(audio.filters.length == 0) {
-			gainNode.connect(Tone.Master);
+			audio.gain.connect(Tone.Master);
 		}
 		for(var i in audio.sources) {
-			audio.sources[i].connect(gainNode);
-			
-
+			audio.sources[i].connect(audio.gain);
 		}
-
 	},
 	connectSingleSource: function (id) {
-		for(var y in audio.filters) {
-				// audio.sources[id].connect(audio.filters[y])
-				for(var i in audio.sources) {
-					if(audio.sources[i].id == id) {
-						audio.sources[i].connect(audio.filters[y])
-					}
-				}
+		for(var i in audio.sources) {
+			if(audio.sources[i].id == id) {
+				console.log('connecting', audio.sources[i]);
+				audio.sources[i].connect(audio.gain)
 			}
+		}
 	},
 	create: {
-		// max 2 eckte filters pp, rest is de synth vervormen.
-		// meerdere filters kunnen aangeklikt wordne
-		// filter 2 max op 20 zetten ipv 100
 		pingpong: function (data) {
 			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
 		
 			pingPong.wet.value = 0;
 			audio.filters.pingpong = pingPong;
-			
-			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
 
 		},
 		tremelo: function (data) {
@@ -446,21 +369,8 @@ var filters = {
 			biquadFilter.gain.value = 0;
 			audio.filters.lowpass = biquadFilter;
 			
-			
 		},
 		highpass: function(data) {
-			// var hpFilter = new Tone.Filter(data.values.frequency, "highpass").toMaster();
-			// // hpFilter.wet.value = 0;
-			// // hpFilter.q.value = 1;
-			// // hpFilter.rolloff = -96;
-			// // audio.filters.highpass = hpFilter;
-			// var autoFilter = new Tone.AutoFilter({
-			// 	frequency    :0,
-			// 	depth        :0,
-			// }).toMaster().start();
-			// autoFilter.filter.type = 'highpass';
-			// autoFilter.wet.value = 0;
-			// audio.filters.highpass = autoFilter;
 			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
 			biquadFilter.type = "highshelf";
 			biquadFilter.frequency.value = 200;

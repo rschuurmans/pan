@@ -73,20 +73,17 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 			head: 'Modulator'
 		}
 		data.tips = [{
-			text: 'Houd een filter ingedrukt en gebruik de pan-panner om de filter aan te passen',
+			text: 'Houd een filter ingedrukt en gebruik een geel oppervlak om de filter aan te passen',
 			cond: 'filter'
 		}, {
-			text: 'houd de step lang ingedrukt en draai je telefoon om de toonhoogte te veranderen',
-			cond : 'changeFreq'
+			text: 'Activeer een extra source om het geluid breder te maken',
+			cond : 'active'
 		},
 		{
-			text: 'Je kunt de complete melodie veranderen door een nieuwe op te nemen',
-			cond : 'rec'
+			text: 'Verander de detune om de sources van elkaar te laten verschillen',
+			cond : 'detune'
 		},
-		{
-			text: 'Nice! Nog een laatste tip. Probeer met de ADSR de toonlengte te veranderen',
-			cond : 'adsr'
-		}
+		
 		]
 		data.navigation = [{
 			current: 'filters',

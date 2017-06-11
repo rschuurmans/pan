@@ -42,10 +42,15 @@ gulp.task('browser-sync', ['nodemon'], function() {
 	browserSync.init(null, {
 		proxy: "localhost:3000",
         files: ["public/**/*.*", "routes/**/*.*","views/**/*.*"],
-        port: 7000
+        port: 7000,
+        https: {
+        	key: "server.key",
+	        cert: "server.crt"
+        }
 	});
 });
     
+     
 gulp.task('clean', function() {
   // You can use multiple globbing patterns as you would with `gulp.src`
   return del(['public']);

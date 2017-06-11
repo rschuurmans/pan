@@ -1,3 +1,5 @@
+{{> notification}}
+
 
 <div class='pagetransition splashtransition-active container container-padding-lg container-yellow fn-alert text-center text-black above container-fixed fn-changepage-page ' order='0' origin='up' active='true' current-page='alert'>
 	{{> pages/alert alert}}
@@ -11,7 +13,7 @@
 
 
 <div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='filters' active='false'  order="2" origin='null'>
-	
+		{{> tipBox tips.0.text}}
 		{{> pages/filters this}}
 	
 </div>

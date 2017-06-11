@@ -8,16 +8,17 @@ var init = function () {
 	if(path.indexOf('/role') !== -1) {
 		cameraTracker.checkSupport();
 		changePage.onboarding()
-		deviceRotation.start();
+		
 		tips.init();
 		events.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
+			deviceRotation.start();
 			sequencer.init();
 			pp.setup();
 			
 		} else {
-			cameraTracker.init();
+			
 			modulator.init();
 			// changePage.sequencerNavigation();
 			// modulateSocket();

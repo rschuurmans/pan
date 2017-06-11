@@ -46,10 +46,12 @@ var cameraTracker = {
   calibrate: function () {
     var buttonTop    = document.querySelector('.fn-calibrate-top');
     var buttonStop   = document.querySelector('.fn-calibrate-top');
+    var startButton = document.querySelector('#test-btn');
     var buttonBottom = document.querySelector('.fn-calibrate-bottom');
     var first        = true;
     var tracker      = new tracking.ColorTracker(['yellow']);
     var trackThing   = tracking.track(cameraTracker.video, tracker, { camera: true });
+    
   
     tracker.on('track', function(event) {
       
@@ -58,7 +60,7 @@ var cameraTracker = {
         cameraTracker.canvas.height = cameraTracker.video.offsetHeight;
         cameraTracker.canvas.width  = cameraTracker.video.offsetWidth;
       }
-      cameraTracker.context.clearRect(0, 0, 600, 500);
+      cameraTracker.context.clearRect(0, 0, 1000, 1000);
       cameraTracker.drawRectangle(event.data, cameraTracker.context, tracker.colors[0])
     });
 
@@ -143,7 +145,11 @@ var cameraTracker = {
       if(data.supportMedia) {
          cameraTracker.startElementTracking(function (value) {
           
-          filters.update(element.getAttribute('modulate-type'), value)
+          filters.update(element.getAttribute('modulate-type'), value);
+          sendSocket.send('updateFilter',data.group._id, {
+                type:element.getAttribute('modulate-type'),
+                value: value
+              })
         }, element);
        } else {
         slider.classList.add('active');

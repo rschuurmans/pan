@@ -1,14 +1,19 @@
+var Group            = require('./../models/group');
+
 var audioSetup = {
 		scale:[261.63,293.66, 329.63,349.23,392.00,440.00,493.88,523.25,587.33,659.25,698.46,783.99,880.00,987.77,1046.50,1174.66],
-		generate: function () {
+		generate: function (number) {
 			
 			var type = ['slow', 'slow', 'slow', 'mid', 'fast'][Math.floor(Math.random()*3)];
-			// type = 'fast';
-			// first should always be fast
+			if(number == 0 || parseInt(number) == 0) {
+				type = 'fast'
+			}
 			if(type == 'fast') {
 				audioSetup.scale = [28.20, 30.87,32.70,34.65,36.71,261.63,293.66, 329.63, 28.20, 30.87,32.70,34.65,36.71,261.63,293.66, 329.63]
 				 
 			} 
+			console.log('number is ', number);
+			
 			var newSynth = {
 				synth    : audioSetup.getSynth(type),
 				adsr     : audioSetup.getADSR(type),
@@ -20,7 +25,7 @@ var audioSetup = {
 			}
 			
 			newSynth.sources = audioSetup.getSources(type, newSynth.synth, audioSetup.getWavetype(type));
-			console.log(newSynth, type);
+			
 			return newSynth;
 		},
 		getSources: function (type, synth, wavetype) {
@@ -105,7 +110,7 @@ var audioSetup = {
 			return wavetypes
 		},
 		getSteps: function (type) {
-			console.log(type);
+			
 			var stepsChoices = {
 				slow: [4,8],
 				mid: [8],

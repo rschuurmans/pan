@@ -54,6 +54,7 @@ var changePage = {
 			buttonCalibrate.addEventListener('click', function () {
 				if(data.supportMedia) {
 					changePage.showPage('calibrate');
+					cameraTracker.init();
 				} else {
 					audio.setup();
 					changePage.showPage('filters');

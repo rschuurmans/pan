@@ -8,16 +8,17 @@ var init = function () {
 	if(path.indexOf('/role') !== -1) {
 		cameraTracker.checkSupport();
 		changePage.onboarding()
-		deviceRotation.start();
+		
 		tips.init();
 		events.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
+			deviceRotation.start();
 			sequencer.init();
 			pp.setup();
 			
 		} else {
-			cameraTracker.init();
+			
 			modulator.init();
 			// changePage.sequencerNavigation();
 			// modulateSocket();
@@ -46,28 +47,134 @@ var socket = io();
 
 socket.on('connect', function () {
 	if(window.hasOwnProperty( "data" )) {
-		console.log('going to join a room');
+		console.log('going to join a room', data.group._id);
 
-		socket.emit('joinRoom', data._id);
+		socket.emit('joinRoom', data.group._id);
+		sendSocket.send('groupUpdate', data.group._id, {text: data.user.username + ' heeft zich aangesloten'})
 	
 	}
 
-	socket.on('updateSources', function (received) {
-		console.log('received a updateSources', received);
-		sources.update(received);
+	// socket.on('updateSources', function (received) {
+	// 	console.log('received a updateSources', received);
+	// 	sources.update(received);
+	// })
+	// happens: updated melody from sequencer
+	socket.on('updateAllSteps', function (received) {
+		data.group.steps = received.data.steps;
+		console.log('received an updateAllSteps', received);
 	})
+	// happens: on loop message from server
+	
+
+	socket.on('groupUpdate', function (received) {
+		var message = document.querySelector('.fn-notification');
+		message.innerHTML = received.data.text;
+		message.style.opacity = 1;
+		setTimeout(function () {
+			message.style.opacity = 0;
+		}, 3000)
+		console.log('received an groupUpdate', received);
+	})
+	socket.on('updateSources', function (received) {
+		sources.update[received.data.type]({id: received.data.id, value:received.data.value})
+		console.log('received an updateSources', received);
+	})
+	socket.on('updateSingleStep', function (received) {
+		data.group.steps[parseInt(received.data.index)] = received.data.step;
+		console.log('received an updateSingleStep', received);
+	})
+
+	socket.on('updateSustain', function (received) {
+		console.log('received an updateSustain', received);
+		data.group.sustain = received.data.sustain;
+
+		console.log('received an updateSustain', received);
+	})
+
+	socket.on('updateADSR', function (received) {
+	// adsr.update(received.type, received.value)
+	adsr.update(received.data.type, received.data.value);
+		console.log('received an updateADSR', received);
+	})
+	socket.on('ppValues', function (received) {
+	audio.ppFreq = received.data.freq;
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:received.data.volume});
+		}
+		console.log('received an ppValues', received);
+	})
+	socket.on('updateFilter', function (received) {
+		filters.update(received.data.type, received.data.value);
+	})
+	
 	
 
 	
 	
 })
-
+var listenStartSocket = function () {
+	socket.on('startSequence', function (fulldelay) {
+		if(loop.stopped) {
+			loop.start(fulldelay);
+		}
+	})
+}
 
 var modulateSocket = function () {
 	socket.on('updateSteps', function (received) {
 		console.log('received a socket', received);
 		data.steps[received.index] = received.step;
 	})
+}
+
+
+var sendSocket = {
+	send: function (socketName, id, sendData) {
+		
+		socket.emit(socketName, {
+			room:id,
+			data: sendData
+		})
+	}
+	// updateAllSteps: function (id, sendData) {
+	// 	socket.emit('updateAllSteps', {
+	// 		room: id,
+	// 		data: sendData
+	// 	});
+	// },
+	// groupUpdate: function (id, sendData) {
+	// 	socket.emit('groupUpdate' , {
+	// 		room: id,
+	// 		data: sendData
+	// 	})
+	// },
+	// updateSources: function (id, sendData) {
+	// 	socket.emit('updateSources', {
+	// 		room: id,
+	// 		data: sendData
+	// 	});
+	// }
+	// updateSingleStep: function (id, sendData) {
+	// 	socket.emit('updateSingleStep', {
+	// 		room: id,
+	// 		data: sendData
+	// 	});
+	// },
+	// updateSustain: function (id, sendData) {
+	// 	socket.emit('updateSustain', {
+	// 		room: id, 
+	// 		data: sendData
+	// 	})
+	// }
+	// updateADSR: function (id, sendData) {
+	// 	socket.emit('updateADSR', {
+	// 		room: id, 
+	// 		data: sendData
+	// 	})
+	// },
+	// ppValues: function (id, sendData) {
+	// 	socket.emit('')
+	// }
 }
 var body = document.querySelector('body');
 
@@ -158,18 +265,12 @@ var animate = {
 }
 
 // // todo : 
-// lowpass en reverb
-// detune voor drum
-// noise (weghalen? wat voegt dit nog toe?)
-// - sockets -> test 
-// - connect with groupmember (?)
+// reverb
 // camera hand als pp + fallback
 // volume en speed tilt
 // - scss cleanup
-// group.sources non active blijft spelen na even kutten android
-// tooltips
 // remove unused functions
-
+// kijken naar tools van for element in met callback
 
 // later:
 // audiosetup.getsynth()
@@ -181,10 +282,11 @@ var audio = {
 	filters:[],	
 	ppFreq:false,
 	envelope:null,
+	gain: null,
 	defTime: "8n",
 	setup: function () {
 		sources.setup();
-		loop.waitSocket();
+		listenStartSocket();
 	},
 	triggerAttack: function (freq, time) {
 		audio.triggerRelease();
@@ -192,9 +294,14 @@ var audio = {
 		for(var i in audio.sources) {
 			if(time) {
 				audio.sources[i].triggerAttackRelease(freq, time )
+				console.log(audio.sources[i]);
 			} else {
 				
-				audio.sources[i].triggerAttack(freq)
+				if(audio.sources[i].noise) {
+					audio.sources[i].triggerAttack()
+				} else {
+					audio.sources[i].triggerAttack(freq)
+				}
 			}
 		}
 	},
@@ -212,6 +319,362 @@ var audio = {
 		}
 	}
 }
+
+var loop = {
+	stopped: true,
+	index:0,
+	hold:false,
+	holdTone: function(start, freq) {
+		if(start) {
+			if(loop.hold) {
+				for(var i = 0; i < audio.sources.length;i++) {
+					audio.sources[i].setNote(freq);
+				}
+			} else {
+				loop.hold = true;
+				audio.triggerAttack(freq);
+			}
+		} else {
+			loop.hold=false;
+			audio.triggerRelease();
+
+		}
+	},
+	
+	playStep: function (active, frequency, time) {
+		if(active && !loop.hold && !recording.isRecording) {
+			audio.triggerAttack(frequency);
+			if(!data.group.sustain) {
+				window.setTimeout(function () {
+					audio.triggerRelease();
+				}, time)
+			}
+
+		} 
+	},
+	increaseIndex: function () {
+		loop.index++;
+		if(loop.index == data.group.steps.length) {
+			loop.index = 0;
+		}
+	},
+	start: function () {
+		loop.stopped = false;
+
+		var delay = loop.calculateDelay(data.group.steps.length);
+
+		var toneLoop = new Tone.Loop(function (time) {
+			
+			loop.playStep(data.group.steps[loop.index].active, data.group.steps[loop.index].frequency, time)
+
+			events.showStep(loop.index);
+			loop.increaseIndex();
+			
+		}, delay);
+
+		toneLoop.start(0)
+		Tone.Transport.start('+0.1');
+	},
+
+	calculateDelay: function (length) {
+		switch(length) {
+			case 4:
+				return '2n';
+				break;
+			case 8:
+				return '4n';
+				break;
+			case 16:
+				return '8n'	;
+				break;
+			case 32:
+				return '16n';
+				break;
+		}
+	}
+}
+
+
+var sources = {
+	setup:function () {
+		sources.createSources();
+		filters.setup();
+		sources.setDetune();
+
+	},
+	createSources: function () {
+		
+		for(var i in data.group.sources) {
+			if(data.group.sources[i].active) {
+				if(data.group.sources[i].type == 'noise') {
+					sources.create['noise'](i);
+				} else {
+					sources.create[data.group.synth](i);
+				}
+
+			}
+
+		};
+	},
+	update: {
+		wavetype: function (received) {
+			
+			if(received.value == 'noise') {
+				if(data.group.sources[received.id].active) {
+					sources.remove(received.id);
+					sources.create.noise(received.id);
+					filters.connectSingleSource(received.id);
+				} else {
+					data.group.sources[received.id].type = 'noise'
+				}
+
+			}  else {
+				for(var i in audio.sources) {
+
+					if(audio.sources[i].id == received.id) {
+						
+						if(audio.sources[i].noise) {
+							sources.remove(received.id);
+							sources.create[data.group.synth](received.id);
+							filters.connectSingleSource(received.id);
+						} else {
+							audio.sources[i].oscillator.type = received.value;
+						}
+					}
+				}
+			}
+		},
+		phase: function (received) {
+			for(var i in audio.sources) {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].oscillator.phase = received.value;
+				}
+			}
+		},		
+		active: function (received) {
+			if(received.value) {
+				if(data.group.sources[received.id].type == 'noise') {
+					sources.create['noise'](received.id);
+				} else {
+					sources.create[data.group.synth](received.id);
+				}
+				filters.connectSingleSource(received.id);
+			} else {
+				sources.remove(received.id);
+			}
+		},
+		detune: function (received) {
+			for(var i in audio.sources) {
+				if(audio.sources[i].id == received.id) {
+					if(audio.sources[i].detune) {
+						audio.sources[i].detune.input.value = received.value;
+					} else {
+						audio.sources[i].oscillator.detune.input.value = received.value;
+					}
+				}
+			}
+
+		},
+		volume: function (received) {
+			for(var i in audio.sources) {
+				if(audio.sources[i].id == received.id) {
+					audio.sources[i].volume.input.value = received.value;
+				}
+			}
+		},
+	},
+	changewavetype: function (id, value) {
+		for(var i in audio.sources) {
+			if(audio.sources[i].id == id) {
+				audio.sources[i].oscillator.type = value;
+			}
+		}
+	},
+	create: {
+		synth: function (id) {
+			var synth = new Tone.Synth(sources.create.parseData(id))
+			synth.id = id;
+			audio.sources.push(synth)
+			// audio.sources[0].triggerAttackRelease(400, '2n')
+		},
+		noise: function (id) {
+			var noiseSynth = new Tone.NoiseSynth({
+				envelope: {
+					attack: data.group.adsr.attack.value,
+					decay: data.group.adsr.decay.value,
+					sustain: .1,
+					release: data.group.adsr.release.value
+				}
+			});
+			noiseSynth.id = id;
+			audio.sources.push(noiseSynth);
+		},
+		amSynth: function (id) {
+			var synth = new Tone.AMSynth(sources.create.parseData(id))
+			synth.id = id;
+		},
+		
+		fmSynth: function (id) {
+			var synth = new Tone.Synth(sources.create.parseData(id))
+			synth.id = id;
+			audio.sources.push(synth)
+		},
+		
+		drum: function (id) {
+			data.group.sustain = false;
+			var synth = new Tone.MembraneSynth();
+			synth.id = id;
+			audio.sources.push(synth)
+		},
+		parseData: function (id) {
+			var sourceData = data.group.sources[id];
+			var synthData = {
+				oscillator: {
+					type : sourceData.type
+				},
+				envelope: {
+					attack: data.group.adsr.attack.value,
+					decay: data.group.adsr.decay.value,
+					sustain: .5,
+					release: data.group.adsr.release.value
+				}
+			}
+			
+			return synthData 
+		}
+	},
+	remove: function (id) {
+		audio.triggerRelease(id)
+		for(var i in audio.sources) {
+			if(audio.sources[i].id == id) {
+				audio.sources.splice(i, 1);
+			}
+		}
+	},
+	setDetune: function () {
+		// use the data.group.set method as used in sequencer.holdtone
+		// for(var i in audio.sources) {
+		// 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
+		// };
+			
+	},
+	setSingleDetune: function (index, value) {
+
+	}
+}
+
+var filters = {
+	setup: function () {
+		for(var i in data.group.modulate) {
+			filters.create[data.group.modulate[i].type](data.group.modulate[i])
+		}
+		filters.connect();
+	},
+	connect: function () {
+			
+		audio.gain = Tone.context.createGain()
+			
+		for(var y in audio.filters) {
+			audio.gain.connect(audio.filters[y])
+		}
+		if(audio.filters.length == 0) {
+			audio.gain.connect(Tone.Master);
+		}
+		for(var i in audio.sources) {
+			audio.sources[i].connect(audio.gain);
+		}
+	},
+	connectSingleSource: function (id) {
+		for(var i in audio.sources) {
+			if(audio.sources[i].id == id) {
+				console.log('connecting', audio.sources[i]);
+				audio.sources[i].connect(audio.gain)
+			}
+		}
+	},
+	create: {
+		pingpong: function (data) {
+			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
+		
+			pingPong.wet.value = 0;
+			audio.filters.pingpong = pingPong;
+
+		},
+		tremelo: function (data) {
+			var autoFilter = new Tone.AutoFilter({
+				frequency    :data.values.frequency,
+				depth        :data.values.depth,
+			}).toMaster().start();
+			autoFilter.wet.value = 0;
+			audio.filters.tremelo = autoFilter;
+		},
+		chorus: function (data) {
+			var chorus = new Tone.Chorus().toMaster();
+			
+			chorus.wet.value = 0;
+			audio.filters.chorus = chorus
+		},
+		wahwah: function (data) {
+			var autoWah = new Tone.AutoWah({
+				baseFrequency:data.values.baseFrequency,
+				octaves      :3,
+				sensitivity  :0,
+				Q            :data.values.q,
+				gain         :data.values.gain,
+				
+			}).toMaster();
+			autoWah.wet.value = 0;
+			
+			audio.filters.wahwah = autoWah;
+
+		},
+		lowpass: function (data) {
+			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
+			biquadFilter.type = "lowshelf";
+			biquadFilter.frequency.value = 2000;
+			biquadFilter.gain.value = 0;
+			audio.filters.lowpass = biquadFilter;
+			
+		},
+		highpass: function(data) {
+			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
+			biquadFilter.type = "highshelf";
+			biquadFilter.frequency.value = 200;
+			biquadFilter.gain.value = 0;
+			audio.filters.highpass = biquadFilter;
+			
+		},
+		
+		delay: function (data) {
+			var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
+			feedbackDelay.wet.value = 0;
+			audio.filters.delay = feedbackDelay;
+		},
+		distortion: function (data) {
+			var dist = new Tone.Distortion({
+				distortion: data.values.distortion,
+				oversample: data.values.oversample
+			}).toMaster();
+			dist.wet.value = 0;
+			audio.filters.distortion = dist;
+
+		}
+		
+
+	},
+	update: function (type, value) {
+			console.log(type,value);
+			if(type == 'highpass' || type == 'lowpass') {
+				audio.filters[type].gain.value = value*2;
+			} else {
+				audio.filters[type].wet.value = value;
+			}
+			
+	},
+	
+}
+
+
 
 var recording = {
 	buttons: null,
@@ -279,6 +742,9 @@ var recording = {
 			data.group.steps[i].frequency = newMelody[i];
 		}
 		sequencer.updateActive();
+
+		sendSocket.send('updateAllSteps', data.group._id, {
+			steps: data.group.steps})
 	},
 	fillMelody: function (melody) {
 		var actualMeldoy = [];
@@ -294,369 +760,6 @@ var recording = {
 	}
 
 }
-
-var loop = {
-	stopped: true,
-	index:0,
-	hold:false,
-	holdTone: function(start, freq) {
-		if(start) {
-			if(loop.hold) {
-				for(var i = 0; i < audio.sources.length;i++) {
-					audio.sources[i].setNote(freq);
-				}
-			} else {
-				loop.hold = true;
-				audio.triggerAttack(freq);
-			}
-		} else {
-			loop.hold=false;
-			audio.triggerRelease();
-
-		}
-	},
-	waitSocket: function () {
-		socket.on('startSequence', function (fulldelay) {
-			
-			if(loop.stopped) {
-				loop.start(fulldelay);
-			}
-		})
-	},
-	playStep: function (active, frequency, time) {
-		if(active && !loop.hold && !recording.isRecording) {
-			audio.triggerAttack(frequency);
-			if(!data.group.sustain) {
-				window.setTimeout(function () {
-					audio.triggerRelease();
-				}, time)
-			}
-
-		} 
-	},
-	increaseIndex: function () {
-		loop.index++;
-		if(loop.index == data.group.steps.length) {
-			loop.index = 0;
-		}
-	},
-	start: function () {
-		loop.stopped = false;
-
-		var delay = loop.calculateDelay(data.group.steps.length);
-
-		var toneLoop = new Tone.Loop(function (time) {
-			
-			loop.playStep(data.group.steps[loop.index].active, data.group.steps[loop.index].frequency, time)
-
-			events.showStep(loop.index);
-			loop.increaseIndex();
-			
-		}, delay);
-
-		toneLoop.start(0)
-		Tone.Transport.start('+0.1');
-	},
-
-	calculateDelay: function (length) {
-		switch(length) {
-			case 4:
-				return '2n';
-				break;
-			case 8:
-				return '4n';
-				break;
-			case 16:
-				return '8n'	;
-				break;
-			case 32:
-				return '16n';
-				break;
-		}
-	}
-}
-
-
-var sources = {
-	setup:function () {
-		sources.createSources();
-		filters.setup();
-		sources.setDetune();
-
-	},
-	createSources: function () {
-		
-		for(var i in data.group.sources) {
-			if(data.group.sources[i].active) {
-				console.log(data.group.sources[i]);
-				sources.create[data.group.synth](i);
-
-			}
-
-		};
-	},
-	update: {
-		wavetype: function (received) {
-			for(var i in audio.sources) {
-
-				if(audio.sources[i].id == received.id) {
-					audio.sources[i].oscillator.type = received.value;
-				}
-			}
-		},
-		phase: function (received) {
-			for(var i in audio.sources) {
-
-				if(audio.sources[i].id == received.id) {
-					audio.sources[i].oscillator.phase = received.value;
-				}
-			}
-		},
-		
-		active: function (received) {
-			if(received.value) {
-				sources.create[data.group.synth](received.id);
-				filters.connectSingleSource(received.id);
-			} else {
-				sources.remove(received.id);
-			}
-		},
-		detune: function (received) {
-			for(var i in audio.sources) {
-				if(audio.sources[i].id == received.id) {
-					
-					if(audio.sources[i].detune) {
-						audio.sources[i].detune.input.value = received.value;
-					} else {
-						audio.sources[i].oscillator.detune.input.value = received.value;
-					}
-				}
-			}
-
-		},
-		volume: function (received) {
-			for(var i in audio.sources) {
-				if(audio.sources[i].id == received.id) {
-					audio.sources[i].volume.input.value = received.value;
-				}
-			}
-
-		},
-	},
-	changewavetype: function (id, value) {
-		for(var i in audio.sources) {
-
-			if(audio.sources[i].id == id) {
-				audio.sources[i].oscillator.type = value;
-			}
-		}
-	},
-	
-	create: {
-		synth: function (id) {
-			var synth = new Tone.Synth(sources.create.parseData(id))
-			synth.id = id;
-			audio.sources.push(synth)
-			// audio.sources[0].triggerAttackRelease(400, '2n')
-		},
-		amSynth: function (id) {
-			var synth = new Tone.AMSynth(sources.create.parseData(id))
-			synth.id = id;
-		},
-		
-		fmSynth: function (id) {
-			
-			var synth = new Tone.Synth(sources.create.parseData(id))
-			synth.id = id;
-			audio.sources.push(synth)
-		},
-		
-		drum: function (id) {
-			data.group.sustain = false;
-
-			var synth = new Tone.MembraneSynth();
-			synth.id = id;
-
-			audio.sources.push(synth)
-			// synth.triggerAttackRelease("C2", "8n");
-		},
-		parseData: function (id) {
-			// fm synth
-			// membrane
-			var sourceData = data.group.sources[id];
-			var synthData = {
-				oscillator: {
-					type : sourceData.type
-				},
-				envelope: {
-					attack: data.group.adsr.attack.value,
-					decay: data.group.adsr.decay.value,
-					sustain: .5,
-					release: data.group.adsr.release.value
-				}
-			}
-			
-			return synthData 
-		}
-	},
-	
-	
-	remove: function (id) {
-		audio.triggerRelease(id)
-		for(var i in audio.sources) {
-			if(audio.sources[i].id == id) {
-				audio.sources.splice(i, 1);
-			}
-		}
-	},
-	setDetune: function () {
-		// use the data.group.set method as used in sequencer.holdtone
-		// for(var i in audio.sources) {
-		// 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
-		// };
-			
-	},
-	setSingleDetune: function (index, value) {
-
-	}
-}
-
-var filters = {
-	setup: function () {
-		
-		for(var i in data.group.modulate) {
-			
-			filters.create[data.group.modulate[i].type](data.group.modulate[i])
-		}
-		filters.connect();
-	},
-	connect: function () {
-			
-		var gainNode = Tone.context.createGain()
-			
-		for(var y in audio.filters) {
-			gainNode.connect(audio.filters[y])
-		}
-		if(audio.filters.length == 0) {
-			gainNode.connect(Tone.Master);
-		}
-		for(var i in audio.sources) {
-			audio.sources[i].connect(gainNode);
-			
-
-		}
-
-	},
-	connectSingleSource: function (id) {
-		for(var y in audio.filters) {
-				// audio.sources[id].connect(audio.filters[y])
-				for(var i in audio.sources) {
-					if(audio.sources[i].id == id) {
-						audio.sources[i].connect(audio.filters[y])
-					}
-				}
-			}
-	},
-	create: {
-		// max 2 eckte filters pp, rest is de synth vervormen.
-		// meerdere filters kunnen aangeklikt wordne
-		// filter 2 max op 20 zetten ipv 100
-		pingpong: function (data) {
-			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
-		
-			pingPong.wet.value = 0;
-			audio.filters.pingpong = pingPong;
-			
-			// misschien moet je bij alles gewoon de wet aanpassen effect.wet.value = 0.5;
-
-		},
-		tremelo: function (data) {
-			var autoFilter = new Tone.AutoFilter({
-				frequency    :data.values.frequency,
-				depth        :data.values.depth,
-			}).toMaster().start();
-			autoFilter.wet.value = 0;
-			audio.filters.tremelo = autoFilter;
-		},
-		chorus: function (data) {
-			var chorus = new Tone.Chorus().toMaster();
-			
-			chorus.wet.value = 0;
-			audio.filters.chorus = chorus
-		},
-		wahwah: function (data) {
-			var autoWah = new Tone.AutoWah({
-				baseFrequency:data.values.baseFrequency,
-				octaves      :3,
-				sensitivity  :0,
-				Q            :data.values.q,
-				gain         :data.values.gain,
-				
-			}).toMaster();
-			autoWah.wet.value = 0;
-			
-			audio.filters.wahwah = autoWah;
-
-		},
-		lowpass: function (data) {
-			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-			biquadFilter.type = "lowshelf";
-			biquadFilter.frequency.value = 2000;
-			biquadFilter.gain.value = 0;
-			audio.filters.lowpass = biquadFilter;
-			
-			
-		},
-		highpass: function(data) {
-			// var hpFilter = new Tone.Filter(data.values.frequency, "highpass").toMaster();
-			// // hpFilter.wet.value = 0;
-			// // hpFilter.q.value = 1;
-			// // hpFilter.rolloff = -96;
-			// // audio.filters.highpass = hpFilter;
-			// var autoFilter = new Tone.AutoFilter({
-			// 	frequency    :0,
-			// 	depth        :0,
-			// }).toMaster().start();
-			// autoFilter.filter.type = 'highpass';
-			// autoFilter.wet.value = 0;
-			// audio.filters.highpass = autoFilter;
-			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-			biquadFilter.type = "highshelf";
-			biquadFilter.frequency.value = 200;
-			biquadFilter.gain.value = 0;
-			audio.filters.highpass = biquadFilter;
-			
-		},
-		
-		delay: function (data) {
-			var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
-			feedbackDelay.wet.value = 0;
-			audio.filters.delay = feedbackDelay;
-		},
-		distortion: function (data) {
-			var dist = new Tone.Distortion({
-				distortion: data.values.distortion,
-				oversample: data.values.oversample
-			}).toMaster();
-			dist.wet.value = 0;
-			audio.filters.distortion = dist;
-
-		}
-		
-
-	},
-	update: function (type, value) {
-			console.log(type,value);
-			if(type == 'highpass' || type == 'lowpass') {
-				audio.filters[type].gain.value = value*2;
-			} else {
-				audio.filters[type].wet.value = value;
-			}
-			
-	},
-	
-}
-
 
 
 
@@ -709,12 +812,7 @@ var events = {
 	},
 	unload: function () {
 		window.addEventListener('unload', function() {
-			socket.emit('groupUpdate', {
-				room: data.group._id,
-				data: {
-					text: data.user.username + ' heeft de groep verlaten'
-				}
-			});
+			sendSocket.send('groupUpdate', data.group._id, {text: data.user.username + ' heeft de groep verlaten'})
 			postData.leaveGroup();
 
 		})
@@ -727,29 +825,15 @@ var events = {
 
 var modulator = {
 	init: function () {
-
-		var filterButtons = document.querySelectorAll('.fn-modulate-btn');
-      	var filterSlide = document.querySelectorAll('.fn-fallback-filter');
-	      filterButtons.forEach(function(button) {
-	        button.addEventListener('click', function(e) {
-	          cameraTracker.trackElement(e.currentTarget);
-	        });
-	      });
-	      filterSlide.forEach(function(slider) {
-	      	slider.addEventListener('input', function(e) {
-	      		
-	      		filters.update(e.currentTarget.getAttribute('type'), e.target.value)
-	      		
-	      	});
-	      });
-	      
 	      changePage.selector();
 	      modulator.events.init();
 	      
 	},
 	events:  {
 		init: function () {
-			var form = document.querySelector('.fn-form-modulate');
+			var form          = document.querySelector('.fn-form-modulate');
+			var filterButtons = document.querySelectorAll('.fn-modulate-btn');
+			var filterSlide   = document.querySelectorAll('.fn-fallback-filter');
 
 			form.addEventListener('input', function (e) {
 				var index = body.getAttribute('current-element');
@@ -759,12 +843,29 @@ var modulator = {
 				var index = body.getAttribute('current-element');
 				modulator.events[e.target.getAttribute('name')](e.target, index)
 			})
+			filterButtons.forEach(function(button) {
+		        button.addEventListener('click', function(e) {
+		        	tips.increaseTip('filter');
+		          cameraTracker.trackElement(e.currentTarget);
+		        });
+		      });
+		      filterSlide.forEach(function(slider) {
+		      	slider.addEventListener('input', function(e) {
+		      		
+		      		filters.update(e.currentTarget.getAttribute('type'), e.target.value);
+		      		sendSocket.send('updateFilter',data.group._id, {
+		      			type:e.currentTarget.getAttribute('type'),
+		      			value: e.target.value
+		      		})
+		      		
+		      	});
+		      });
+
 		},
 		active: function (element, index) {
 			data.group.sources[index].active = element.checked;
-			
-
-			modulator.events.sendSocket({
+			tips.increaseTip('active');
+			sendSocket.send('updateSources',data.group._id, {
 				value: element.checked,
 				type: 'active', 
 				id: index});
@@ -772,36 +873,33 @@ var modulator = {
 		},
 		wavetype: function (element, index) {
 			data.group.sources[index].type = element.getAttribute('wavetype');
-			modulator.events.sendSocket({
+			sendSocket.send('updateSources', data.group._id, {
 				value: element.getAttribute('wavetype'),
 				type: 'wavetype', 
 				id: index});
 
 		},
 		detune: function (element, index) {
-			
+			tips.increaseTip('detune');
 			data.group.sources[index].detune = element.value;
-			modulator.events.sendSocket({
+
+			sendSocket.send('updateSources', data.group._id, {
 				value: element.value,
 				type: 'detune', 
-				id: index});
+				id: index})
+	
 		},
 		volume: function (element, index) {
-			
+			console.log(element, index);
 			data.group.sources[index].volume = element.value;
-			modulator.events.sendSocket({
+			
+			
+			sendSocket.send('updateSources', data.group._id, {
 				value: element.value,
 				type: 'volume', 
-				id: index});
+				id: index})
 		},
-		sendSocket: function (newdata) {
-			
-			sources.update[newdata.type](newdata)
-			socket.emit('updateSources', {
-				room: data.group._id,
-				data: newdata
-			});
-		},
+		
 		visualTrackerStep: function (value) {
 			
 		}
@@ -861,24 +959,16 @@ var sequencer = {
 	
 	receiveNewValue: function (newValue, item) {
 		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
-		
 		loop.holdTone(true, frequency)
-
 	},
 	calculateFrequency: function (perc, max) {
-
 		var value = (perc * max) / 100;
 		return value;
-	
 	},
 	calculatePercentage: function (item) {
 		var step = sequencer.getItemStep(item);
-		
 		var perc = (step.frequency * 100) / step.max;
-		
-		
 		return perc;
-	
 	},
 	
 	changeFrequency: function (hammertime) {
@@ -911,13 +1001,16 @@ var sequencer = {
 	toggleActive: function (hammertime) {
 		hammertime.on('tap', function (e) {
 			if(!recording.isRecording) {
-				var index = e.target.getAttribute('sequence-index');
+				var index = parseInt(e.target.getAttribute('sequence-index'));
 				tips.increaseTip('clickActive');
 				
 				data.group.steps[parseInt(index)].active = !data.group.steps[parseInt(index)].active;
 				
 				e.target.classList.toggle('active');
-				sequencer.sendSocket(data.group.steps[index], index)
+				console.log(data.group.steps[index]);
+				sendSocket.send('updateSingleStep',data.group._id, 
+					{step: data.group.steps[index], index: index})
+				
 			}
 		
 		});
@@ -939,22 +1032,16 @@ var sequencer = {
 		var step = sequencer.getItemStep(item);
 		step.frequency = frequency;
 
-		sequencer.sendSocket(step, parseInt(item.getAttribute('sequence-index')))
 		
+		sendSocket.send('updateSingleStep',data.group._id, 
+					{step: step, index: parseInt(item.getAttribute('sequence-index'))})
 		
 		item.setAttribute('frequency', frequency)
 		loop.holdTone(false);
 
 		// 
 	},
-	sendSocket: function (step, index) {
-		
-		socket.emit('updateSteps', {
-			room: data.group._id,
-			step: data.group.steps[index],
-			index: index
-		});
-	}
+	
 }
 var adsr = {
 	update: function (type, value) {
@@ -982,9 +1069,24 @@ var adsr = {
 			points.push(point)
 
 		    inputs[i].addEventListener('input', function (e) {
-		    	adsr.showActive(e.currentTarget.id);
-		    	adsr.svgUpdate(svgLine, points, parseInt(e.currentTarget.id.split('adsr-')[1]))
-		    	adsr.update(e.currentTarget.getAttribute('modulate-type'), e.currentTarget.value)
+		    	var id = e.currentTarget.id;
+				var idNumber = parseInt(e.currentTarget.id.split('adsr-')[1]);
+				var type     = e.currentTarget.getAttribute('modulate-type');
+				var value    = e.currentTarget.value;
+
+		    	adsr.showActive(id);
+		    	adsr.svgUpdate(svgLine, points, idNumber)
+		    	adsr.update(type, value);
+		    	
+		    })
+		    inputs[i].addEventListener('change', function (e) {
+		    	var type     = e.currentTarget.getAttribute('modulate-type');
+				var value    = e.currentTarget.value;
+
+		    	sendSocket.send('updateADSR', data.group._id, {
+		    		type: type, 
+		    		value: value
+		    	})
 		    })
 		}
 		adsr.drawSVGInit(svgLine, points);
@@ -1004,7 +1106,6 @@ var adsr = {
 	},
 	getPoints: function (index) {
 		var inputs = document.querySelectorAll('.fn-adsr-range-item');
-		
 		var pos    = inputs[index].getBoundingClientRect();
 		
 		var value  = document.querySelectorAll('.fn-adsr-range-item')[index].value;
@@ -1041,13 +1142,11 @@ var adsr = {
 	changeEvent: function () {
 		var sustainButton = document.querySelector('.fn-sustain');
 		sustainButton.addEventListener('change', function (e) {
-
 			data.group.sustain = e.currentTarget.checked;
+			sendSocket.send('updateSustain',data.group._id, {sustain: e.currentTarget.checked})
 		})
 	},
-	updateValue: function (id) {
-
-	}
+	
 	
 }
 
@@ -1063,7 +1162,7 @@ var pp = {
 
 		pp.touchBlok.addEventListener('touchmove', pp.touchMove)
 		
-		pp.touchBlok.addEventListener('touchstart',pp.touchOpen)
+		pp.touchBlok.addEventListener('touchstart',pp.touchMove)
 		pp.touchBlok.addEventListener('touchend',pp.touchEnd)
 		pp.touchBlok.addEventListener('touchcancel', pp.touchEnd)
 		
@@ -1103,23 +1202,7 @@ var pp = {
 
 		return data
 	},
-	touchOpen: function (e) {
-		// audio.triggerRelease();
-		// loop.hold = true;
-		pp.createShadow(e.touches);
-		var position = pp.touchValues(e.touches);
-		// audio.setFrequency(300);
-		audio.ppFreq = position.freq;
-		for(var i in audio.sources) {
-			sources.update.volume({id:audio.sources[i].id, value:position.volume});
-
-		}
-		// var newSource = data.group.sources[0].type + position.part;
-		// sources.update.wavetype({id:0, value:newSource})
-		// audio.triggerAttack(position.freq);
-
-
-	},
+	
 	createShadow: function (touches) {
 		var position = pp.touchPosition(touches);
 		var element  = document.createElement('span');
@@ -1139,6 +1222,7 @@ var pp = {
 			 }, 500)
 		}, 100)
 	},
+
 	touchMove: function (e) {
 		pp.createShadow(e.touches);
 		var position = pp.touchValues(e.touches);
@@ -1147,10 +1231,10 @@ var pp = {
 			sources.update.volume({id:audio.sources[i].id, value:position.volume});
 
 		}
-		// var newSource = data.group.sources[0].type + position.part;
-		
-		// sources.update.wavetype({id:0, value:newSource})
-		// audio.triggerAttack(position.freq);
+		sendSocket.send('ppValues', data.group._id, {
+			freq: position.freq,
+			volume: position.volume
+		})
 	},
 	touchEnd: function (e) {
 		
@@ -1163,38 +1247,42 @@ var pp = {
 			sources.update.volume({id:audio.sources[i].id, value:data.group.sources[audio.sources[i].id].volume });
 
 		}
+		sendSocket.send('ppValues', data.group._id, {
+			freq: false,
+			volume: data.group.sources[0].volume
+		})
 	}
 }
 
-var modulate = {
+// var modulate = {
 	
-	sendSocket: function (newdata) {
+// 	sendSocket: function (newdata) {
 		
-		socket.emit('updateSources', {
-			room: data.group._id,
-			data: newdata
-		});
+// 		socket.emit('updateSources', {
+// 			room: data.group._id,
+// 			data: newdata
+// 		});
 
-	},
-	changewavetype: function (newtype) {
-		var currentData = modulate.getCurrentData();
-		currentData.type = newtype;
-		modulate.sendSocket({value: currentData.type, type: 'wavetype', id: currentData.id});
+// 	},
+// 	changewavetype: function (newtype) {
+// 		var currentData = modulate.getCurrentData();
+// 		currentData.type = newtype;
+// 		modulate.sendSocket({value: currentData.type, type: 'wavetype', id: currentData.id});
 
-	},
-	changeDetune: function (newvalue) {
+// 	},
+// 	changeDetune: function (newvalue) {
 		
-	},
-	getCurrentData : function () {
-		var form = document.querySelector('.fn-form-modulate');
-		var thisdata = data.group.sources[parseInt(form.getAttribute('active-index'))];
-		return thisdata
-	},
-	wavetype: function () {
-		var form = document.querySelector('.fn-wavetype');
-		form.querySelector('.fn-input');
-	}
-}
+// 	},
+// 	getCurrentData : function () {
+// 		var form = document.querySelector('.fn-form-modulate');
+// 		var thisdata = data.group.sources[parseInt(form.getAttribute('active-index'))];
+// 		return thisdata
+// 	},
+// 	wavetype: function () {
+// 		var form = document.querySelector('.fn-wavetype');
+// 		form.querySelector('.fn-input');
+// 	}
+// }
 
 
 var changePage = {
@@ -1253,6 +1341,7 @@ var changePage = {
 			buttonCalibrate.addEventListener('click', function () {
 				if(data.supportMedia) {
 					changePage.showPage('calibrate');
+					cameraTracker.init();
 				} else {
 					audio.setup();
 					changePage.showPage('filters');
@@ -1591,12 +1680,14 @@ var tips = {
 	},
 
 	increaseTip: function (cond) {
+		console.log(cond, 'tip!');
 		
-		if(cond == 'clickActive' && tips.currentTip == 0) {
+		if(cond == 'clickActive' && tips.currentTip == 0 || cond == 'filter' && tips.currentTip == 0) {
+			console.log('new?');
 			tips.newTip();
-		} else if(cond == 'changefreq' && tips.currentTip == 1) {
+		} else if(cond == 'changefreq' && tips.currentTip == 1 || cond == 'active' && tips.currentTip == 1) {
 			tips.newTip();
-		} else if(cond == 'rec' && tips.currentTip == 2) {
+		} else if(cond == 'rec' && tips.currentTip == 2 || cond == 'detune' && tips.currentTip == 2) {
 			tips.newTip();
 		} else if(cond == 'adsr' && tips.currentTip == 3) {
 			tips.newTip();
@@ -1605,10 +1696,18 @@ var tips = {
 	},
 	newTip: function () {
 		tips.currentTip++;
-		tips.textDOM.classList.add('tip-animation')
-		setTimeout(function () {
-			tips.textDOM.innerHTML = tips.tipMemory = data.tips[tips.currentTip].text;
-		}, 250)
+		
+		if(tips.currentTip == data.tips.length) {
+			console.log('laatste tip');
+			tips.textDOM.innerHTML = tips.tipMemory = ' ';
+			
+		} else {
+			tips.textDOM.classList.add('tip-animation')
+			setTimeout(function () {
+				tips.textDOM.innerHTML = tips.tipMemory = data.tips[tips.currentTip].text;
+			}, 250)
+		}
+		
 
 	},
 	textboxContent: function (content) {
@@ -1740,10 +1839,12 @@ var cameraTracker = {
   calibrate: function () {
     var buttonTop    = document.querySelector('.fn-calibrate-top');
     var buttonStop   = document.querySelector('.fn-calibrate-top');
+    var startButton = document.querySelector('#test-btn');
     var buttonBottom = document.querySelector('.fn-calibrate-bottom');
     var first        = true;
     var tracker      = new tracking.ColorTracker(['yellow']);
     var trackThing   = tracking.track(cameraTracker.video, tracker, { camera: true });
+    
   
     tracker.on('track', function(event) {
       
@@ -1752,7 +1853,7 @@ var cameraTracker = {
         cameraTracker.canvas.height = cameraTracker.video.offsetHeight;
         cameraTracker.canvas.width  = cameraTracker.video.offsetWidth;
       }
-      cameraTracker.context.clearRect(0, 0, 600, 500);
+      cameraTracker.context.clearRect(0, 0, 1000, 1000);
       cameraTracker.drawRectangle(event.data, cameraTracker.context, tracker.colors[0])
     });
 
@@ -1837,7 +1938,11 @@ var cameraTracker = {
       if(data.supportMedia) {
          cameraTracker.startElementTracking(function (value) {
           
-          filters.update(element.getAttribute('modulate-type'), value)
+          filters.update(element.getAttribute('modulate-type'), value);
+          sendSocket.send('updateFilter',data.group._id, {
+                type:element.getAttribute('modulate-type'),
+                value: value
+              })
         }, element);
        } else {
         slider.classList.add('active');

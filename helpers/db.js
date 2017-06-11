@@ -90,7 +90,7 @@ var db = {
 	
 	createGroup: function (cb) {
 		db.countGroups(function (count) {
-			var audioData = audioSetup.generate();
+			var audioData = audioSetup.generate(count);
 			group = new Group({
 				steps       : audioData.steps,
 				pp          : audioSetup.scale,

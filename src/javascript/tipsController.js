@@ -38,12 +38,14 @@ var tips = {
 	},
 
 	increaseTip: function (cond) {
+		console.log(cond, 'tip!');
 		
-		if(cond == 'clickActive' && tips.currentTip == 0) {
+		if(cond == 'clickActive' && tips.currentTip == 0 || cond == 'filter' && tips.currentTip == 0) {
+			console.log('new?');
 			tips.newTip();
-		} else if(cond == 'changefreq' && tips.currentTip == 1) {
+		} else if(cond == 'changefreq' && tips.currentTip == 1 || cond == 'active' && tips.currentTip == 1) {
 			tips.newTip();
-		} else if(cond == 'rec' && tips.currentTip == 2) {
+		} else if(cond == 'rec' && tips.currentTip == 2 || cond == 'detune' && tips.currentTip == 2) {
 			tips.newTip();
 		} else if(cond == 'adsr' && tips.currentTip == 3) {
 			tips.newTip();
@@ -52,10 +54,18 @@ var tips = {
 	},
 	newTip: function () {
 		tips.currentTip++;
-		tips.textDOM.classList.add('tip-animation')
-		setTimeout(function () {
-			tips.textDOM.innerHTML = tips.tipMemory = data.tips[tips.currentTip].text;
-		}, 250)
+		
+		if(tips.currentTip == data.tips.length) {
+			console.log('laatste tip');
+			tips.textDOM.innerHTML = tips.tipMemory = ' ';
+			
+		} else {
+			tips.textDOM.classList.add('tip-animation')
+			setTimeout(function () {
+				tips.textDOM.innerHTML = tips.tipMemory = data.tips[tips.currentTip].text;
+			}, 250)
+		}
+		
 
 	},
 	textboxContent: function (content) {

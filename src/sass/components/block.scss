@@ -19,6 +19,17 @@
 		}
 		
 	}
+	&-notification {
+		background-color:rgba(15,187,165,.5);
+		color:white;
+		border-radius:3px;
+		margin:.5rem;
+		padding:.5rem;
+		opacity:0;
+		pointer-events:none;
+		transition:.2s ease-in-out;
+
+	}
 	&-filter {
 		// max-height:100px;
 		position:absolute;

@@ -212,7 +212,7 @@ html, body, .container-fixed, .block-overlay {
   opacity: 0; }
 
 body[splash='finished'] .place-color, body[splash='finished'] .place-stroke {
-  fill: rgba(225, 225, 225, 0.5) !important;
+  fill: rgba(225, 225, 225, 0.3) !important;
   opacity: .4; }
 
 @-webkit-keyframes scale-icon {
@@ -1088,6 +1088,15 @@ body[current-page='calibrate'] .nav ul[nav='osc'] li:nth-of-type(3) {
     .block-filter-swipe .filter-swipe-item {
       display: inline-block;
       border: 1px solid red; }
+  .block-notification {
+    background-color: rgba(15, 187, 165, 0.5);
+    color: white;
+    border-radius: 3px;
+    margin: .5rem;
+    padding: .5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: .2s ease-in-out; }
   .block-filter {
     position: absolute;
     top: 0;
