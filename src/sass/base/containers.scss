@@ -13,6 +13,12 @@
 	}
 	&-center {
 		@extend %position-center;
+		&-content {
+			@extend %fixed-full;
+			display:flex;
+			justify-content: center;
+			align-items: center;
+		}
 	}
 	&-scroll {
 		overflow-y:scroll;

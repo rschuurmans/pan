@@ -84,6 +84,19 @@ body[current-page='pp'] .nav {
 	}
 
 }
+
+body[current-page='recording'] .nav {
+	ul[nav='adsr'] {
+		display:none;
+	}
+	ul[nav='sequencer'] {
+		@include animate-in-out(3,.2, navinleft);
+	}
+	ul[nav='pp'] {
+		max-width:0;
+		@include animate-in-out(3,.2, navleft)
+	}
+}
 body[current-page='adsr'] .nav {
 	ul[nav='adsr'] {
 		width:30%;

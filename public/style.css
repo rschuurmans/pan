@@ -54,7 +54,6 @@
   opacity: 0; }
 
 .clearfix {
-  border: 2px solid red;
   display: block;
   width: 100%; }
 
@@ -66,7 +65,7 @@
   clear: both;
   height: 0; }
 
-html, body, .container-fixed, .block-overlay {
+html, body, .container-fixed, .container-center-content, .block-overlay {
   position: fixed;
   left: 0;
   top: 0;
@@ -89,7 +88,7 @@ html, body, .container-fixed, .block-overlay {
   bottom: 0; }
 
 .container-center, .block-question {
-  position: relative;
+  position: absolute;
   top: 50%;
   -webkit-transform: translateY(-50%);
           transform: translateY(-50%);
@@ -212,7 +211,7 @@ html, body, .container-fixed, .block-overlay {
   opacity: 0; }
 
 body[splash='finished'] .place-color, body[splash='finished'] .place-stroke {
-  fill: rgba(225, 225, 225, 0.4) !important;
+  fill: rgba(225, 225, 225, 0.2) !important;
   opacity: .4; }
 
 @-webkit-keyframes scale-icon {
@@ -336,6 +335,17 @@ h1, h2, h3, h4, h5 {
 
 .container-padding-sm {
   padding: 8px; }
+
+.container-center-content {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center; }
 
 .container-scroll {
   overflow-y: scroll; }
@@ -797,6 +807,93 @@ body[current-page='pp'] .nav ul[nav='sequencer'] {
     -webkit-animation-timing-function: ease-in-out;
             animation-timing-function: ease-in-out; }
 
+body[current-page='recording'] .nav ul[nav='adsr'] {
+  display: none; }
+
+body[current-page='recording'] .nav ul[nav='sequencer'] li:nth-of-type(1) {
+  -webkit-animation-name: navinleft;
+          animation-name: navinleft;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+  -webkit-animation-iteration-count: 1;
+          animation-iteration-count: 1;
+  -webkit-animation-delay: 0.3;
+          animation-delay: 0.3;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out; }
+
+body[current-page='recording'] .nav ul[nav='sequencer'] li:nth-of-type(2) {
+  -webkit-animation-name: navinleft;
+          animation-name: navinleft;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+  -webkit-animation-iteration-count: 1;
+          animation-iteration-count: 1;
+  -webkit-animation-delay: 0.4;
+          animation-delay: 0.4;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out; }
+
+body[current-page='recording'] .nav ul[nav='sequencer'] li:nth-of-type(3) {
+  -webkit-animation-name: navinleft;
+          animation-name: navinleft;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+  -webkit-animation-iteration-count: 1;
+          animation-iteration-count: 1;
+  -webkit-animation-delay: 0.5;
+          animation-delay: 0.5;
+  -webkit-animation-duration: 0.3s;
+          animation-duration: 0.3s;
+  -webkit-animation-timing-function: ease-in-out;
+          animation-timing-function: ease-in-out; }
+
+body[current-page='recording'] .nav ul[nav='pp'] {
+  max-width: 0; }
+  body[current-page='recording'] .nav ul[nav='pp'] li:nth-of-type(1) {
+    -webkit-animation-name: navleft;
+            animation-name: navleft;
+    -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards;
+    -webkit-animation-iteration-count: 1;
+            animation-iteration-count: 1;
+    -webkit-animation-delay: 0.3;
+            animation-delay: 0.3;
+    -webkit-animation-duration: 0.3s;
+            animation-duration: 0.3s;
+    -webkit-animation-timing-function: ease-in-out;
+            animation-timing-function: ease-in-out; }
+  body[current-page='recording'] .nav ul[nav='pp'] li:nth-of-type(2) {
+    -webkit-animation-name: navleft;
+            animation-name: navleft;
+    -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards;
+    -webkit-animation-iteration-count: 1;
+            animation-iteration-count: 1;
+    -webkit-animation-delay: 0.4;
+            animation-delay: 0.4;
+    -webkit-animation-duration: 0.3s;
+            animation-duration: 0.3s;
+    -webkit-animation-timing-function: ease-in-out;
+            animation-timing-function: ease-in-out; }
+  body[current-page='recording'] .nav ul[nav='pp'] li:nth-of-type(3) {
+    -webkit-animation-name: navleft;
+            animation-name: navleft;
+    -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards;
+    -webkit-animation-iteration-count: 1;
+            animation-iteration-count: 1;
+    -webkit-animation-delay: 0.5;
+            animation-delay: 0.5;
+    -webkit-animation-duration: 0.3s;
+            animation-duration: 0.3s;
+    -webkit-animation-timing-function: ease-in-out;
+            animation-timing-function: ease-in-out; }
+
 body[current-page='adsr'] .nav ul[nav='adsr'] {
   width: 30%;
   right: 21px;
@@ -1142,8 +1239,7 @@ body[current-page='calibrate'] .nav ul[nav='osc'] li:nth-of-type(3) {
     height: 20em;
     position: relative; }
     .block-filter-swipe .filter-swipe-item {
-      display: inline-block;
-      border: 1px solid red; }
+      display: inline-block; }
   .block-sequence-top {
     position: relative;
     height: 3em;
@@ -1215,6 +1311,13 @@ body[current-page='calibrate'] .nav ul[nav='osc'] li:nth-of-type(3) {
     position: relative;
     top: 0px;
     overflow: hidden; }
+    .block-pp h2 {
+      position: absolute;
+      top: 10%;
+      left: 0;
+      width: 100%;
+      text-transform: uppercase;
+      text-align: center; }
     .block-pp .shadow {
       background: #FFFF00;
       width: 0px;
@@ -1236,8 +1339,6 @@ body[current-page='calibrate'] .nav ul[nav='osc'] li:nth-of-type(3) {
     .block-modulate-settings label {
       display: block;
       margin: .3em 0 1em; }
-  .block-filter-btn {
-    border: 1px solid red; }
   .block-overlay {
     background-color: #0FBBA5;
     z-index: -1;
@@ -1364,25 +1465,7 @@ body {
         opacity: 1 !important; }
   body[recording='true'] {
     background: white; }
-    body[recording='true'] .block-sequence-top {
-      max-height: 0; }
     body[recording='true'] li[target-page='adsr'], body[recording='true'] li[target-page='pp'] {
-      opacity: 0; }
-    body[recording='true'] .btn-label-abs {
-      color: white; }
-    body[recording='true'] .block-info {
-      color: #101010 !important; }
-    body[recording='true'] .btn-rotate-trans {
-      -webkit-transform: rotateY(180deg);
-              transform: rotateY(180deg); }
-      body[recording='true'] .btn-rotate-trans .btn-label-abs {
-        -webkit-transform: rotateY(180deg);
-                transform: rotateY(180deg); }
-    body[recording='true'] .btn-grid-item {
-      background-color: #101010; }
-      body[recording='true'] .btn-grid-item:not(.active) {
-        opacity: 1; }
-    body[recording='true'] .ic-value {
       opacity: 0; }
 
 .extraCircle, .btn-adsr .rotate-extra-circle:before, .btn-adsr .rotate-extra-circle:after, .btn-sequencer .rotate-extra-circle, .btn-filter .rotate-extra-circle {
@@ -1483,7 +1566,6 @@ body {
     width: 100%;
     height: 100%;
     background: #3038F2;
-    border-radius: 100%;
     top: 0%;
     left: 0%;
     transition: -webkit-transform .05s ease-in-out;
@@ -1504,6 +1586,10 @@ body {
     .btn-md.active {
       color: white;
       background: red; }
+  .btn-center {
+    margin: 0 auto; }
+  .btn-shadow {
+    box-shadow: 0px 10px 10px 10px rgba(0, 0, 0, 0.5); }
   .btn-half {
     width: 50%;
     float: left; }
@@ -1512,6 +1598,25 @@ body {
   .btn-rect {
     width: 20vw;
     height: 20vw; }
+    .btn-rect-lg {
+      width: 50vw;
+      height: 50vw;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      left: 25vw;
+      -webkit-box-pack: center;
+          -ms-flex-pack: center;
+              justify-content: center;
+      -webkit-box-align: center;
+          -ms-flex-align: center;
+              align-items: center; }
+  .btn-control {
+    transition: .2s ease-in-out; }
+    .btn-control.active {
+      -webkit-transform: translate(0px, 20px);
+              transform: translate(0px, 20px);
+      background-color: #999900; }
   .btn-b-black {
     border: 5px solid #101010; }
   .btn-black {
@@ -1541,6 +1646,14 @@ body {
       right: 8px;
       background-position: center center;
       background-repeat: no-repeat; }
+
+.screen {
+  background-color: red;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0; }
 
 .ic {
   width: 1.3rem;

@@ -12,7 +12,7 @@
 	opacity:0;
 }
 .clearfix {
-	border:2px solid red;
+	
 	display:block;
 	width:100%;
 }
@@ -50,7 +50,7 @@
 }
 
 %position-center {
-	position: relative;
+	position: absolute;
 	top: 50%;
 	transform: translateY(-50%);
 	overflow:auto;

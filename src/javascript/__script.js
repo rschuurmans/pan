@@ -6,14 +6,14 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
-		
+		handInteraction.init();
 		changePage.onboarding()
 		listen.role()
 		tips.init();
 		events.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
-			deviceRotation.start();
+			
 			sequencer.init();
 			pp.setup();
 			

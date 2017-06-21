@@ -6,14 +6,14 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
-		
+		handInteraction.init();
 		changePage.onboarding()
 		listen.role()
 		tips.init();
 		events.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
-			deviceRotation.start();
+			
 			sequencer.init();
 			pp.setup();
 			
@@ -51,7 +51,7 @@ var socket = io();
 // var binary = new BinaryClient('ws://localhost:3000');
 
 // binary.on('open', function () {
-// 	console.log('open the binary');
+
 // 	window.Stream = binary.createStream();
 
 // })
@@ -60,13 +60,13 @@ var listen = {
 
 	master: function () {
 		
-			console.log('connected');
+			
 			socket.emit('joinRoom', 'master');
 			socket.emit('joinRoom', 'live');
 
 
 			socket.on('audioBlob', function (received) {
-				console.log('received', received);
+				
 				
 				 masterSequence.parseBlobAudio(received.data);
 				 received.data.blob = null;
@@ -75,16 +75,14 @@ var listen = {
 			})
 			socket.on('liveUpdate', function (received) {
 				liveRoom.updateActiveUsers(received);
-				console.log('live update', received);
+				
 			})
 
 		
 	},
 	role: function () {
 		// listen.modulate();
-		console.log('listen?');
 		
-			console.log('rolleee');
 			
 		var groupId = tools.currentGroupId();
 
@@ -96,7 +94,7 @@ var listen = {
 		sendSocket.send('groupUpdate', groupId, {text: data.user.username + ' heeft zich aangesloten'})
 		
 		socket.on('demo', function (received) {
-			console.log('received', received);
+			
 			demosec(received);
 		})
 		
@@ -104,7 +102,7 @@ var listen = {
 		// happens: updated melody from sequencer
 		socket.on('updateAllSteps', function (received) {
 			data.group.steps = received.data.steps;
-			console.log('received an updateAllSteps', received);
+			
 		})
 		// happens: on loop message from server
 		
@@ -185,6 +183,123 @@ var sendSocket = {
 			data: sendData
 		})
 	}
+}
+
+var adsr = {
+	getEnvelope: function (groupId) {
+  		return   {
+            attack: tools.pathObj(data.group, 'adsr.attack.value'),
+            decay: tools.pathObj(data.group, 'adsr.decay.value'),
+            sustain: .5,
+            release: tools.pathObj(data.group, 'adsr.release.value'),
+        }
+        
+	},
+	update: function (type, value) {
+		data.group.adsr[type].value = parseFloat(value);
+		audio.gainNode[type] = parseFloat(value);
+	},
+	
+	init: function () {
+		// adsr.drawSVG();
+		adsr.sustainEvent();
+		var svgLine = document.querySelector('svg .poly');
+		var width   = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width)/8;
+		var inputs  = document.querySelectorAll('.fn-adsr-range-item');
+		
+		var points = []
+		for(var i = 0; i < inputs.length ;i++) {
+			var point = adsr.getPoints(i);
+			points.push(point)
+
+		    inputs[i].addEventListener('input', function (e) {
+		    	var id = e.currentTarget.id;
+				var idNumber = parseInt(e.currentTarget.id.split('adsr-')[1]);
+				var type     = e.currentTarget.getAttribute('modulate-type');
+				var value    = e.currentTarget.value;
+
+		    	adsr.showActive(id);
+		    	adsr.svgUpdate(svgLine, points, idNumber)
+		    	adsr.update(type, value);
+		    	
+		    })
+		    inputs[i].addEventListener('change', function (e) {
+		    	var type     = e.currentTarget.getAttribute('modulate-type');
+				var value    = e.currentTarget.value;
+
+		    	sendSocket.send('updateADSR', data.group._id, {
+		    		type: type, 
+		    		value: value
+		    	})
+		    })
+		}
+		adsr.drawSVGInit(svgLine, points);
+
+	},
+	showActive: function (id) {
+		var labels = document.querySelectorAll('.fn-label-adsr');
+		
+		for(var i = 0; i < labels.length;i++) {
+			if(labels[i].getAttribute('for') == id ) {
+				labels[i].classList.add('active');
+			} else {
+				labels[i].classList.remove('active');
+			}
+		}
+
+	},
+	getPoints: function (index) {
+		var inputs = document.querySelectorAll('.fn-adsr-range-item');
+		var pos    = inputs[index].getBoundingClientRect();
+		
+		var value  = document.querySelectorAll('.fn-adsr-range-item')[index].value;
+		var max    = inputs[index].getAttribute('max');
+		value      = max - value;
+		var perc   = (value*100)/max;
+		var left   = ((100/inputs.length) * index) + ((100/inputs.length)/2);
+
+	    
+	    var points = {
+	    	x: left,
+	    	y: perc
+	    }
+	    return points
+	},
+	drawSVGInit: function (line, points) {
+		var width     = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width);
+		var height    = (document.querySelector('.input-range-vert-container').getBoundingClientRect().height);
+		var attribute =  '0 100';
+		
+		for(var i in points) {
+			attribute += ',' + points[i].x + ' ' + points[i].y
+		}
+		attribute +=  ',100 100';
+		line.setAttribute('points', attribute);
+	},
+	svgUpdate: function (line, points, index) {
+		var attribute        = line.getAttribute('points').split(',');
+		var point            = adsr.getPoints(index);
+		var currentAttribute = attribute[index + 1].split(' ');
+		attribute[index + 1] = currentAttribute[0] + " " + point.y;
+		line.setAttribute('points', attribute)
+	},
+	sustainEvent: function () {
+		var sustainButton = document.querySelector('.fn-sustain');
+		this.sustain      = data.group.sustain;
+		var self          = this;
+
+		sustainButton.addEventListener('change', function (e) {
+			var sustainValue = e.currentTarget.checked;
+			self.setSustain(sustainValue);
+			sendSocket.send('updateSustain',tools.setGroup(), {sustain: sustainValue})
+
+		})
+	},
+	setSustain : function (value ) {
+		data.group.sustain = this.sustain = value;
+	}
+	
+	
 }
 var body = document.querySelector('body');
 
@@ -274,6 +389,17 @@ var animate = {
 	},
 }
 
+// to check
+//  - recordin met sustain aan
+// - adsr tekenen is nog geen super mooie js
+// - pp code is nog niet heel netjes
+// - pp als device input
+// hand als input record
+// fix drum geluid
+// sources modulator
+// filters modulator
+// check adsr tipset
+// fina tip text opacity naar 0
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 
@@ -286,21 +412,55 @@ var audio = {
     gain: null,
     defTime: "8n",
     isLive: false,
+    setScale: function () {
+        this.highest = 0;
+        for(var i in data.group.scale) {
+            if(this.highest <= data.group.scale[i]) {
+                this.highest = data.group.scale[i];
+            }
+        }
+    },
+
     setup: function() {
+        this.setScale();
         sources.setup();
         listenStartSocket();
     },
-    triggerEnvAttack: function(freq, time) {
-        for(var i in audio.sources) {
-            audio.sources[i].frequency.value = freq;
+    setFrequencies: function (freq) {
+        console.log('setting the freq to ', freq);
+        var self = this;
+        for(var i in self.sources) {
+            // self.sources[i].frequency.value = freq;
+            self.sources[i].frequency.rampTo(freq, 0.1);
         }
-        audio.gainNode.triggerAttackRelease(time)
     },
-    triggerRelease: function(audioData) {
-        // kan weg als holdtone weg is?
-        for (var i in audioData) {
-            audioData[i].triggerRelease()
+    slideFrequency: function (freq) {
+        var self = this;
+        for(var i in self.sources) {
+            
         }
+    },
+    oscVolume: function (value) {
+        var self = this;
+        for(var i in self.sources) {
+            // self.sources[i].volume.value = value;
+        }
+    },
+    triggerEnvAttack: function(freq, time) {
+
+        this.setFrequencies(this.overrideFreq ? this.overrideFreq : freq)
+    
+            
+        if(adsr.sustain) {
+            audio.gainNode.triggerAttack();
+        } else {
+            audio.gainNode.triggerAttackRelease(time)
+        }
+    },
+
+    triggerRelease: function(audioData) {
+        
+        // audio.gainNode.triggerRelease();
     },
 }
 
@@ -333,6 +493,15 @@ var exportAudio = {
     stopRecording: function () {
         this.createDownloadLink();
         this.rec.clear();
+    },
+    recordLoop: function (index) {
+        
+        if(index == 0) {
+        
+            this.startRecording();
+        } else if(index == 15) {
+            this.stopRecording();
+        }
     }
 }
 
@@ -360,260 +529,97 @@ var loop = {
 
     playStep: function(currentStep, time, index) {
         
-
-        var release = adsr.getEnvelope().release + 1;
-        release = 2;
-        
-        
-        // if (active && !loop.hold[groupId] && !recording.isRecording) {
-
-
-            var loose = Math.floor(((release * 64)/2)) + 'n';
+        var release     = adsr.getEnvelope().release + 1;
+        var releaseTone = Math.floor(((release * 64)/2)) + 'n';
             
-            if(currentStep.active) {
-                audio.triggerEnvAttack(currentStep.frequency, loose);
-            }
-            
-
-            // if(!data.group[groupIndex].sustain) {
-            // 	window.setTimeout(function () {
-            // 		audio.triggerRelease(audio.sources[0]);
-            // 	}, time)
-            // }
-
-        // }
+        if(currentStep.active) {
+            audio.triggerEnvAttack(currentStep.frequency, releaseTone);
+        }
+        
         events.showStep(index);
     },
     increaseIndex: function() {
-    	
-        loop.index = tools.increaseOrMax({
-            increasable: loop.index,
+        var self = this;
+        this.index = tools.increaseOrMax({
+            increasable: self.index,
             max: 16,
             min: 0
         });
-
-        
-
     },
+
     getBPM : function (delay) {
         return 60000/delay;
     },
-    start: function(serverDelay) {
-        loop.stopped = false;
-        loop.index = 0;
-        loop.hold = false;
-        
-        Tone.Transport.bpm.value = loop.getBPM(serverDelay);
 
+    start: function(serverDelay) {
+        this.stopped = false;
+        this.index   = 0;
+        this.hold    = false;
         
-    
-        
+        Tone.Transport.bpm.value = this.getBPM(serverDelay);
+
+        var self = this;
         Tone.Transport.scheduleRepeat(function(time) {
-                if(loop.index == 0) {
-                    
-                    exportAudio.startRecording();
-                }
-                if(loop.index == 15) {
-                    
-                    exportAudio.stopRecording();
-                }
-                var length = data.group.steps.length;
+            exportAudio.recordLoop(self.index);
+                var steps = data.group.steps;
+                var loopLength = steps.length;
 
                 if(!recording.isRecording) {
-                    if(length == 4 && loop.index%4 == 0) {
-                        loop.playStep(data.group.steps[loop.index/4], time, loop.index/4);
-                    } else if(length == 8 && loop.index%2 == 0) {
-                        loop.playStep(data.group.steps[loop.index/2], time, loop.index/2);
-                    } else if (length == 16) {
-                        loop.playStep(data.group.steps[loop.index], time, loop.index);
-                    } else {
-                        
-                    }
+                    if(loopLength == 4 && self.index%4 == 0) {
+                        self.playStep(steps[self.index/4], self, self.index/4);
+
+                    } else if(loopLength == 8 && self.index%2 == 0) {
+                        self.playStep(steps[self.index/2], time, self.index/2);
+
+                    } else if (loopLength == 16) {
+                        self.playStep(steps[self.index], time, self.index);
+
+                    } 
+
                 } else {
                     exportAudio.cancelRecording();
                 }
-                
-                
-
-                loop.increaseIndex();
-
-
-                // var currentGroup = data.group[i];
-                // var groupId = currentGroup._id;
-                
-                // if(currentGroup.steps.length == 4) {
-                //     if(loop.index[groupId] % 4 == 0) {
-                //         loop.playStep(currentGroup.steps[loop.index[groupId]/4].frequency , groupId, time, .3)
-                //     } else {
-                        
-                //     }
-                // } else if (currentGroup.steps.length == 16){
-                    
-                //     loop.playStep(currentGroup.steps[loop.index[groupId]].frequency, groupId, time, 1)
-                // }
-                // loop.increaseIndex(groupId, data.group[i]);
-   
-          
-            
-
-          
+                self.increaseIndex();
         }, '16n');
-
-   
-
-    // start the repeat
-    
-     //    serverDelay = serverDelay/1000;
-
-     //    loop.stopped = false;
-     //    var currentGroup = data.group[data.group.length - 1];
-     //    var groupId = currentGroup._id;
-     //    var delay = serverDelay/currentGroup.steps.length;
-     //    var synth = new Tone.Synth().toMaster()
-
-    	// var sequence = new Tone.Loop(function (time) {
-     //        console.log('loopin', time, time/2, delay,  Tone.now().toFixed(3));
-     //            synth.triggerAttackRelease("C1", Tone.now().toFixed(3) , Tone.now().toFixed(3)+delay )
-
-     //        // for(var i in audio.sources[groupId]) {
-     //        //     audio.sources[groupId][i].frequency.value = 440;
-     //        // }
-     //        //         audio.gainNode[groupId].triggerAttackRelease(1, delay/2)
-            
-     //    }, delay);
-
-
-     //    sequence.start(0);
-
-     //    var delay = loop.getLoopOveralDelay(0);
-        
-
-     //    for(var i in data.group) {
-     //        var groupId         = data.group[i]._id;
-     //        loop.index[groupId] = 0;
-     //        loop.hold[groupId]  = false;
-     //    }
-
-    	// var toneLoop = new Tone.Loop(function (time) {
-     //        for(var i in data.group) {
-     //            console.log(time);
-     //            var groupId         = data.group[i]._id;
-                
-     //            var currentStep     = data.group[i].steps[loop.index[groupId]];
-
-     //            loop.playStep(groupId, currentStep.active, currentStep.frequency, time);
-
-     //            loop.increaseIndex(groupId, data.group[i]);
-
-
-     //        }
-     //    }, delay).start(0);
         
         Tone.Transport.start('+0.1')
-        // for (var i in data.group) {
-        // 	var groupId = data.group[i]._id;
-        	
-        // 	loop.index[groupId] = 0;
-        // 	loop.hold[groupId] = false;
-
-        //     var delay = loop.getLoopOveralDelay(i);
-        //     loop.stopped[i] = false;
-
-
-        //     var toneLoop = new Tone.Loop(function(time) {
-
-        //         var currentStep = data.group[i].steps[loop.index[groupId]];
-                
-        //         loop.playStep(groupId, currentStep.active, currentStep.frequency, time);
-        //         loop.increaseIndex(groupId, data.group[i]);
-
-        //     }, delay);
-
-        //     toneLoop.start(0)
-        //     Tone.Transport.start('+0.1');
-        // }
-    },
-
-    getLoopOveralDelay: function(groupId) {
-
-        var length = data.group[groupId].steps.length;
-        length = 16;
-        return length / 2 + 'n';
-
     }
 }
 
 
-
-
 var sources = {
     setup: function() {
-        sources.createSources();
-
+        this.createSources();
         filters.setup();
-        // sources.setDetune();
+        sources.setDetune();
 
     },
     createSources: function() {
-        
-            
-            data.group.sources.forEach(function(source, index) {
+        var self = this;
 
-                if (source.type == 'noise') {
-                    sources.createNoise(data.group._id, index);
-                } else {
-                    sources.createSource(source.type, data.group._id, index);
-                }
-            });
-            sources.connectEnvelope(data.group._id);
-        
+        data.group.sources.forEach(function(source, index) {
 
-        // tools.dataFromGroup(0, 'sources', function (groupData) {
-
-        // 	for(var i in groupData) {
-
-        // 		if(groupData[i].type == 'noise') {
-        // 			sources.create['noise'](i);
-        // 		} else {
-
-        // 			sources.create[data.group.synth](i);
-        // 		}
-        // 	}
-        // })console.log();
-        // for(var i in data.group.sources) {
-        // 	if(data.group.sources[i].active) {
-        // 		if(data.group.sources[i].type == 'noise') {
-        // 			sources.create['noise'](i);
-        // 		} else {
-        // 			sources.create[data.group.synth](i);
-        // 		}
-
-        // 	}
-
-        // };
+            if (source.type == 'noise') {
+                self.createNoise(data.group._id, index);
+            } else {
+                self.createSource(source.type, data.group._id, index);
+            }
+        });
+        sources.connectEnvelope(data.group._id);
     },
     createNoise: function (groupId, index) {
-        
-        var noise = new Tone.Noise("pink").start();
-        noise.id = index;
-        if (!audio.sources) {
-            audio.sources = [];
-        }
+        var noise     = new Tone.Noise("pink").start();
+        noise.id      = index;
+        audio.sources = !audio.sources ? [] :audio.sources;
         audio.sources.push(noise);
-
 
     },
     createSource: function (type, groupId, index) {
-        
-        var oscillator = new Tone.Oscillator();
+        var oscillator  = new Tone.Oscillator();
         oscillator.type = type;
-        oscillator.id = index;
-        if (!audio.sources) {
-            audio.sources = [];
-        }
+        oscillator.id   = index;
+        audio.sources   = !audio.sources ? [] : audio.sources;
         audio.sources.push(oscillator);
-
-        
 
     },
     connectEnvelope: function (groupId) {
@@ -623,26 +629,11 @@ var sources = {
             audio.sources[i].connect(audio.gainNode)
             audio.sources[i].start();
         }
-        
-        
-        audio.gainNode.toMaster();
-        
-        
-
-
-
-        
+        audio.gainNode.toMaster();    
     },
-    // save: function(synth, id, groupId) {
-        //     synth.id = id;
-        //     if (!audio.sources[groupId]) {
-        //         audio.sources[groupId] = [];
-
-        //     }
-        //     audio.sources[groupId].push(synth);
-
-        // },
+   
     update: {
+        // nog niet
         wavetype: function(received) {
 
             if (received.value == 'noise') {
@@ -716,92 +707,6 @@ var sources = {
             }
         }
     },
-
-    // create: {
-        // type: function (type, groupId, id) {
-        //     console.log(groupId, id);
-        //     console.log('demo?');
-        //     var oscillator = new Tone.Oscillator().start();
-        //     oscillator.type = type;
-        //     var ampEnv = new Tone.AmplitudeEnvelope({
-        //     "attack": 0.1,
-        //     "decay": 0.2,
-        //     "sustain": 1.0,
-        //     "release": 0.8
-        //     }).toMaster();
-        //     oscillator.connect(ampEnv)
-        //     // //create an oscillator and connect it
-        //     // var osc = new Tone.Oscillator().connect(ampEnv).start();
-        //     // //trigger the envelopes attack and release "8t" apart
-        //     ampEnv.triggerAttackRelease("8t");
-        // }
-        // save: function(synth, id, groupId) {
-        //     synth.id = id;
-        //     if (!audio.sources[groupId]) {
-        //         audio.sources[groupId] = [];
-
-        //     }
-        //     audio.sources[groupId].push(synth);
-
-        // },
-        // synth: function(groupId, id) {
-            
-        //     var synth = new Tone.Synth(sources.create.parseData(id, groupId))
-        //     sources.create.save(synth, id, groupId);
-
-        // },
-        // noise: function(groupId, id) {
-        //     var synth = new Tone.NoiseSynth({
-        //         envelope: sources.create.getEnvelope(),
-        //     });
-        //     sources.create.save(synth, id, groupId);
-        // },
-        // amSynth: function(groupId, id) {
-        //     var synth = new Tone.AMSynth(sources.create.parseData(id, groupId))
-        //     sources.create.save(synth, id, groupId);
-        // },
-
-        // fmSynth: function(groupId, id) {
-        //     var synth = new Tone.Synth(sources.create.parseData(id, groupId))
-        //     sources.create.save(synth, id, groupId);
-        // },
-
-        // drum: function(groupId, id) {
-
-        //     var synth = new Tone.MembraneSynth();
-        //     data.group.sustain = false;
-        //     adsr.setSustain(false, tools.setGroup());
-
-        //     sources.create.save(synth, id, groupId);
-        // },
-        // getEnvelope: function() {
-        //     return {
-        //         attack: tools.pathObj(data.group, 'adsr.attack.value'),
-        //         decay: tools.pathObj(data.group, 'adsr.decay.value'),
-        //         sustain: .5,
-        //         release: tools.pathObj(data.group, 'adsr.release.value'),
-        //     }
-        // },
-        // parseData: function(id, groupId) {
-            
-        //     var sourceData = tools.dataFromGroup(groupId, function(group) {
-                
-        //         var synthData = {
-        //             oscillator: {
-        //                 type: group.sources[id].type
-        //             },
-        //             envelope: sources.create.getEnvelope()
-        //         }
-
-        //         return synthData
-
-        //     })
-
-
-
-
-        // }
-    // },
     remove: function(id) {
         audio.triggerRelease(id)
         for (var i in audio.sources) {
@@ -811,17 +716,16 @@ var sources = {
         }
     },
     setDetune: function() {
+        console.log('moet nog');
         // use the data.group.set method as used in sequencer.holdtone
         // for(var i in audio.sources) {
         // 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
         // };
 
-    },
-    setSingleDetune: function(index, value) {
-
     }
 }
 
+// moet nog
 var filters = {
     setup: function() {
         // data.group.forEach(function(group) {
@@ -947,91 +851,7 @@ var filters = {
 
 }
 
-var recording = {
-	buttons: null,
-	isRecording: false,
-	melody:[],
-	startButton: null,
-	setup: function () {
-		recording.startButton = document.querySelector('.fn-seq-rec');
-		recording.buttons = document.querySelectorAll('.btn-sequencer');
 
-		recording.startButton.addEventListener('click', function (e) {
-			recording.isRecording = !recording.isRecording;
-
-			if(recording.isRecording) {
-				
-				e.currentTarget.classList.add('active');
-				body.setAttribute('recording', 'true');
-				
-				tips.textboxContent('rec: 0/8');
-				audio.triggerRelease();
-				
-				recording.buttons.forEach(function(button) {
-					button.addEventListener('click', recording.event)
-				});
-			} else {
-				recording.finishRecording(e);
-			}
-		})
-	},
-	event: function (e) {
-		
-		var index = parseInt(e.currentTarget.getAttribute('sequence-index'));
-		
-		recording.melody.push(data.group.scale[index]);
-		audio.triggerAttack(data.group.scale[index], '8n');
-		
-
-		tips.textboxContent('rec: ' + recording.melody.length + '/8');
-
-		if(recording.melody.length == 8) {
-			recording.finishRecording(e);
-		}
-	},
-	finishRecording: function (e) {
-		recording.startButton.classList.remove('active');
-		body.removeAttribute('recording', 'true');
-		recording.isRecording = false;
-
-		if(recording.melody.length == 0) {
-			console.log('didnt record anything');
-		} else {
-			recording.updateMelody(recording.melody);
-			
-			recording.melody = [];
-		}
-		tips.textboxContent(false);
-		
-		recording.buttons.forEach(function(button) {
-			button.removeEventListener('click', recording.event)
-		});
-	},
-	updateMelody: function (melody) {
-		var newMelody = recording.fillMelody(melody)
-		for(var i in newMelody) {
-			data.group.steps[i].active = true;
-			data.group.steps[i].frequency = newMelody[i];
-		}
-		sequencer.updateActive();
-
-		sendSocket.send('updateAllSteps', data.group._id, {
-			steps: data.group.steps})
-	},
-	fillMelody: function (melody) {
-		var actualMeldoy = [];
-		var n = i = 0;
-		while(i < 8) {
-			actualMeldoy.push(melody[n])
-			i++;n++;
-			if(n == melody.length) {
-				n = 0;
-			}
-		}
-		return actualMeldoy
-	}
-
-}
 
 
 
@@ -1225,7 +1045,7 @@ var sequencer = {
 			
 			events.updateStepLocation(item)
 			var hammertime = new Hammer(item, {})
-			sequencer.changeFrequency(hammertime);
+			
 			sequencer.toggleActive(hammertime)
 		})
 		recording.setup();
@@ -1251,32 +1071,32 @@ var sequencer = {
 		return perc;
 	},
 	
-	changeFrequency: function (hammertime) {
-		var item = null;
-		var closeFreq = function () {
-			deviceRotation.stopListen(function (value) {
-				sequencer.updateFrequency(item, value)
-			});
+	// changeFrequency: function (hammertime) {
+	// 	var item = null;
+	// 	var closeFreq = function () {
+	// 		deviceRotation.stopListen(function (value) {
+	// 			sequencer.updateFrequency(item, value)
+	// 		});
 
-			events.hideRotate(item);
-		}
-		var openFreq = function (e) {
-			e.preventDefault();
-			item = e.target;
-			var percentage = sequencer.calculatePercentage(item);
-			deviceRotation.listen(item, 'frequency', percentage);
+	// 		events.hideRotate(item);
+	// 	}
+	// 	var openFreq = function (e) {
+	// 		e.preventDefault();
+	// 		item = e.target;
+	// 		var percentage = sequencer.calculatePercentage(item);
+	// 		deviceRotation.listen(item, 'frequency', percentage);
 			
-			events.showRotate(item);
-			loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
+	// 		events.showRotate(item);
+	// 		loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
 
-			e.target.addEventListener('mouseup', closeFreq)
-			e.target.addEventListener('touchend', closeFreq)
-			e.target.addEventListener('touchcancel', closeFreq)
-		}
-		hammertime.on('press', function (e) {
-			openFreq(e);
-		})
-	},
+	// 		e.target.addEventListener('mouseup', closeFreq)
+	// 		e.target.addEventListener('touchend', closeFreq)
+	// 		e.target.addEventListener('touchcancel', closeFreq)
+	// 	}
+	// 	hammertime.on('press', function (e) {
+	// 		openFreq(e);
+	// 	})
+	// },
 	toggleActive: function (hammertime) {
 		hammertime.on('tap', function (e) {
 			if(!recording.isRecording) {
@@ -1322,236 +1142,7 @@ var sequencer = {
 	},
 	
 }
-var adsr = {
 
-	getEnvelope: function (groupId) {
-	  	
-	  		return   {
-	            attack: tools.pathObj(data.group, 'adsr.attack.value'),
-	            decay: tools.pathObj(data.group, 'adsr.decay.value'),
-	            sustain: .5,
-	            release: tools.pathObj(data.group, 'adsr.release.value'),
-	        }
-
-	  	
-        
-	},
-	update: function (type, value) {
-		data.group.adsr[type] = value;
-		var string = '[envelope][' + type + ']';
-		for(var i in audio.sources) {
-			audio.sources[i].envelope[type] = value;
-		}
-	},
-	saveValue: function (percentage, item) {
-		// var value = data.group.adsr[]
-		console.log('saving this new value ', percentage, item);
-
-	},
-	init: function () {
-		// adsr.drawSVG();
-		adsr.changeEvent();
-		var svgLine = document.querySelector('svg .poly');
-		var width   = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width)/8;
-		var inputs  = document.querySelectorAll('.fn-adsr-range-item');
-		
-		var points = []
-		for(var i = 0; i < inputs.length ;i++) {
-			var point = adsr.getPoints(i);
-			points.push(point)
-
-		    inputs[i].addEventListener('input', function (e) {
-		    	var id = e.currentTarget.id;
-				var idNumber = parseInt(e.currentTarget.id.split('adsr-')[1]);
-				var type     = e.currentTarget.getAttribute('modulate-type');
-				var value    = e.currentTarget.value;
-
-		    	adsr.showActive(id);
-		    	adsr.svgUpdate(svgLine, points, idNumber)
-		    	adsr.update(type, value);
-		    	
-		    })
-		    inputs[i].addEventListener('change', function (e) {
-		    	var type     = e.currentTarget.getAttribute('modulate-type');
-				var value    = e.currentTarget.value;
-
-		    	sendSocket.send('updateADSR', data.group._id, {
-		    		type: type, 
-		    		value: value
-		    	})
-		    })
-		}
-		adsr.drawSVGInit(svgLine, points);
-
-	},
-	showActive: function (id) {
-		var labels = document.querySelectorAll('.fn-label-adsr');
-		
-		for(var i = 0; i < labels.length;i++) {
-			if(labels[i].getAttribute('for') == id ) {
-				labels[i].classList.add('active');
-			} else {
-				labels[i].classList.remove('active');
-			}
-		}
-
-	},
-	getPoints: function (index) {
-		var inputs = document.querySelectorAll('.fn-adsr-range-item');
-		var pos    = inputs[index].getBoundingClientRect();
-		
-		var value  = document.querySelectorAll('.fn-adsr-range-item')[index].value;
-		var max    = inputs[index].getAttribute('max');
-		value      = max - value;
-		var perc   = (value*100)/max;
-		var left   = ((100/inputs.length) * index) + ((100/inputs.length)/2);
-
-	    
-	    var points = {
-	    	x: left,
-	    	y: perc
-	    }
-	    return points
-	},
-	drawSVGInit: function (line, points) {
-		var width     = (document.querySelector('.input-range-vert-container').getBoundingClientRect().width);
-		var height    = (document.querySelector('.input-range-vert-container').getBoundingClientRect().height);
-		var attribute =  '0 100';
-		
-		for(var i in points) {
-			attribute += ',' + points[i].x + ' ' + points[i].y
-		}
-		attribute +=  ',100 100';
-		line.setAttribute('points', attribute);
-	},
-	svgUpdate: function (line, points, index) {
-		var attribute        = line.getAttribute('points').split(',');
-		var point            = adsr.getPoints(index);
-		var currentAttribute = attribute[index + 1].split(' ');
-		attribute[index + 1] = currentAttribute[0] + " " + point.y;
-		line.setAttribute('points', attribute)
-	},
-	changeEvent: function () {
-		var sustainButton = document.querySelector('.fn-sustain');
-		
-		sustainButton.addEventListener('change', function (e) {
-			adsr.setSustain(e.currentTarget.checked, tools.setGroup());
-			sendSocket.send('updateSustain',tools.setGroup(), {sustain: e.currentTarget.checked})
-
-		})
-	},
-	setSustain : function (value , groupId ) {
-		
-		data.group.sustain = value;
-	}
-	
-	
-}
-
-
-var pp = {
-	touchBlok: null,
-	setup:function () {
-		
-		pp.touchBlok  = document.querySelector('.fn-pp');
-		var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-		var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-	
-
-		pp.touchBlok.addEventListener('touchmove', pp.touchMove)
-		
-		pp.touchBlok.addEventListener('touchstart',pp.touchMove)
-		pp.touchBlok.addEventListener('touchend',pp.touchEnd)
-		pp.touchBlok.addEventListener('touchcancel', pp.touchEnd)
-		
-		// document.body.addEventListener('touchmove',function(evt){
-		// 	evt.preventDefault();
-		// },false);
-	},
-	touchPosition: function (touches) {
-		var touch = touches[0] || toches[0];
-		
-		var values = {};
-		var elm = pp.touchBlok.getBoundingClientRect();
-		var x = touch.pageX - elm.left;
-		var y = touch.clientY - elm.top;
-
-		if(x < elm.width && x > 0 && y < elm.height && y > 0) {
-			
-		} else {
-			
-		}
-		return {
-			xpercentage : (x * 100)/elm.width,
-			ypercentage : (y * 100)/elm.height,
-			x: x - elm.left,
-			y: y- elm.top
-		}
-
-	},
-	touchValues: function (touches) {
-		var position = pp.touchPosition(touches);
-		var max = data.group.steps[0].max;
-		
-		var positionData = {
-			freq : (position.ypercentage * max)/100,
-			volume : (position.xpercentage)/20,
-		}
-		data.positionData = 5 - positionData.volume;
-
-		return positionData
-	},
-	
-	createShadow: function (touches) {
-		var position = pp.touchPosition(touches);
-		var element  = document.createElement('span');
-
-		element.classList.add('shadow');
-		element.style.position = 'absolute';
-		
-		element.style.top      = position.ypercentage + '%';
-		element.style.left     = position.xpercentage + '%';
-
-		pp.touchBlok.appendChild(element);
-	
-		setTimeout(function() {
-			element.style.opacity=0;
-			 setTimeout(function () {
-			 	element.parentNode.removeChild(element);
-			 }, 500)
-		}, 100)
-	},
-
-	touchMove: function (e) {
-		pp.createShadow(e.touches);
-		var position = pp.touchValues(e.touches);
-		audio.ppFreq = position.freq;
-		for(var i in audio.sources) {
-			sources.update.volume({id:audio.sources[i].id, value:position.volume});
-
-		}
-		sendSocket.send('ppValues', data.group._id, {
-			freq: position.freq,
-			volume: position.volume
-		})
-	},
-	touchEnd: function (e) {
-		
-		var oldSource = data.group.sources[0].type;
-		
-		audio.triggerRelease();
-		loop.hold = false;
-		audio.ppFreq = false;
-		for(var i in audio.sources) {
-			sources.update.volume({id:audio.sources[i].id, value:data.group.sources[audio.sources[i].id].volume });
-
-		}
-		sendSocket.send('ppValues', data.group._id, {
-			freq: false,
-			volume: data.group.sources[0].volume
-		})
-	}
-}
 
 // var modulate = {
 	
@@ -1587,9 +1178,11 @@ var pp = {
 var changePage = {
 	showPage : function (page) {
 		var allPages = document.querySelectorAll('.fn-changepage-page');
+		
+		if(!body.getAttribute('current-page' == page)) {
 		body.setAttribute('current-page', page);
-
-		for(var i = 0; i < allPages.length ; i++) {
+		console.log(page);
+			for(var i = 0; i < allPages.length ; i++) {
 			if(allPages[i].getAttribute('current-page') == page) {
 				allPages[i].setAttribute('active', true);
 				var pageIndex = parseInt(allPages[i].getAttribute('order'));
@@ -1601,6 +1194,8 @@ var changePage = {
 				allPages[i].setAttribute('active', false);
 			}
 		}
+		}
+		
 
 	},
 	setOrigin: function (pages, activeIndex) {
@@ -1620,7 +1215,13 @@ var changePage = {
 		changePage.setOrigin(document.querySelectorAll('.fn-changepage-page'), 0)
 		for(var i = 0; i < buttons.length;i++) {
 			buttons[i].addEventListener('click', function(e) {
-				changePage.showPage(e.currentTarget.getAttribute('target-page'))
+				
+				if(e.currentTarget.getAttribute('back-page') && body.getAttribute('current-page') == e.currentTarget.getAttribute('target-page')) {
+					changePage.showPage(e.currentTarget.getAttribute('back-page'))
+
+				} else {
+					changePage.showPage(e.currentTarget.getAttribute('target-page'))
+				}
 			});
 		}
 	},
@@ -1683,24 +1284,251 @@ var changePage = {
 	
 }
 
-// var demo = {
-// 	init:function () {
-// 		console.log('demo?');
-// 		var ampEnv = new Tone.AmplitudeEnvelope({
-// 		"attack": 0.1,
-// 		"decay": 0.2,
-// 		"sustain": 1.0,
-// 		"release": 0.8
-// 		}).toMaster();
-// 		//create an oscillator and connect it
-// 		var osc = new Tone.Oscillator().connect(ampEnv).start();
-// 		//trigger the envelopes attack and release "8t" apart
-// 		ampEnv.triggerAttackRelease("8t");
+var demo = {
+	init:function () {
+		console.log('demo?');
+		// created by Benimation
+//		
+		var r = 0;
+		var rdir = true;
+
+		var screen = document.querySelector('.screen');
+	
 
 
+		window.addEventListener("deviceorientation", handleOrientation, true);
+		
+		function handleOrientation(event) {
+			var absolute = event.absolute;
+			if (event.alpha > 180 && event.alpha < 360) {
+				var alpha = Math.round(Math.abs(event.alpha/360*255));
+				
+			} else {
+				var alpha = Math.round(Math.abs((360-event.alpha)/360*255));
+				
+			}
+			if (Math.abs(event.beta) > 90 && Math.abs(event.beta) < 180) {
+				var beta = Math.round((Math.abs(event.beta/90*255)-225));
+				
+			} else {
+				var beta = Math.round(((180-Math.abs(event.beta))/90*255)-225);
+				
+			}
+			if (Math.abs(event.gamma) > 90 && Math.abs(event.gamma) < 180) {
+				var gamma = Math.round(Math.abs(event.gamma/90*255));
+				
+			} else {
+				var gamma = Math.round(((180-Math.abs(event.gamma))/90*255)-255);
+				
+			}
+			
+			newColor = "rgba(" + beta + "," + alpha + "," + gamma + ",1.00)";
+			
+			console.log(alpha, beta, gamma);
+			
+			// $(".screen").css("background-color", newColor);
+			
+
+			screen.style.backgroundColor = newColor;
+			
+			if (event.alpha > 160 && event.alpha < 180) {
+				console.log("north");
+				// $(".screen").trigger("click");
+				screen.click()
+				
+			}
+			
+		}
+
+
+// To the extent possible under law, the person who associated CC0 with this work has waived all copyright and related or neighboring rights to this work.
+
+// $(document).ready(function(e) {
+// 	var r = 0;
+// 	var rdir = true;
+// 	$(".screen").mousemove(function(event) {
+		
+		
+// 		if (r < 256) {
+// 			if (rdir == true) {
+// 				r++
+// 			} else {
+// 				r--
+// 			}
+			
+// 		} else {
+// 			rdir = false;
+// 			r--;
+			
+// 		}
+		
+// 		if (r < 1) {
+// 			rdir =  true;
+			
+// 		}
+		
+// 		rcolor = r;
+		
+// 		newColor = "rgba(" + rcolor + "," + gcolor + "," + bcolor + ",1.00)";
+		
+// 		$(".screen").css("background-color", newColor);
+		
+// 	});
+	
+	
+	
+// 	window.addEventListener("deviceorientation", handleOrientation, true);
+	
+// 	function handleOrientation(event) {
+// 		var absolute = event.absolute;
+// 		if (event.alpha > 180 && event.alpha < 360) {
+// 			var alpha = Math.round(Math.abs(event.alpha/360*255));
+			
+// 		} else {
+// 			var alpha = Math.round(Math.abs((360-event.alpha)/360*255));
+			
+// 		}
+// 		if (Math.abs(event.beta) > 90 && Math.abs(event.beta) < 180) {
+// 			var beta = Math.round((Math.abs(event.beta/90*255)-225));
+			
+// 		} else {
+// 			var beta = Math.round(((180-Math.abs(event.beta))/90*255)-225);
+			
+// 		}
+// 		if (Math.abs(event.gamma) > 90 && Math.abs(event.gamma) < 180) {
+// 			var gamma = Math.round(Math.abs(event.gamma/90*255));
+			
+// 		} else {
+// 			var gamma = Math.round(((180-Math.abs(event.gamma))/90*255)-255);
+			
+// 		}
+		
+// 		newColor = "rgba(" + beta + "," + alpha + "," + gamma + ",1.00)";
+		
+// 		console.log(event.alpha);
+		
+// 		$(".screen").css("background-color", newColor);
+		
+// 		if (event.alpha > 160 && event.alpha < 180) {
+// 			console.log("north");
+// 			$(".screen").trigger("click");
+			
+// 		}
+		
 // 	}
-// }
-// demo.init();
+	
+// 	// $(".screen").vibrate("short");
+    
+// });
+
+	}
+}
+demo.init();
+
+
+var handInteraction = {
+	top:400,
+	bottom:0,
+	activateButtons: document.querySelectorAll('.fn-control-hand'),
+	init: function () {
+		
+		this.support();
+
+		
+		var self = this;
+
+		for(var i = 0; i < this.activateButtons.length;i++) {
+			this.activateButtons[i].addEventListener('touchstart', this, true);
+
+		}
+
+
+		
+		
+	},
+	
+	getButtons: function () {
+
+	},
+	calibrate: function () {
+
+	},
+
+	listen: function (e){
+		console.log('heeeeee');
+		console.log(e);
+		e.currentTarget.classList.add('active');
+		e.target.addEventListener('mouseup', this, true);
+		e.target.addEventListener('touchend', this, true);
+		e.target.addEventListener('touchcancel', this, true);
+		window.addEventListener('devicelight', this, true);
+		 // function (e) {
+			
+			// this.parseLight.
+			// var value = tools.getPercentage(e.value, handInteraction.top);
+			// console.log('perc ',value);
+			// var freq = (value * audio.highest) / 100;
+			// console.log(freq, audio.highest);
+			// if(freq > audio.highest) {
+				// freq = audio.highest;
+			// }audio.setFrequencies(this.frequency)
+			// audio.setFrequencies(freq);
+			// audio.overrideFreq;
+		// })
+
+	},
+	setHighest : function (lux) {
+		if(lux > this.top) {
+			this.top = lux;
+		}
+	},
+	parseLight: function (lux) {
+		console.log('im receiveing a value ', lux);
+		this.setHighest(lux);
+		this.displayValue('LUX: '+ lux )
+
+		var luxPercentage = tools.getPercentage(lux, handInteraction.top);
+		var frequency = (luxPercentage * audio.highest) / 100;
+		if(frequency > audio.highest) {
+			frequency = audio.highest
+		};
+		audio.overrideFreq = frequency;
+		audio.slideFrequency(frequency)
+
+	},
+	support: function () {
+		var self = this;
+		if ('ondevicelight' in window) {
+			this.support = true;
+			} else {
+				this.support = false;
+			}
+	},
+	stopListen: function (e) {
+		console.log('stop listeingin');
+		audio.overrideFreq = false;
+		e.currentTarget.classList.remove('active');
+		window.removeEventListener('devicelight', this);
+	},
+	displayValue: function (content) {
+		var textbox = document.querySelector('.fn-lux-display');
+		textbox.innerHTML = content;
+	},
+	event: function () {
+
+	},
+	handleEvent: function (event) {
+		if(event.type == 'touchend' || event.type == 'touchcancel' || event.type == 'mouseup') {
+			this.stopListen(event);
+		} 
+		if(event.type == 'touchstart') {
+			this.listen(event);
+		} 
+		if(event.type == 'devicelight') {
+			this.parseLight(event.value);
+		} 
+	},
+}
 
 
 var inputEvent = {
@@ -1718,7 +1546,7 @@ var inputEvent = {
 		if(name == 'volume') {
 			value = (value/2)*100;
 		}
-		console.log(name, value);
+		
 		for(var i = 0; i < sliderBg.length;i++) {
 			if(sliderBg[i].getAttribute('name') == name) {
 				sliderBg[i].style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
@@ -1747,147 +1575,147 @@ var inputEvent = {
 	}
 }
 
-var deviceRotation = {
-		firstTime   : null,
-		startCompass: null,
-		lastCompass : null,
-		timesRotated: 0,
-		newValue    : null,
-		type        :null,
-		currentItem : null,
-		support     : false,
-		startPerc   : null,
-		start: function (item) {
-			if(window.DeviceOrientationEvent) {
-				console.log('support');
-				window.addEventListener('deviceorientation', deviceRotation.event);
-			} else {
-				console.log('no support');
-			}
-		},
-		stop:function (callback) {
-			window.removeEventListener('deviceorientation', deviceRotation.event);
+// var deviceRotation = {
+// 		firstTime   : null,
+// 		startCompass: null,
+// 		lastCompass : null,
+// 		timesRotated: 0,
+// 		newValue    : null,
+// 		type        :null,
+// 		currentItem : null,
+// 		support     : false,
+// 		startPerc   : null,
+// 		start: function (item) {
+// 			if(window.DeviceOrientationEvent) {
+// 				console.log('support');
+// 				window.addEventListener('deviceorientation', deviceRotation.event);
+// 			} else {
+// 				console.log('no support');
+// 			}
+// 		},
+// 		stop:function (callback) {
+// 			window.removeEventListener('deviceorientation', deviceRotation.event);
 			
-			callback(deviceRotation.newValue, deviceRotation.currentItem)
+// 			callback(deviceRotation.newValue, deviceRotation.currentItem)
 
-			deviceRotation.firstTime    = null;
-			deviceRotation.timesRotated = 0;
-			deviceRotation.lastCompass  = null;
+// 			deviceRotation.firstTime    = null;
+// 			deviceRotation.timesRotated = 0;
+// 			deviceRotation.lastCompass  = null;
 			
-		},
-		listen:function (item, type, perc) {
+// 		},
+// 		listen:function (item, type, perc) {
 			
-			deviceRotation.currentItem = item;
-			deviceRotation.startPerc   = perc;
-			deviceRotation.type        = type;
-			if(!window.DeviceOrientationEvent) {
-				deviceRotation.fallback(item, type, perc);
-			} 
+// 			deviceRotation.currentItem = item;
+// 			deviceRotation.startPerc   = perc;
+// 			deviceRotation.type        = type;
+// 			if(!window.DeviceOrientationEvent) {
+// 				deviceRotation.fallback(item, type, perc);
+// 			} 
 			
-		},
-		fallback: function (item, type, perc) {
+// 		},
+// 		fallback: function (item, type, perc) {
 			
-			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
+// 			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
 				
-				slider.parentNode.classList.toggle('active', parseInt(slider.id) == parseInt(item.getAttribute('sequence-index')))
-				slider.value == perc;
-				slider.addEventListener('input', function (e) {
-					sequencer.receiveNewValue(e.currentTarget.value, deviceRotation.currentItem);
-				})
-			})
-		},	
-		stopFallback: function (item) {
-			console.log(item);
-			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
+// 				slider.parentNode.classList.toggle('active', parseInt(slider.id) == parseInt(item.getAttribute('sequence-index')))
+// 				slider.value == perc;
+// 				slider.addEventListener('input', function (e) {
+// 					sequencer.receiveNewValue(e.currentTarget.value, deviceRotation.currentItem);
+// 				})
+// 			})
+// 		},	
+// 		stopFallback: function (item) {
+// 			console.log(item);
+// 			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
 				
-				slider.parentNode.classList.remove('active');
+// 				slider.parentNode.classList.remove('active');
 				
-			})
-		},	
-		stopListen:function (callback) {
-			console.log('stop');
+// 			})
+// 		},	
+// 		stopListen:function (callback) {
+// 			console.log('stop');
 			
-			if(!window.DeviceOrientationEvent) {
-				deviceRotation.stopFallback(deviceRotation.currentItem);
-			}
-			callback(deviceRotation.newValue, deviceRotation.currentItem)
-			deviceRotation.startCompass = null;
-			deviceRotation.lastCompass  = null;
-			deviceRotation.currentItem  = null;
-			deviceRotation.timesRotated = 0;
-			deviceRotation.type         = null;
-			deviceRotation.newValue     = null;
-			deviceRotation.currentItem  = null;
-			deviceRotation.startPerc    = null;
+// 			if(!window.DeviceOrientationEvent) {
+// 				deviceRotation.stopFallback(deviceRotation.currentItem);
+// 			}
+// 			callback(deviceRotation.newValue, deviceRotation.currentItem)
+// 			deviceRotation.startCompass = null;
+// 			deviceRotation.lastCompass  = null;
+// 			deviceRotation.currentItem  = null;
+// 			deviceRotation.timesRotated = 0;
+// 			deviceRotation.type         = null;
+// 			deviceRotation.newValue     = null;
+// 			deviceRotation.currentItem  = null;
+// 			deviceRotation.startPerc    = null;
 
 			
-		},
-		calibrated: function (timestamp) {
-			if(!deviceRotation.firstTime) {
-				deviceRotation.firstTime = timestamp;
-				return false;
-			} else {
-				if((timestamp - deviceRotation.firstTime) > 500) {
-					return true;
-				} else {
-					return false;
-				}
-			}
-		},
-		checkAroundCompass: function(currentCompass) {
-			if(deviceRotation.lastCompass) {
-				if(Math.abs(currentCompass - deviceRotation.lastCompass) > 100 ?  true : false) {
-					if(deviceRotation.lastCompass > currentCompass) {
-							deviceRotation.timesRotated++;
-						} else {
-							deviceRotation.timesRotated--;
-						}
-				}
-			}
-		},
-		sendValues: function (value) {
-			if(deviceRotation.type == 'frequency') {
-				sequencer.receiveNewValue(value, deviceRotation.currentItem);
-			} else if (deviceRotation.type == 'adsr') {
-				adsr.receiveNewValue(value, deviceRotation.currentItem);
-			}
-		},
-		getValue: function (currentCompass) {
-			var value = (deviceRotation.timesRotated * 360) + (currentCompass - deviceRotation.startCompass);
+// 		},
+// 		calibrated: function (timestamp) {
+// 			if(!deviceRotation.firstTime) {
+// 				deviceRotation.firstTime = timestamp;
+// 				return false;
+// 			} else {
+// 				if((timestamp - deviceRotation.firstTime) > 500) {
+// 					return true;
+// 				} else {
+// 					return false;
+// 				}
+// 			}
+// 		},
+// 		checkAroundCompass: function(currentCompass) {
+// 			if(deviceRotation.lastCompass) {
+// 				if(Math.abs(currentCompass - deviceRotation.lastCompass) > 100 ?  true : false) {
+// 					if(deviceRotation.lastCompass > currentCompass) {
+// 							deviceRotation.timesRotated++;
+// 						} else {
+// 							deviceRotation.timesRotated--;
+// 						}
+// 				}
+// 			}
+// 		},
+// 		sendValues: function (value) {
+// 			if(deviceRotation.type == 'frequency') {
+// 				sequencer.receiveNewValue(value, deviceRotation.currentItem);
+// 			} else if (deviceRotation.type == 'adsr') {
+// 				adsr.receiveNewValue(value, deviceRotation.currentItem);
+// 			}
+// 		},
+// 		getValue: function (currentCompass) {
+// 			var value = (deviceRotation.timesRotated * 360) + (currentCompass - deviceRotation.startCompass);
 			
-			if(value > 50) {
-				value = 50;
-			} else if (value < -50) {
-				value = -50;
-			}
-			value = value + 50;
-			var difference = 50 - deviceRotation.startPerc ;
-			value = value - difference;
-			return value;
-		},
-		event: function (e) {
-			if(deviceRotation.calibrated(e.timeStamp) && deviceRotation.currentItem) {
-				if(!deviceRotation.startCompass) {
-					deviceRotation.startCompass = e.webkitCompassHeading;
-				} else {
-					deviceRotation.checkAroundCompass(e.webkitCompassHeading);
-					var value =deviceRotation.newValue = deviceRotation.getValue(e.webkitCompassHeading);
+// 			if(value > 50) {
+// 				value = 50;
+// 			} else if (value < -50) {
+// 				value = -50;
+// 			}
+// 			value = value + 50;
+// 			var difference = 50 - deviceRotation.startPerc ;
+// 			value = value - difference;
+// 			return value;
+// 		},
+// 		event: function (e) {
+// 			if(deviceRotation.calibrated(e.timeStamp) && deviceRotation.currentItem) {
+// 				if(!deviceRotation.startCompass) {
+// 					deviceRotation.startCompass = e.webkitCompassHeading;
+// 				} else {
+// 					deviceRotation.checkAroundCompass(e.webkitCompassHeading);
+// 					var value =deviceRotation.newValue = deviceRotation.getValue(e.webkitCompassHeading);
 					
 
-					deviceRotation.sendValues(value);
-					deviceRotation.lastCompass = e.webkitCompassHeading;
-				}
+// 					deviceRotation.sendValues(value);
+// 					deviceRotation.lastCompass = e.webkitCompassHeading;
+// 				}
 
 
-			}
+// 			}
 
 
 
-		},
+// 		},
 		
 		
 		
-	}
+// 	}
 
 var waveform = new Tone.Analyser("waveform", 1024);
 // var analyzer = new Tone.Analyser("fft", 64);
@@ -1918,8 +1746,7 @@ var masterSequence = {
 		return found;
 	},
 	parseBlobAudio: function (src) {
-		console.log(src);
-		console.log('heyo');
+		
 		var blob = new Blob([src.blob], { 'type' : 'audio/ogg; codecs=opus' });
 		
 	    var audio = document.createElement('audio');
@@ -1932,7 +1759,7 @@ var masterSequence = {
 	 var currentBlob = this.findPart(src.groupId);
 	 var sekf = this;
 	 if(currentBlob) {
-	 	console.log('starting');
+	 
 		currentBlob.part.stop();
 		
 	    currentBlob.part = new Tone.Player(window.URL.createObjectURL(blob)).connect(currentBlob.gainNode);
@@ -1940,7 +1767,7 @@ var masterSequence = {
 
 			
 	} else {
-		console.log('deze');
+		
 		var analyzer = new Tone.Analyser("fft", 64);
 		analyzer.groupId = src.groupId;
 		audioVisual.analyzers.push(analyzer);
@@ -1949,7 +1776,7 @@ var masterSequence = {
 		var part = new Tone.Player(window.URL.createObjectURL(blob)).connect(gainNode);
 	    part.autostart = true;
 	    part.retrigger = true;
-	    console.log(this);
+	    
 	    this.parts.push({
 	    	part: part,
 	    	groupId: src.groupId,
@@ -2046,7 +1873,7 @@ var audioVisual = {
 		this.dataArray    = new Uint8Array(this.bufferLength);
 	},
 	addItem: function () {
-		console.log(this.analyzers.length);
+		
 		audioVisual.setElements(this.analyzers.length - 1);
 	},
 	updateAnimation : function () {
@@ -2071,7 +1898,7 @@ var audioVisual = {
 
 			var element = document.createElement('span');
 			element.classList.add('viz-seg');
-			console.log(index);
+			
 			element.classList.add('color-' + masterSequence.parts[index].color)
 			element.style.left = (self.bufferLength - i) * (50/self.bufferLength) + '%';
 			element.style.width  = 50/self.bufferLength + '%';
@@ -2204,6 +2031,216 @@ var postData = {
 	    return xhr;
 	}
 }
+
+
+var pp = {
+	touchBlok: document.querySelector('.fn-pp'),
+
+	setup:function () {
+
+		var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+		var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+		
+		console.log(handInteraction.support);
+		if(!handInteraction.support) {
+			this.touchBlok.addEventListener('touchmove', this, true)
+			this.touchBlok.addEventListener('touchstart', this, true)
+			this.touchBlok.addEventListener('touchend', this, true)
+			this.touchBlok.addEventListener('touchcancel', this, true)
+		}
+
+	},
+	handleEvent: function (event) {
+		if(event.type == 'touchmove' || event.type == 'touchstart') {
+			this.touchMove(event);
+		} else if (event.type =='touchend' || event.type == 'touchcancel') {
+			this.touchEnd(event)
+		}
+	},
+	touchPosition: function (touches) {
+		var touch = touches[0] || toches[0];
+		
+		var values = {};
+		var elm = this.touchBlok.getBoundingClientRect();
+		var x = touch.pageX - elm.left;
+		var y = touch.clientY - elm.top;
+
+		if(x < elm.width && x > 0 && y < elm.height && y > 0) {
+			
+		} else {
+			
+		}
+		return {
+			xpercentage : (x * 100)/elm.width,
+			ypercentage : (y * 100)/elm.height,
+			x: x - elm.left,
+			y: y- elm.top
+		}
+
+	},
+	touchValues: function (touches) {
+		var position = this.touchPosition(touches);
+		var max = data.group.steps[0].max;
+		console.log(position);
+		var positionData = {
+			freq : (position.ypercentage * max)/100,
+			volume : (position.xpercentage)/100,
+		}
+		data.positionData = 5 - positionData.volume;
+
+		return positionData
+	},
+	
+	createShadow: function (touches) {
+		var position = this.touchPosition(touches);
+		var element  = document.createElement('span');
+
+		element.classList.add('shadow');
+		element.style.position = 'absolute';
+		
+		element.style.top      = position.ypercentage + '%';
+		element.style.left     = position.xpercentage + '%';
+
+		this.touchBlok.appendChild(element);
+	
+		setTimeout(function() {
+			element.style.opacity=0;
+			 setTimeout(function () {
+			 	element.parentNode.removeChild(element);
+			 }, 500)
+		}, 100)
+	},
+
+	touchMove: function (e) {
+		this.createShadow(e.touches);
+
+		var position = this.touchValues(e.touches);
+		console.log(position);
+		audio.overrideFreq = position.freq;
+		audio.setFrequencies(this.frequency)
+		audio.oscVolume(position.volume)
+		for(var i in audio.sources) {
+			sources.update.volume({id:audio.sources[i].id, value:position.volume});
+
+		}
+		sendSocket.send('ppValues', data.group._id, {
+			freq: position.freq,
+			volume: position.volume
+		})
+	},
+	touchEnd: function (e) {
+		audio.overrideFreq = false;
+		audio.oscVolume(1);
+		// for(var i in audio.sources) {
+		// 	sources.update.volume({id:audio.sources[i].id, value:data.group.sources[audio.sources[i].id].volume });
+
+		// }
+		sendSocket.send('ppValues', data.group._id, {
+			freq: false,
+			volume: 1
+		})
+	}
+}
+
+// checken met als de sustain lang is 
+var recording = {
+	isRecording: false,
+	
+
+	setup: function () {
+		this.startButton = document.querySelector('.fn-seq-rec');
+		this.buttons     = document.querySelectorAll('.fn-rec-item');
+		this.length      = data.group.steps.length;
+
+		this.startButton.addEventListener('click', this.startEvent.bind(this))
+
+	},
+	startEvent: function (e) {
+		this.isRecording = !this.isRecording;
+		this.melody      = [];
+		var self = this;
+		
+		if(this.isRecording) {
+			self.startButton.classList.add('active');
+			self.startButton.parentNode.setAttribute('target-page', 'recording');
+			body.setAttribute('recording', 'true');
+			self.setHeader('RECORDED: 0/' + self.length);
+			audio.gainNode.triggerRelease();
+
+			self.buttons.forEach(function(button) {
+				button.addEventListener('click', self.addStep)
+			});
+		} else {
+			console.log('finishin up');
+			self.finish(e);
+		}
+		
+	},
+	setHeader: function (content) {
+		var textbox = document.querySelector('.fn-rec-score');
+		textbox.innerHTML = content;
+	},
+	addStep: function (e) {
+		var index = parseInt(e.currentTarget.getAttribute('rec-index'));
+		recording.melody.push(data.group.scale[index]);
+		audio.triggerEnvAttack(data.group.scale[index], '8n');
+
+		recording.setHeader('RECORDED: ' + recording.melody.length + '/' + recording.length);
+
+		if(recording.melody.length == recording.length) {
+			recording.finish();
+		}
+	},
+	finish: function () {
+		
+		this.startButton.classList.remove('active');
+		this.startButton.parentNode.setAttribute('target-page', 'sequencer');
+		body.removeAttribute('recording', 'true');
+		changePage.showPage('sequencer');
+
+		this.isRecording = false;
+		this.setHeader(' ');
+
+		var self = this;
+		if(this.melody.length !== 0) {
+			self.updateMelody();
+		}
+		
+		this.buttons.forEach(function(button) {
+			button.removeEventListener('click', self.addStep)
+		});
+		
+		
+	},
+	updateMelody: function () {
+		tips.increaseTip('rec');
+		var newMelody = this.fillMelody();
+
+		for(var i in newMelody) {
+			data.group.steps[i].active = true;
+			data.group.steps[i].frequency = newMelody[i];
+		}
+		sequencer.updateActive();
+
+		sendSocket.send('updateAllSteps', data.group._id, {
+			steps: data.group.steps})
+		this.melody = [];
+	},
+	fillMelody: function (melody) {
+		var actualMeldoy = [];
+		var n = i = 0;
+		var self = this;
+		while(i < self.length) {
+			actualMeldoy.push(self.melody[n])
+			i++;n++;
+			if(n == self.melody.length) {
+				n = 0;
+			}
+		}
+		return actualMeldoy
+	}
+
+}
 var tips = {
 	textDOM: null,
 	allTips:[],
@@ -2244,25 +2281,22 @@ var tips = {
 	},
 
 	increaseTip: function (cond) {
-		console.log(cond, 'tip!');
 		
 		if(cond == 'clickActive' && tips.currentTip == 0 || cond == 'filter' && tips.currentTip == 0) {
-			console.log('new?');
+			
 			tips.newTip();
-		} else if(cond == 'changefreq' && tips.currentTip == 1 || cond == 'active' && tips.currentTip == 1) {
+		} else if(cond == 'rec' && tips.currentTip == 1 || cond == 'active' && tips.currentTip == 1) {
 			tips.newTip();
-		} else if(cond == 'rec' && tips.currentTip == 2 || cond == 'detune' && tips.currentTip == 2) {
+		} else if(cond == 'adsr' && tips.currentTip == 2 || cond == 'detune' && tips.currentTip == 2) {
 			tips.newTip();
-		} else if(cond == 'adsr' && tips.currentTip == 3) {
-			tips.newTip();
-		}
+		} 
 
 	},
 	newTip: function () {
 		tips.currentTip++;
 		
 		if(tips.currentTip == data.tips.length) {
-			console.log('laatste tip');
+			
 			tips.textDOM.innerHTML = tips.tipMemory = ' ';
 			
 		} else {
@@ -2372,24 +2406,7 @@ var tools = {
 		}
 	},
 	
-	eachDataFromGroup: function (parameter, callback) {
-		if(tools.contains(window.locaiton.pathname, 'rol')) {
-			console.log('contains');
-		} else {
-			console.log('not');
-		}
-		// if(group == 'all') {
-		// 	for(var i in data.group) {
-		// 		for (var y in data.group[i][parameter]) {
-		// 			callback(data.group[i][parameter](i), i)
-		// 		}	
-		// 	}
-		// } else {
-		// 	for(var i in data.group[group][parameter]) {
-		// 		 callback(data.group[group][parameter][i], i)
-		// 	}
-		// }
-	},
+	
 	dataFromGroup: function ( groupId, callback ) {
 		for(var i in data.group) {
 
@@ -2610,3 +2627,4 @@ var cameraTracker = {
 var user = {
 	username: null
 }
+console.log(user);

@@ -2,7 +2,7 @@ var socket = io();
 // var binary = new BinaryClient('ws://localhost:3000');
 
 // binary.on('open', function () {
-// 	console.log('open the binary');
+
 // 	window.Stream = binary.createStream();
 
 // })
@@ -11,13 +11,13 @@ var listen = {
 
 	master: function () {
 		
-			console.log('connected');
+			
 			socket.emit('joinRoom', 'master');
 			socket.emit('joinRoom', 'live');
 
 
 			socket.on('audioBlob', function (received) {
-				console.log('received', received);
+				
 				
 				 masterSequence.parseBlobAudio(received.data);
 				 received.data.blob = null;
@@ -26,16 +26,14 @@ var listen = {
 			})
 			socket.on('liveUpdate', function (received) {
 				liveRoom.updateActiveUsers(received);
-				console.log('live update', received);
+				
 			})
 
 		
 	},
 	role: function () {
 		// listen.modulate();
-		console.log('listen?');
 		
-			console.log('rolleee');
 			
 		var groupId = tools.currentGroupId();
 
@@ -47,7 +45,7 @@ var listen = {
 		sendSocket.send('groupUpdate', groupId, {text: data.user.username + ' heeft zich aangesloten'})
 		
 		socket.on('demo', function (received) {
-			console.log('received', received);
+			
 			demosec(received);
 		})
 		
@@ -55,7 +53,7 @@ var listen = {
 		// happens: updated melody from sequencer
 		socket.on('updateAllSteps', function (received) {
 			data.group.steps = received.data.steps;
-			console.log('received an updateAllSteps', received);
+			
 		})
 		// happens: on loop message from server
 		

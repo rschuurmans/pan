@@ -27,8 +27,7 @@ var masterSequence = {
 		return found;
 	},
 	parseBlobAudio: function (src) {
-		console.log(src);
-		console.log('heyo');
+		
 		var blob = new Blob([src.blob], { 'type' : 'audio/ogg; codecs=opus' });
 		
 	    var audio = document.createElement('audio');
@@ -41,7 +40,7 @@ var masterSequence = {
 	 var currentBlob = this.findPart(src.groupId);
 	 var sekf = this;
 	 if(currentBlob) {
-	 	console.log('starting');
+	 
 		currentBlob.part.stop();
 		
 	    currentBlob.part = new Tone.Player(window.URL.createObjectURL(blob)).connect(currentBlob.gainNode);
@@ -49,7 +48,7 @@ var masterSequence = {
 
 			
 	} else {
-		console.log('deze');
+		
 		var analyzer = new Tone.Analyser("fft", 64);
 		analyzer.groupId = src.groupId;
 		audioVisual.analyzers.push(analyzer);
@@ -58,7 +57,7 @@ var masterSequence = {
 		var part = new Tone.Player(window.URL.createObjectURL(blob)).connect(gainNode);
 	    part.autostart = true;
 	    part.retrigger = true;
-	    console.log(this);
+	    
 	    this.parts.push({
 	    	part: part,
 	    	groupId: src.groupId,
@@ -155,7 +154,7 @@ var audioVisual = {
 		this.dataArray    = new Uint8Array(this.bufferLength);
 	},
 	addItem: function () {
-		console.log(this.analyzers.length);
+		
 		audioVisual.setElements(this.analyzers.length - 1);
 	},
 	updateAnimation : function () {
@@ -180,7 +179,7 @@ var audioVisual = {
 
 			var element = document.createElement('span');
 			element.classList.add('viz-seg');
-			console.log(index);
+			
 			element.classList.add('color-' + masterSequence.parts[index].color)
 			element.style.left = (self.bufferLength - i) * (50/self.bufferLength) + '%';
 			element.style.width  = 50/self.bufferLength + '%';

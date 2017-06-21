@@ -40,7 +40,7 @@
 		.filter-swipe-item {
 			display:inline-block;
 			@extend %absolute-100;
-			border:1px solid red;
+			
 
 		}
 		
@@ -139,6 +139,14 @@
 		position:relative;
 		top:0px;
 		overflow:hidden;
+		h2 {
+			position:absolute;
+			top:10%;
+			left:0;
+			width:100%;
+			text-transform:uppercase;
+			text-align:center;
+		}
 		.shadow {
 			background:$color-yellow;
 			// background: $color-blue;
@@ -171,7 +179,7 @@
 		}
 	}
 	&-filter-btn {
-		border:1px solid red;
+		
 	}
 	&-overlay {
 		@extend %fixed-full;

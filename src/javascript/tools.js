@@ -89,24 +89,7 @@ var tools = {
 		}
 	},
 	
-	eachDataFromGroup: function (parameter, callback) {
-		if(tools.contains(window.locaiton.pathname, 'rol')) {
-			console.log('contains');
-		} else {
-			console.log('not');
-		}
-		// if(group == 'all') {
-		// 	for(var i in data.group) {
-		// 		for (var y in data.group[i][parameter]) {
-		// 			callback(data.group[i][parameter](i), i)
-		// 		}	
-		// 	}
-		// } else {
-		// 	for(var i in data.group[group][parameter]) {
-		// 		 callback(data.group[group][parameter][i], i)
-		// 	}
-		// }
-	},
+	
 	dataFromGroup: function ( groupId, callback ) {
 		for(var i in data.group) {
 

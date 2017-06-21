@@ -1,0 +1,17 @@
+
+<h2 class='fn-rec-score text-center text-uppercase'>score</h2>
+<ul class='list list-clear container-padding-top'> 
+
+	{{#each scale}} 
+
+		<li class='list-grid-item list-grid-item-25 btn-rectangle'>
+			<span class='btn btn-grid-item btn-recording fn-rec-item'
+				rec-index={{@index}}
+				frequency={{this}}
+
+			>
+				
+			</span>
+		</li>
+	{{/each}}
+</ul>

@@ -20,10 +20,7 @@ module.exports = {
 			return [{
 				text: 'Tik op de steps van de sequencer om een step aan of uit te zetten',
 				cond: 'clickActive'
-			}, {
-				text: 'houd de step ingedrukt en draai je telefoon om de toonhoogte te veranderen',
-				cond : 'changeFreq'
-			},
+			}, 
 			{
 				text: 'Je kunt de complete melodie veranderen door een nieuwe op te nemen',
 				cond : 'rec'

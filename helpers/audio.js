@@ -10,7 +10,8 @@ var audioSetup = {
 				type = 'slow'
 			} else {
 				type = 'fast';
-				audioSetup.scale = [28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20, 20]
+				audioSetup.scale = [20, 22, 25, 28, 42, 58, 88, 92]
+				
 			}
 			
 
@@ -80,7 +81,7 @@ var audioSetup = {
 					value: (Math.random() * time[type][1]) + time[type][0],
 					max:2 },
 				release: {
-					value: ((Math.random() * time[type][1]) + time[type][0])*2,
+					value: ((Math.random() * time[type][1]) + time[type][0]),
 					max:2
 				},
 				

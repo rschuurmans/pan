@@ -1,9 +1,11 @@
 var changePage = {
 	showPage : function (page) {
 		var allPages = document.querySelectorAll('.fn-changepage-page');
+		
+		if(!body.getAttribute('current-page' == page)) {
 		body.setAttribute('current-page', page);
-
-		for(var i = 0; i < allPages.length ; i++) {
+		console.log(page);
+			for(var i = 0; i < allPages.length ; i++) {
 			if(allPages[i].getAttribute('current-page') == page) {
 				allPages[i].setAttribute('active', true);
 				var pageIndex = parseInt(allPages[i].getAttribute('order'));
@@ -15,6 +17,8 @@ var changePage = {
 				allPages[i].setAttribute('active', false);
 			}
 		}
+		}
+		
 
 	},
 	setOrigin: function (pages, activeIndex) {
@@ -34,7 +38,13 @@ var changePage = {
 		changePage.setOrigin(document.querySelectorAll('.fn-changepage-page'), 0)
 		for(var i = 0; i < buttons.length;i++) {
 			buttons[i].addEventListener('click', function(e) {
-				changePage.showPage(e.currentTarget.getAttribute('target-page'))
+				
+				if(e.currentTarget.getAttribute('back-page') && body.getAttribute('current-page') == e.currentTarget.getAttribute('target-page')) {
+					changePage.showPage(e.currentTarget.getAttribute('back-page'))
+
+				} else {
+					changePage.showPage(e.currentTarget.getAttribute('target-page'))
+				}
 			});
 		}
 	},
