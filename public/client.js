@@ -6,9 +6,9 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
-		cameraTracker.checkSupport();
-		changePage.onboarding()
 		
+		changePage.onboarding()
+		listen.role()
 		tips.init();
 		events.unload();
 
@@ -20,6 +20,7 @@ var init = function () {
 		} else {
 			
 			modulator.init();
+			cameraTracker.checkSupport();
 			// changePage.sequencerNavigation();
 			// modulateSocket();
 			// changePage.selector();
@@ -27,6 +28,10 @@ var init = function () {
 			// modulate.events();
 		}
 	} else  if(path.indexOf('/demo') !== -1) { 
+	} else  if(path.indexOf('/live') !== -1) { 
+		
+		masterSequence.init();
+		listen.master();
 	} else {
 		animate.loginBackground();
 		animate.loginTransition();
@@ -43,138 +48,143 @@ window.onload = function () {
 }
 
 var socket = io();
+// var binary = new BinaryClient('ws://localhost:3000');
+
+// binary.on('open', function () {
+// 	console.log('open the binary');
+// 	window.Stream = binary.createStream();
+
+// })
+
+var listen = {
+
+	master: function () {
+		
+			console.log('connected');
+			socket.emit('joinRoom', 'master');
+			socket.emit('joinRoom', 'live');
 
 
-socket.on('connect', function () {
-	if(window.hasOwnProperty( "data" )) {
-		console.log('going to join a room', data.group._id);
+			socket.on('audioBlob', function (received) {
+				console.log('received', received);
+				
+				 masterSequence.parseBlobAudio(received.data);
+				 received.data.blob = null;
+				 liveRoom.checkUser(received.data);
+				
+			})
+			socket.on('liveUpdate', function (received) {
+				liveRoom.updateActiveUsers(received);
+				console.log('live update', received);
+			})
 
-		socket.emit('joinRoom', data.group._id);
-		sendSocket.send('groupUpdate', data.group._id, {text: data.user.username + ' heeft zich aangesloten'})
+		
+	},
+	role: function () {
+		// listen.modulate();
+		console.log('listen?');
+		
+			console.log('rolleee');
+			
+		var groupId = tools.currentGroupId();
+
+		socket.emit('joinRoom', groupId);
+		socket.emit('joinRoom', 'live');
+
+
+
+		sendSocket.send('groupUpdate', groupId, {text: data.user.username + ' heeft zich aangesloten'})
+		
+		socket.on('demo', function (received) {
+			console.log('received', received);
+			demosec(received);
+		})
+		
 	
+		// happens: updated melody from sequencer
+		socket.on('updateAllSteps', function (received) {
+			data.group.steps = received.data.steps;
+			console.log('received an updateAllSteps', received);
+		})
+		// happens: on loop message from server
+		
+
+		socket.on('groupUpdate', function (received) {
+			var message = document.querySelector('.fn-notification');
+			message.innerHTML = received.data.text;
+			message.style.opacity = 1;
+			setTimeout(function () {
+				message.style.opacity = 0;
+			}, 3000)
+			console.log('received an groupUpdate', received);
+		})
+		socket.on('updateSources', function (received) {
+			sources.update[received.data.type]({id: received.data.id, value:received.data.value})
+			console.log('received an updateSources', received);
+		})
+		socket.on('updateSingleStep', function (received) {
+			data.group.steps[parseInt(received.data.index)] = received.data.step;
+			console.log('received an updateSingleStep', received);
+		})
+
+		socket.on('updateSustain', function (received) {
+			console.log('received an updateSustain', received);
+			data.group.sustain = received.data.sustain;
+
+			console.log('received an updateSustain', received);
+		})
+
+		socket.on('updateADSR', function (received) {
+		// adsr.update(received.type, received.value)
+		adsr.update(received.data.type, received.data.value);
+			console.log('received an updateADSR', received);
+		})
+		socket.on('ppValues', function (received) {
+		audio.ppFreq = received.data.freq;
+			for(var i in audio.sources) {
+				sources.update.volume({id:audio.sources[i].id, value:received.data.volume});
+			}
+			console.log('received an ppValues', received);
+		})
+		socket.on('updateFilter', function (received) {
+			filters.update(received.data.type, received.data.value);
+		})
+		
+		
+
+		
+		
+
+
+	},
+	modulate: function () {
+		socket.on('updateSteps', function (received) {
+			console.log('received a socket', received);
+			data.steps[received.index] = received.step;
+		})
 	}
+}
 
-	// socket.on('updateSources', function (received) {
-	// 	console.log('received a updateSources', received);
-	// 	sources.update(received);
-	// })
-	// happens: updated melody from sequencer
-	socket.on('updateAllSteps', function (received) {
-		data.group.steps = received.data.steps;
-		console.log('received an updateAllSteps', received);
-	})
-	// happens: on loop message from server
-	
-
-	socket.on('groupUpdate', function (received) {
-		var message = document.querySelector('.fn-notification');
-		message.innerHTML = received.data.text;
-		message.style.opacity = 1;
-		setTimeout(function () {
-			message.style.opacity = 0;
-		}, 3000)
-		console.log('received an groupUpdate', received);
-	})
-	socket.on('updateSources', function (received) {
-		sources.update[received.data.type]({id: received.data.id, value:received.data.value})
-		console.log('received an updateSources', received);
-	})
-	socket.on('updateSingleStep', function (received) {
-		data.group.steps[parseInt(received.data.index)] = received.data.step;
-		console.log('received an updateSingleStep', received);
-	})
-
-	socket.on('updateSustain', function (received) {
-		console.log('received an updateSustain', received);
-		data.group.sustain = received.data.sustain;
-
-		console.log('received an updateSustain', received);
-	})
-
-	socket.on('updateADSR', function (received) {
-	// adsr.update(received.type, received.value)
-	adsr.update(received.data.type, received.data.value);
-		console.log('received an updateADSR', received);
-	})
-	socket.on('ppValues', function (received) {
-	audio.ppFreq = received.data.freq;
-		for(var i in audio.sources) {
-			sources.update.volume({id:audio.sources[i].id, value:received.data.volume});
-		}
-		console.log('received an ppValues', received);
-	})
-	socket.on('updateFilter', function (received) {
-		filters.update(received.data.type, received.data.value);
-	})
-	
-	
-
-	
-	
-})
 var listenStartSocket = function () {
 	socket.on('startSequence', function (fulldelay) {
 		if(loop.stopped) {
+			console.log('start loop from sokt');
 			loop.start(fulldelay);
-		}
+		} 
 	})
 }
 
-var modulateSocket = function () {
-	socket.on('updateSteps', function (received) {
-		console.log('received a socket', received);
-		data.steps[received.index] = received.step;
-	})
-}
+
 
 
 var sendSocket = {
-	send: function (socketName, id, sendData) {
-		
+	send: function (socketName, id, sendData) {	
+		console.log('sending this socket', socketName);
 		socket.emit(socketName, {
 			room:id,
 			data: sendData
 		})
 	}
-	// updateAllSteps: function (id, sendData) {
-	// 	socket.emit('updateAllSteps', {
-	// 		room: id,
-	// 		data: sendData
-	// 	});
-	// },
-	// groupUpdate: function (id, sendData) {
-	// 	socket.emit('groupUpdate' , {
-	// 		room: id,
-	// 		data: sendData
-	// 	})
-	// },
-	// updateSources: function (id, sendData) {
-	// 	socket.emit('updateSources', {
-	// 		room: id,
-	// 		data: sendData
-	// 	});
-	// }
-	// updateSingleStep: function (id, sendData) {
-	// 	socket.emit('updateSingleStep', {
-	// 		room: id,
-	// 		data: sendData
-	// 	});
-	// },
-	// updateSustain: function (id, sendData) {
-	// 	socket.emit('updateSustain', {
-	// 		room: id, 
-	// 		data: sendData
-	// 	})
-	// }
-	// updateADSR: function (id, sendData) {
-	// 	socket.emit('updateADSR', {
-	// 		room: id, 
-	// 		data: sendData
-	// 	})
-	// },
-	// ppValues: function (id, sendData) {
-	// 	socket.emit('')
-	// }
 }
 var body = document.querySelector('body');
 
@@ -264,417 +274,678 @@ var animate = {
 	},
 }
 
-// // todo : 
-// reverb
-// camera hand als pp + fallback
-// volume en speed tilt
-// - scss cleanup
-// remove unused functions
-// kijken naar tools van for element in met callback
-
-// later:
-// audiosetup.getsynth()
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 
 var audio = {
-	sources:[],
-	filters:[],	
-	ppFreq:false,
-	envelope:null,
-	gain: null,
-	defTime: "8n",
-	setup: function () {
-		sources.setup();
-		listenStartSocket();
-	},
-	triggerAttack: function (freq, time) {
-		audio.triggerRelease();
-		freq = audio.ppFreq ? audio.ppFreq : freq;
-		for(var i in audio.sources) {
-			if(time) {
-				audio.sources[i].triggerAttackRelease(freq, time )
-				console.log(audio.sources[i]);
-			} else {
-				
-				if(audio.sources[i].noise) {
-					audio.sources[i].triggerAttack()
-				} else {
-					audio.sources[i].triggerAttack(freq)
-				}
-			}
-		}
-	},
-	triggerRelease: function () {
-		for(var i in audio.sources) {
-			audio.sources[i].triggerRelease()
-		}
-	},
-	triggerReleaseSingle: function (index) {
-		audio.sources[index].triggerRelease()
-	},
-	setFrequency: function (freq) {
-		for(var i in audio.sources) {
-			audio.sources[i].setNote(freq);
-		}
-	}
+    sources: [],
+    gainNode:[],
+    filters: [],
+    ppFreq: false,
+    envelope: null,
+    gain: null,
+    defTime: "8n",
+    isLive: false,
+    setup: function() {
+        sources.setup();
+        listenStartSocket();
+    },
+    triggerEnvAttack: function(freq, time) {
+        for(var i in audio.sources) {
+            audio.sources[i].frequency.value = freq;
+        }
+        audio.gainNode.triggerAttackRelease(time)
+    },
+    triggerRelease: function(audioData) {
+        // kan weg als holdtone weg is?
+        for (var i in audioData) {
+            audioData[i].triggerRelease()
+        }
+    },
+}
+
+
+var exportAudio = {
+    rec: new Recorder(Tone.Master),
+     createDownloadLink : function () {
+        this.rec && this.rec.exportWAV(function(blob) {
+          var url = URL.createObjectURL(blob);
+          var file = blob;
+          file.lastModifiedDate = new Date();
+          file.name = 'ehname.wav';
+          
+          sendSocket.send('audioBlob', 'master', {
+            blob : file,
+            userId: data.user._id,
+            active: true,
+            username: data.user.username,
+            color: data.user.color,
+            groupId: data.group._id
+          })
+        });
+    },
+    startRecording: function () {
+        this.rec.record();
+    },
+    cancelRecording: function () {
+        this.rec.clear();
+    },
+    stopRecording: function () {
+        this.createDownloadLink();
+        this.rec.clear();
+    }
 }
 
 var loop = {
-	stopped: true,
-	index:0,
-	hold:false,
-	holdTone: function(start, freq) {
-		if(start) {
-			if(loop.hold) {
-				for(var i = 0; i < audio.sources.length;i++) {
-					audio.sources[i].setNote(freq);
-				}
-			} else {
-				loop.hold = true;
-				audio.triggerAttack(freq);
-			}
-		} else {
-			loop.hold=false;
-			audio.triggerRelease();
+    stopped: true,
+    index: 0,
+    hold: 0,
+    holdTone: function(start, freq) {
+        // kan misschien weg / schoner? wordt gebruikt met zetten van de frequeney met draaien.
+        if (start) {
+            if (loop.hold) {
+                for (var i = 0; i < audio.sources.length; i++) {
+                    audio.sources[i].setNote(freq);
+                }
+            } else {
+                loop.hold = true;
+                audio.triggerAttack(freq);
+            }
+        } else {
+            loop.hold = false;
+            audio.triggerRelease();
 
-		}
-	},
-	
-	playStep: function (active, frequency, time) {
-		if(active && !loop.hold && !recording.isRecording) {
-			audio.triggerAttack(frequency);
-			if(!data.group.sustain) {
-				window.setTimeout(function () {
-					audio.triggerRelease();
-				}, time)
-			}
+        }
+    },
 
-		} 
-	},
-	increaseIndex: function () {
-		loop.index++;
-		if(loop.index == data.group.steps.length) {
-			loop.index = 0;
-		}
-	},
-	start: function () {
-		loop.stopped = false;
+    playStep: function(currentStep, time, index) {
+        
 
-		var delay = loop.calculateDelay(data.group.steps.length);
+        var release = adsr.getEnvelope().release + 1;
+        release = 2;
+        
+        
+        // if (active && !loop.hold[groupId] && !recording.isRecording) {
 
-		var toneLoop = new Tone.Loop(function (time) {
-			
-			loop.playStep(data.group.steps[loop.index].active, data.group.steps[loop.index].frequency, time)
 
-			events.showStep(loop.index);
-			loop.increaseIndex();
-			
-		}, delay);
+            var loose = Math.floor(((release * 64)/2)) + 'n';
+            
+            if(currentStep.active) {
+                audio.triggerEnvAttack(currentStep.frequency, loose);
+            }
+            
 
-		toneLoop.start(0)
-		Tone.Transport.start('+0.1');
-	},
+            // if(!data.group[groupIndex].sustain) {
+            // 	window.setTimeout(function () {
+            // 		audio.triggerRelease(audio.sources[0]);
+            // 	}, time)
+            // }
 
-	calculateDelay: function (length) {
-		switch(length) {
-			case 4:
-				return '2n';
-				break;
-			case 8:
-				return '4n';
-				break;
-			case 16:
-				return '8n'	;
-				break;
-			case 32:
-				return '16n';
-				break;
-		}
-	}
+        // }
+        events.showStep(index);
+    },
+    increaseIndex: function() {
+    	
+        loop.index = tools.increaseOrMax({
+            increasable: loop.index,
+            max: 16,
+            min: 0
+        });
+
+        
+
+    },
+    getBPM : function (delay) {
+        return 60000/delay;
+    },
+    start: function(serverDelay) {
+        loop.stopped = false;
+        loop.index = 0;
+        loop.hold = false;
+        
+        Tone.Transport.bpm.value = loop.getBPM(serverDelay);
+
+        
+    
+        
+        Tone.Transport.scheduleRepeat(function(time) {
+                if(loop.index == 0) {
+                    
+                    exportAudio.startRecording();
+                }
+                if(loop.index == 15) {
+                    
+                    exportAudio.stopRecording();
+                }
+                var length = data.group.steps.length;
+
+                if(!recording.isRecording) {
+                    if(length == 4 && loop.index%4 == 0) {
+                        loop.playStep(data.group.steps[loop.index/4], time, loop.index/4);
+                    } else if(length == 8 && loop.index%2 == 0) {
+                        loop.playStep(data.group.steps[loop.index/2], time, loop.index/2);
+                    } else if (length == 16) {
+                        loop.playStep(data.group.steps[loop.index], time, loop.index);
+                    } else {
+                        
+                    }
+                } else {
+                    exportAudio.cancelRecording();
+                }
+                
+                
+
+                loop.increaseIndex();
+
+
+                // var currentGroup = data.group[i];
+                // var groupId = currentGroup._id;
+                
+                // if(currentGroup.steps.length == 4) {
+                //     if(loop.index[groupId] % 4 == 0) {
+                //         loop.playStep(currentGroup.steps[loop.index[groupId]/4].frequency , groupId, time, .3)
+                //     } else {
+                        
+                //     }
+                // } else if (currentGroup.steps.length == 16){
+                    
+                //     loop.playStep(currentGroup.steps[loop.index[groupId]].frequency, groupId, time, 1)
+                // }
+                // loop.increaseIndex(groupId, data.group[i]);
+   
+          
+            
+
+          
+        }, '16n');
+
+   
+
+    // start the repeat
+    
+     //    serverDelay = serverDelay/1000;
+
+     //    loop.stopped = false;
+     //    var currentGroup = data.group[data.group.length - 1];
+     //    var groupId = currentGroup._id;
+     //    var delay = serverDelay/currentGroup.steps.length;
+     //    var synth = new Tone.Synth().toMaster()
+
+    	// var sequence = new Tone.Loop(function (time) {
+     //        console.log('loopin', time, time/2, delay,  Tone.now().toFixed(3));
+     //            synth.triggerAttackRelease("C1", Tone.now().toFixed(3) , Tone.now().toFixed(3)+delay )
+
+     //        // for(var i in audio.sources[groupId]) {
+     //        //     audio.sources[groupId][i].frequency.value = 440;
+     //        // }
+     //        //         audio.gainNode[groupId].triggerAttackRelease(1, delay/2)
+            
+     //    }, delay);
+
+
+     //    sequence.start(0);
+
+     //    var delay = loop.getLoopOveralDelay(0);
+        
+
+     //    for(var i in data.group) {
+     //        var groupId         = data.group[i]._id;
+     //        loop.index[groupId] = 0;
+     //        loop.hold[groupId]  = false;
+     //    }
+
+    	// var toneLoop = new Tone.Loop(function (time) {
+     //        for(var i in data.group) {
+     //            console.log(time);
+     //            var groupId         = data.group[i]._id;
+                
+     //            var currentStep     = data.group[i].steps[loop.index[groupId]];
+
+     //            loop.playStep(groupId, currentStep.active, currentStep.frequency, time);
+
+     //            loop.increaseIndex(groupId, data.group[i]);
+
+
+     //        }
+     //    }, delay).start(0);
+        
+        Tone.Transport.start('+0.1')
+        // for (var i in data.group) {
+        // 	var groupId = data.group[i]._id;
+        	
+        // 	loop.index[groupId] = 0;
+        // 	loop.hold[groupId] = false;
+
+        //     var delay = loop.getLoopOveralDelay(i);
+        //     loop.stopped[i] = false;
+
+
+        //     var toneLoop = new Tone.Loop(function(time) {
+
+        //         var currentStep = data.group[i].steps[loop.index[groupId]];
+                
+        //         loop.playStep(groupId, currentStep.active, currentStep.frequency, time);
+        //         loop.increaseIndex(groupId, data.group[i]);
+
+        //     }, delay);
+
+        //     toneLoop.start(0)
+        //     Tone.Transport.start('+0.1');
+        // }
+    },
+
+    getLoopOveralDelay: function(groupId) {
+
+        var length = data.group[groupId].steps.length;
+        length = 16;
+        return length / 2 + 'n';
+
+    }
 }
+
+
 
 
 var sources = {
-	setup:function () {
-		sources.createSources();
-		filters.setup();
-		sources.setDetune();
+    setup: function() {
+        sources.createSources();
 
-	},
-	createSources: function () {
-		
-		for(var i in data.group.sources) {
-			if(data.group.sources[i].active) {
-				if(data.group.sources[i].type == 'noise') {
-					sources.create['noise'](i);
-				} else {
-					sources.create[data.group.synth](i);
-				}
+        filters.setup();
+        // sources.setDetune();
 
-			}
+    },
+    createSources: function() {
+        
+            
+            data.group.sources.forEach(function(source, index) {
 
-		};
-	},
-	update: {
-		wavetype: function (received) {
-			
-			if(received.value == 'noise') {
-				if(data.group.sources[received.id].active) {
-					sources.remove(received.id);
-					sources.create.noise(received.id);
-					filters.connectSingleSource(received.id);
-				} else {
-					data.group.sources[received.id].type = 'noise'
-				}
+                if (source.type == 'noise') {
+                    sources.createNoise(data.group._id, index);
+                } else {
+                    sources.createSource(source.type, data.group._id, index);
+                }
+            });
+            sources.connectEnvelope(data.group._id);
+        
 
-			}  else {
-				for(var i in audio.sources) {
+        // tools.dataFromGroup(0, 'sources', function (groupData) {
 
-					if(audio.sources[i].id == received.id) {
-						
-						if(audio.sources[i].noise) {
-							sources.remove(received.id);
-							sources.create[data.group.synth](received.id);
-							filters.connectSingleSource(received.id);
-						} else {
-							audio.sources[i].oscillator.type = received.value;
-						}
-					}
-				}
-			}
-		},
-		phase: function (received) {
-			for(var i in audio.sources) {
-				if(audio.sources[i].id == received.id) {
-					audio.sources[i].oscillator.phase = received.value;
-				}
-			}
-		},		
-		active: function (received) {
-			if(received.value) {
-				if(data.group.sources[received.id].type == 'noise') {
-					sources.create['noise'](received.id);
-				} else {
-					sources.create[data.group.synth](received.id);
-				}
-				filters.connectSingleSource(received.id);
-			} else {
-				sources.remove(received.id);
-			}
-		},
-		detune: function (received) {
-			for(var i in audio.sources) {
-				if(audio.sources[i].id == received.id) {
-					if(audio.sources[i].detune) {
-						audio.sources[i].detune.input.value = received.value;
-					} else {
-						audio.sources[i].oscillator.detune.input.value = received.value;
-					}
-				}
-			}
+        // 	for(var i in groupData) {
 
-		},
-		volume: function (received) {
-			for(var i in audio.sources) {
-				if(audio.sources[i].id == received.id) {
-					audio.sources[i].volume.input.value = received.value;
-				}
-			}
-		},
-	},
-	changewavetype: function (id, value) {
-		for(var i in audio.sources) {
-			if(audio.sources[i].id == id) {
-				audio.sources[i].oscillator.type = value;
-			}
-		}
-	},
-	create: {
-		synth: function (id) {
-			var synth = new Tone.Synth(sources.create.parseData(id))
-			synth.id = id;
-			audio.sources.push(synth)
-			// audio.sources[0].triggerAttackRelease(400, '2n')
-		},
-		noise: function (id) {
-			var noiseSynth = new Tone.NoiseSynth({
-				envelope: {
-					attack: data.group.adsr.attack.value,
-					decay: data.group.adsr.decay.value,
-					sustain: .1,
-					release: data.group.adsr.release.value
-				}
-			});
-			noiseSynth.id = id;
-			audio.sources.push(noiseSynth);
-		},
-		amSynth: function (id) {
-			var synth = new Tone.AMSynth(sources.create.parseData(id))
-			synth.id = id;
-		},
-		
-		fmSynth: function (id) {
-			var synth = new Tone.Synth(sources.create.parseData(id))
-			synth.id = id;
-			audio.sources.push(synth)
-		},
-		
-		drum: function (id) {
-			data.group.sustain = false;
-			var synth = new Tone.MembraneSynth();
-			synth.id = id;
-			audio.sources.push(synth)
-		},
-		parseData: function (id) {
-			var sourceData = data.group.sources[id];
-			var synthData = {
-				oscillator: {
-					type : sourceData.type
-				},
-				envelope: {
-					attack: data.group.adsr.attack.value,
-					decay: data.group.adsr.decay.value,
-					sustain: .5,
-					release: data.group.adsr.release.value
-				}
-			}
-			
-			return synthData 
-		}
-	},
-	remove: function (id) {
-		audio.triggerRelease(id)
-		for(var i in audio.sources) {
-			if(audio.sources[i].id == id) {
-				audio.sources.splice(i, 1);
-			}
-		}
-	},
-	setDetune: function () {
-		// use the data.group.set method as used in sequencer.holdtone
-		// for(var i in audio.sources) {
-		// 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
-		// };
-			
-	},
-	setSingleDetune: function (index, value) {
+        // 		if(groupData[i].type == 'noise') {
+        // 			sources.create['noise'](i);
+        // 		} else {
 
-	}
+        // 			sources.create[data.group.synth](i);
+        // 		}
+        // 	}
+        // })console.log();
+        // for(var i in data.group.sources) {
+        // 	if(data.group.sources[i].active) {
+        // 		if(data.group.sources[i].type == 'noise') {
+        // 			sources.create['noise'](i);
+        // 		} else {
+        // 			sources.create[data.group.synth](i);
+        // 		}
+
+        // 	}
+
+        // };
+    },
+    createNoise: function (groupId, index) {
+        
+        var noise = new Tone.Noise("pink").start();
+        noise.id = index;
+        if (!audio.sources) {
+            audio.sources = [];
+        }
+        audio.sources.push(noise);
+
+
+    },
+    createSource: function (type, groupId, index) {
+        
+        var oscillator = new Tone.Oscillator();
+        oscillator.type = type;
+        oscillator.id = index;
+        if (!audio.sources) {
+            audio.sources = [];
+        }
+        audio.sources.push(oscillator);
+
+        
+
+    },
+    connectEnvelope: function (groupId) {
+        audio.gainNode = new Tone.AmplitudeEnvelope(adsr.getEnvelope());
+
+        for(var i in audio.sources) {
+            audio.sources[i].connect(audio.gainNode)
+            audio.sources[i].start();
+        }
+        
+        
+        audio.gainNode.toMaster();
+        
+        
+
+
+
+        
+    },
+    // save: function(synth, id, groupId) {
+        //     synth.id = id;
+        //     if (!audio.sources[groupId]) {
+        //         audio.sources[groupId] = [];
+
+        //     }
+        //     audio.sources[groupId].push(synth);
+
+        // },
+    update: {
+        wavetype: function(received) {
+
+            if (received.value == 'noise') {
+                if (data.group.sources[received.id].active) {
+                    sources.remove(received.id);
+                    sources.create.noise(received.id);
+                    filters.connectSingleSource(received.id);
+                } else {
+                    data.group.sources[received.id].type = 'noise'
+                }
+
+            } else {
+                for (var i in audio.sources) {
+
+                    if (audio.sources[i].id == received.id) {
+
+                        if (audio.sources[i].noise) {
+                            sources.remove(received.id);
+                            sources.create[data.group.synth](received.id);
+                            filters.connectSingleSource(received.id);
+                        } else {
+                            audio.sources[i].oscillator.type = received.value;
+                        }
+                    }
+                }
+            }
+        },
+        phase: function(received) {
+            for (var i in audio.sources) {
+                if (audio.sources[i].id == received.id) {
+                    audio.sources[i].oscillator.phase = received.value;
+                }
+            }
+        },
+        active: function(received) {
+            if (received.value) {
+                if (data.group.sources[received.id].type == 'noise') {
+                    sources.create['noise'](received.id);
+                } else {
+                    sources.create[data.group.synth](received.id);
+                }
+                filters.connectSingleSource(received.id);
+            } else {
+                sources.remove(received.id);
+            }
+        },
+        detune: function(received) {
+            for (var i in audio.sources) {
+                if (audio.sources[i].id == received.id) {
+                    if (audio.sources[i].detune) {
+                        audio.sources[i].detune.input.value = received.value;
+                    } else {
+                        audio.sources[i].oscillator.detune.input.value = received.value;
+                    }
+                }
+            }
+
+        },
+        volume: function(received) {
+            for (var i in audio.sources) {
+                if (audio.sources[i].id == received.id) {
+                    audio.sources[i].volume.input.value = received.value;
+                }
+            }
+        },
+    },
+    changewavetype: function(id, value) {
+        for (var i in audio.sources) {
+            if (audio.sources[i].id == id) {
+                audio.sources[i].oscillator.type = value;
+            }
+        }
+    },
+
+    // create: {
+        // type: function (type, groupId, id) {
+        //     console.log(groupId, id);
+        //     console.log('demo?');
+        //     var oscillator = new Tone.Oscillator().start();
+        //     oscillator.type = type;
+        //     var ampEnv = new Tone.AmplitudeEnvelope({
+        //     "attack": 0.1,
+        //     "decay": 0.2,
+        //     "sustain": 1.0,
+        //     "release": 0.8
+        //     }).toMaster();
+        //     oscillator.connect(ampEnv)
+        //     // //create an oscillator and connect it
+        //     // var osc = new Tone.Oscillator().connect(ampEnv).start();
+        //     // //trigger the envelopes attack and release "8t" apart
+        //     ampEnv.triggerAttackRelease("8t");
+        // }
+        // save: function(synth, id, groupId) {
+        //     synth.id = id;
+        //     if (!audio.sources[groupId]) {
+        //         audio.sources[groupId] = [];
+
+        //     }
+        //     audio.sources[groupId].push(synth);
+
+        // },
+        // synth: function(groupId, id) {
+            
+        //     var synth = new Tone.Synth(sources.create.parseData(id, groupId))
+        //     sources.create.save(synth, id, groupId);
+
+        // },
+        // noise: function(groupId, id) {
+        //     var synth = new Tone.NoiseSynth({
+        //         envelope: sources.create.getEnvelope(),
+        //     });
+        //     sources.create.save(synth, id, groupId);
+        // },
+        // amSynth: function(groupId, id) {
+        //     var synth = new Tone.AMSynth(sources.create.parseData(id, groupId))
+        //     sources.create.save(synth, id, groupId);
+        // },
+
+        // fmSynth: function(groupId, id) {
+        //     var synth = new Tone.Synth(sources.create.parseData(id, groupId))
+        //     sources.create.save(synth, id, groupId);
+        // },
+
+        // drum: function(groupId, id) {
+
+        //     var synth = new Tone.MembraneSynth();
+        //     data.group.sustain = false;
+        //     adsr.setSustain(false, tools.setGroup());
+
+        //     sources.create.save(synth, id, groupId);
+        // },
+        // getEnvelope: function() {
+        //     return {
+        //         attack: tools.pathObj(data.group, 'adsr.attack.value'),
+        //         decay: tools.pathObj(data.group, 'adsr.decay.value'),
+        //         sustain: .5,
+        //         release: tools.pathObj(data.group, 'adsr.release.value'),
+        //     }
+        // },
+        // parseData: function(id, groupId) {
+            
+        //     var sourceData = tools.dataFromGroup(groupId, function(group) {
+                
+        //         var synthData = {
+        //             oscillator: {
+        //                 type: group.sources[id].type
+        //             },
+        //             envelope: sources.create.getEnvelope()
+        //         }
+
+        //         return synthData
+
+        //     })
+
+
+
+
+        // }
+    // },
+    remove: function(id) {
+        audio.triggerRelease(id)
+        for (var i in audio.sources) {
+            if (audio.sources[i].id == id) {
+                audio.sources.splice(i, 1);
+            }
+        }
+    },
+    setDetune: function() {
+        // use the data.group.set method as used in sequencer.holdtone
+        // for(var i in audio.sources) {
+        // 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
+        // };
+
+    },
+    setSingleDetune: function(index, value) {
+
+    }
 }
 
 var filters = {
-	setup: function () {
-		for(var i in data.group.modulate) {
-			filters.create[data.group.modulate[i].type](data.group.modulate[i])
-		}
-		filters.connect();
-	},
-	connect: function () {
-			
-		audio.gain = Tone.context.createGain()
-			
-		for(var y in audio.filters) {
-			audio.gain.connect(audio.filters[y])
-		}
-		if(audio.filters.length == 0) {
-			audio.gain.connect(Tone.Master);
-		}
-		for(var i in audio.sources) {
-			audio.sources[i].connect(audio.gain);
-		}
-	},
-	connectSingleSource: function (id) {
-		for(var i in audio.sources) {
-			if(audio.sources[i].id == id) {
-				console.log('connecting', audio.sources[i]);
-				audio.sources[i].connect(audio.gain)
-			}
-		}
-	},
-	create: {
-		pingpong: function (data) {
-			var pingPong = new Tone.PingPongDelay(2 , 2).toMaster();;
-		
-			pingPong.wet.value = 0;
-			audio.filters.pingpong = pingPong;
+    setup: function() {
+        // data.group.forEach(function(group) {
 
-		},
-		tremelo: function (data) {
-			var autoFilter = new Tone.AutoFilter({
-				frequency    :data.values.frequency,
-				depth        :data.values.depth,
-			}).toMaster().start();
-			autoFilter.wet.value = 0;
-			audio.filters.tremelo = autoFilter;
-		},
-		chorus: function (data) {
-			var chorus = new Tone.Chorus().toMaster();
-			
-			chorus.wet.value = 0;
-			audio.filters.chorus = chorus
-		},
-		wahwah: function (data) {
-			var autoWah = new Tone.AutoWah({
-				baseFrequency:data.values.baseFrequency,
-				octaves      :3,
-				sensitivity  :0,
-				Q            :data.values.q,
-				gain         :data.values.gain,
-				
-			}).toMaster();
-			autoWah.wet.value = 0;
-			
-			audio.filters.wahwah = autoWah;
+        // 	group.modulate.forEach(function (modulate) {
+        // 		filters.create[modulate.type](modulate)
+        // 	})
+        // });
 
-		},
-		lowpass: function (data) {
-			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-			biquadFilter.type = "lowshelf";
-			biquadFilter.frequency.value = 2000;
-			biquadFilter.gain.value = 0;
-			audio.filters.lowpass = biquadFilter;
-			
-		},
-		highpass: function(data) {
-			var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-			biquadFilter.type = "highshelf";
-			biquadFilter.frequency.value = 200;
-			biquadFilter.gain.value = 0;
-			audio.filters.highpass = biquadFilter;
-			
-		},
-		
-		delay: function (data) {
-			var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
-			feedbackDelay.wet.value = 0;
-			audio.filters.delay = feedbackDelay;
-		},
-		distortion: function (data) {
-			var dist = new Tone.Distortion({
-				distortion: data.values.distortion,
-				oversample: data.values.oversample
-			}).toMaster();
-			dist.wet.value = 0;
-			audio.filters.distortion = dist;
+        filters.connect();
+    },
+    connect: function() {
 
-		}
-		
+        // audio.gain = Tone.context.createGain()
 
-	},
-	update: function (type, value) {
-			console.log(type,value);
-			if(type == 'highpass' || type == 'lowpass') {
-				audio.filters[type].gain.value = value*2;
-			} else {
-				audio.filters[type].wet.value = value;
-			}
-			
-	},
-	
+        // for(var y in audio.filters) {
+        // 	audio.gain.connect(audio.filters[y])
+        // }
+        // if(audio.filters.length == 0) {
+        // 	audio.gain.connect(Tone.Master);
+        // }
+        // for (var i in audio.sources) {
+        	
+        //     for(var y in audio.sources[i]) {
+
+        //     	audio.sources[i][y].toMaster()
+        //     }
+
+        // }
+    },
+    connectSingleSource: function(id) {
+        for (var i in audio.sources) {
+            if (audio.sources[i].id == id) {
+
+                audio.sources[i].connect(audio.gain)
+            }
+        }
+    },
+    create: {
+        pingpong: function(data) {
+            var filter = new Tone.PingPongDelay(2, 2).toMaster();;
+
+            filter.wet.value = 0;
+
+            if (!audio.filters[0]) {
+                audio.filters[0] = [];
+
+            }
+            audio.filters[0].pingpong = filter;
+
+        },
+        tremelo: function(data) {
+            var autoFilter = new Tone.AutoFilter({
+                frequency: data.values.frequency,
+                depth: data.values.depth,
+            }).toMaster().start();
+            autoFilter.wet.value = 0;
+            audio.filters.tremelo = autoFilter;
+        },
+        chorus: function(data) {
+            var chorus = new Tone.Chorus().toMaster();
+
+            chorus.wet.value = 0;
+            audio.filters.chorus = chorus
+        },
+        wahwah: function(data) {
+            var autoWah = new Tone.AutoWah({
+                baseFrequency: data.values.baseFrequency,
+                octaves: 3,
+                sensitivity: 0,
+                Q: data.values.q,
+                gain: data.values.gain,
+
+            }).toMaster();
+            autoWah.wet.value = 0;
+
+            audio.filters.wahwah = autoWah;
+
+        },
+        lowpass: function(data) {
+            var biquadFilter = Tone.context.createBiquadFilter().toMaster();
+            biquadFilter.type = "lowshelf";
+            biquadFilter.frequency.value = 2000;
+            biquadFilter.gain.value = 0;
+            audio.filters.lowpass = biquadFilter;
+
+        },
+        highpass: function(data) {
+            var biquadFilter = Tone.context.createBiquadFilter().toMaster();
+            biquadFilter.type = "highshelf";
+            biquadFilter.frequency.value = 200;
+            biquadFilter.gain.value = 0;
+            audio.filters.highpass = biquadFilter;
+
+        },
+
+        delay: function(data) {
+            var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
+            feedbackDelay.wet.value = 0;
+            audio.filters.delay = feedbackDelay;
+        },
+        distortion: function(data) {
+            var dist = new Tone.Distortion({
+                distortion: data.values.distortion,
+                oversample: data.values.oversample
+            }).toMaster();
+            dist.wet.value = 0;
+            audio.filters.distortion = dist;
+
+        }
+
+
+    },
+    update: function(type, value) {
+
+        if (type == 'highpass' || type == 'lowpass') {
+            audio.filters[type].gain.value = value * 2;
+        } else {
+            audio.filters[type].wet.value = value;
+        }
+
+    },
+
 }
-
-
 
 var recording = {
 	buttons: null,
@@ -705,6 +976,7 @@ var recording = {
 		})
 	},
 	event: function (e) {
+		
 		var index = parseInt(e.currentTarget.getAttribute('sequence-index'));
 		
 		recording.melody.push(data.group.scale[index]);
@@ -765,18 +1037,23 @@ var recording = {
 
 var events = {
 	showStep: function (index) {
+		
 		var steps   = document.querySelectorAll('.fn-sequencer-item');
+		for(var i = 0; i < steps.length; i++) {
+			steps[i].classList.toggle('highlight', i == index)
+		
+		};
 
-		if(steps.length && !recording.isRecording) {
-			steps.forEach(function(step) {
-				step.classList.remove('highlight');
-			});
-			steps[index].classList.add('highlight')
-		} else {
-			steps.forEach(function(step) {
-				step.classList.remove('highlight')
-			});
-		}
+		// if(steps.length && !recording.isRecording) {
+		// 	steps.forEach(function(step) {
+		// 		step.classList.remove('highlight');
+		// 	});
+		// 	steps[index].classList.add('highlight')
+		// } else {
+		// 	steps.forEach(function(step) {
+		// 		step.classList.remove('highlight')
+		// 	});
+		// }
 	},
 	showRotate: function (item) {
 		body.setAttribute('rotate-active', true);
@@ -811,8 +1088,11 @@ var events = {
 		// to be implemented, dot as in filter
 	},
 	unload: function () {
+		console.log('unload');
 		window.addEventListener('unload', function() {
 			sendSocket.send('groupUpdate', data.group._id, {text: data.user.username + ' heeft de groep verlaten'})
+			sendSocket.send('liveUpdate', 'live',  {text: data.user.username + ' heeft de groep verlaten'})
+
 			postData.leaveGroup();
 
 		})
@@ -890,7 +1170,6 @@ var modulator = {
 	
 		},
 		volume: function (element, index) {
-			console.log(element, index);
 			data.group.sources[index].volume = element.value;
 			
 			
@@ -958,6 +1237,7 @@ var sequencer = {
 	},	
 	
 	receiveNewValue: function (newValue, item) {
+
 		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
 		loop.holdTone(true, frequency)
 	},
@@ -984,7 +1264,6 @@ var sequencer = {
 			e.preventDefault();
 			item = e.target;
 			var percentage = sequencer.calculatePercentage(item);
-			
 			deviceRotation.listen(item, 'frequency', percentage);
 			
 			events.showRotate(item);
@@ -1007,7 +1286,7 @@ var sequencer = {
 				data.group.steps[parseInt(index)].active = !data.group.steps[parseInt(index)].active;
 				
 				e.target.classList.toggle('active');
-				console.log(data.group.steps[index]);
+				
 				sendSocket.send('updateSingleStep',data.group._id, 
 					{step: data.group.steps[index], index: index})
 				
@@ -1044,6 +1323,19 @@ var sequencer = {
 	
 }
 var adsr = {
+
+	getEnvelope: function (groupId) {
+	  	
+	  		return   {
+	            attack: tools.pathObj(data.group, 'adsr.attack.value'),
+	            decay: tools.pathObj(data.group, 'adsr.decay.value'),
+	            sustain: .5,
+	            release: tools.pathObj(data.group, 'adsr.release.value'),
+	        }
+
+	  	
+        
+	},
 	update: function (type, value) {
 		data.group.adsr[type] = value;
 		var string = '[envelope][' + type + ']';
@@ -1141,11 +1433,17 @@ var adsr = {
 	},
 	changeEvent: function () {
 		var sustainButton = document.querySelector('.fn-sustain');
+		
 		sustainButton.addEventListener('change', function (e) {
-			data.group.sustain = e.currentTarget.checked;
-			sendSocket.send('updateSustain',data.group._id, {sustain: e.currentTarget.checked})
+			adsr.setSustain(e.currentTarget.checked, tools.setGroup());
+			sendSocket.send('updateSustain',tools.setGroup(), {sustain: e.currentTarget.checked})
+
 		})
 	},
+	setSustain : function (value , groupId ) {
+		
+		data.group.sustain = value;
+	}
 	
 	
 }
@@ -1193,14 +1491,15 @@ var pp = {
 	},
 	touchValues: function (touches) {
 		var position = pp.touchPosition(touches);
+		var max = data.group.steps[0].max;
 		
-		var data = {
-			freq : (position.ypercentage * 1200)/100,
+		var positionData = {
+			freq : (position.ypercentage * max)/100,
 			volume : (position.xpercentage)/20,
 		}
-		data.volume = 5 - data.volume;
+		data.positionData = 5 - positionData.volume;
 
-		return data
+		return positionData
 	},
 	
 	createShadow: function (touches) {
@@ -1384,6 +1683,24 @@ var changePage = {
 	
 }
 
+// var demo = {
+// 	init:function () {
+// 		console.log('demo?');
+// 		var ampEnv = new Tone.AmplitudeEnvelope({
+// 		"attack": 0.1,
+// 		"decay": 0.2,
+// 		"sustain": 1.0,
+// 		"release": 0.8
+// 		}).toMaster();
+// 		//create an oscillator and connect it
+// 		var osc = new Tone.Oscillator().connect(ampEnv).start();
+// 		//trigger the envelopes attack and release "8t" apart
+// 		ampEnv.triggerAttackRelease("8t");
+
+
+// 	}
+// }
+// demo.init();
 
 
 var inputEvent = {
@@ -1438,10 +1755,15 @@ var deviceRotation = {
 		newValue    : null,
 		type        :null,
 		currentItem : null,
+		support     : false,
 		startPerc   : null,
 		start: function (item) {
-			window.addEventListener('deviceorientation', deviceRotation.event);
-			
+			if(window.DeviceOrientationEvent) {
+				console.log('support');
+				window.addEventListener('deviceorientation', deviceRotation.event);
+			} else {
+				console.log('no support');
+			}
 		},
 		stop:function (callback) {
 			window.removeEventListener('deviceorientation', deviceRotation.event);
@@ -1454,13 +1776,41 @@ var deviceRotation = {
 			
 		},
 		listen:function (item, type, perc) {
+			
 			deviceRotation.currentItem = item;
-			deviceRotation.type = type;
-			deviceRotation.startPerc = perc;
+			deviceRotation.startPerc   = perc;
+			deviceRotation.type        = type;
+			if(!window.DeviceOrientationEvent) {
+				deviceRotation.fallback(item, type, perc);
+			} 
+			
 		},
+		fallback: function (item, type, perc) {
+			
+			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
+				
+				slider.parentNode.classList.toggle('active', parseInt(slider.id) == parseInt(item.getAttribute('sequence-index')))
+				slider.value == perc;
+				slider.addEventListener('input', function (e) {
+					sequencer.receiveNewValue(e.currentTarget.value, deviceRotation.currentItem);
+				})
+			})
+		},	
+		stopFallback: function (item) {
+			console.log(item);
+			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
+				
+				slider.parentNode.classList.remove('active');
+				
+			})
+		},	
 		stopListen:function (callback) {
+			console.log('stop');
+			
+			if(!window.DeviceOrientationEvent) {
+				deviceRotation.stopFallback(deviceRotation.currentItem);
+			}
 			callback(deviceRotation.newValue, deviceRotation.currentItem)
-
 			deviceRotation.startCompass = null;
 			deviceRotation.lastCompass  = null;
 			deviceRotation.currentItem  = null;
@@ -1468,7 +1818,8 @@ var deviceRotation = {
 			deviceRotation.type         = null;
 			deviceRotation.newValue     = null;
 			deviceRotation.currentItem  = null;
-			deviceRotation.startPerc    = null;;
+			deviceRotation.startPerc    = null;
+
 			
 		},
 		calibrated: function (timestamp) {
@@ -1538,6 +1889,216 @@ var deviceRotation = {
 		
 	}
 
+var waveform = new Tone.Analyser("waveform", 1024);
+// var analyzer = new Tone.Analyser("fft", 64);
+
+var masterSequence = {
+	player:null,
+	parts: [],
+	analyzers : [],
+	init: function () {
+		var startAllButton = document.querySelector('.fn-startAllSequence-cb');
+		
+		startAllButton.addEventListener('change', function(e) {
+			
+			postData.postRequest('/live', {start: e.currentTarget.checked}, function (response) {
+			
+				location.reload();
+			})
+		});
+		 
+		
+	},
+	findPart: function (groupId) {
+		var found = false;
+		this.parts.forEach(function(part, index) {
+			if(part.groupId == groupId)
+			found = part;
+		});
+		return found;
+	},
+	parseBlobAudio: function (src) {
+		console.log(src);
+		console.log('heyo');
+		var blob = new Blob([src.blob], { 'type' : 'audio/ogg; codecs=opus' });
+		
+	    var audio = document.createElement('audio');
+	    audio.src = window.URL.createObjectURL(blob);
+	    
+	 //    var player = new Tone.Player(audio.src).fan(waveform).toMaster();
+	 //    // var player = new Tone.Player(music.mp3).fan(waveform).toMaster();
+	 //    player.autostart = true;
+	 
+	 var currentBlob = this.findPart(src.groupId);
+	 var sekf = this;
+	 if(currentBlob) {
+	 	console.log('starting');
+		currentBlob.part.stop();
+		
+	    currentBlob.part = new Tone.Player(window.URL.createObjectURL(blob)).connect(currentBlob.gainNode);
+	    currentBlob.part.autostart = true;
+
+			
+	} else {
+		console.log('deze');
+		var analyzer = new Tone.Analyser("fft", 64);
+		analyzer.groupId = src.groupId;
+		audioVisual.analyzers.push(analyzer);
+		var gainNode = new Tone.Gain().fan(analyzer).toMaster();
+
+		var part = new Tone.Player(window.URL.createObjectURL(blob)).connect(gainNode);
+	    part.autostart = true;
+	    part.retrigger = true;
+	    console.log(this);
+	    this.parts.push({
+	    	part: part,
+	    	groupId: src.groupId,
+	    	gainNode : gainNode,
+	    	color: src.color
+	    });
+	    if(this.parts.length == 1) {
+	    	audioVisual.init();
+	    } else {
+	    	audioVisual.addItem();
+	    }
+
+
+	}
+	   
+	},
+	findAudio: function () {
+
+	},
+	playAudio: function (src) {
+
+		// this.player = new Tone.Player('music.mp3').fan(analyzer).toMaster();
+	 //    this.player.autostart = true;
+
+	 //    Tone.Buffer.on('load', function(){
+		// 	//all buffers are loaded.	
+		// 	console.log('shit is loaded');
+		// 	audioVisual.init();
+		// 	// liveRoom.animation()
+		// })
+	},
+
+}
+var liveRoom = {
+	users: [],
+	userList: document.querySelector('.fn-livelist-users'),
+	addUserListitem: function (user) {
+		var newListitem = document.createElement('li');
+		var text        = document.createElement('h4');
+		var span        = document.createElement('span');
+		
+		tools.addClasses(text, ['head', 'h4', 'text-white', 'text-condensed'] );
+		tools.addClasses(span, ['color', 'color-' + user.color]);
+		
+		text.innerHTML = user.username;
+
+		newListitem.setAttribute('user-id', user.userId);
+		newListitem.append(text);
+		newListitem.append(span);
+
+		this.userList.append(newListitem);
+		
+	},
+	removeUserListitem: function (id) {
+		this.userList.querySelector('li').forEach(function(listItem, index) {
+			
+			if(listItem.getAttribute('user-id')  == id ) {
+				listItem.parentNode.removeChild(listItem);
+				liveRoom.users.splice(index, 1);
+
+			}
+		});
+
+	},
+	findUser: function (id) {
+		var found = false;
+		this.users.forEach(function(user) {
+			found = user.userId == id ? user : found;
+			
+		});
+		
+		return found;
+	},
+	checkUser: function (user) {
+		if(user.active && !this.findUser(user.userId)) {
+			this.addUserListitem(user);
+			this.users.push(user);
+
+		} else if (!user.active) {	
+			this.removeUserListitem(user.userId);
+
+		}
+	}
+}
+	// 	var currentTime = masterSequence.player._source.context.currentTime;
+		// var endTime      = masterSequence.player._state._timeline[1].time;
+
+var audioVisual = {
+	amountOfElements: 10,
+	vizArea         : document.querySelector('#viz'),
+	analyzers: [],
+	setValues: function () {
+		this.bufferLength = this.analyzers[0].size;
+		this.dataArray    = new Uint8Array(this.bufferLength);
+	},
+	addItem: function () {
+		console.log(this.analyzers.length);
+		audioVisual.setElements(this.analyzers.length - 1);
+	},
+	updateAnimation : function () {
+		for(var y in this.analyzers) {
+			var values = this.analyzers[y].analyse();
+			
+			for(var i = 0; i < this.bufferLength; i++) {
+			    var segScale = values[i] / 200;
+			    this.elementArray[y][i].style.transform = 'scaleY(' + segScale + ')';
+			  }
+		}
+
+		requestAnimationFrame(this.updateAnimation.bind(this) );
+	},
+	
+	setElements: function (index) {
+		var self = this;
+
+		var arr = [];
+
+		for(var i = 0; i < this.bufferLength; i++) {
+
+			var element = document.createElement('span');
+			element.classList.add('viz-seg');
+			console.log(index);
+			element.classList.add('color-' + masterSequence.parts[index].color)
+			element.style.left = (self.bufferLength - i) * (50/self.bufferLength) + '%';
+			element.style.width  = 50/self.bufferLength + '%';
+			if(i%2) {
+				element.style.left = i * (50/self.bufferLength) + 50 + '%';
+			}
+			self.vizArea.appendChild(element);
+			arr.push(element);
+			
+		}
+		this.elementArray.push(arr);
+		
+		
+	},
+
+	init: function () {
+		this.setValues();
+		var self = this;
+		for(var i in this.analyzers) {
+			self.elementArray = []
+			self.setElements(i);
+		}
+		this.updateAnimation();
+
+	},
+}
+
 var postData = {
 	groupList: function () {
 		var listItems    = document.querySelectorAll('.fn-grouplist-item');
@@ -1563,8 +2124,6 @@ var postData = {
 		});
 	},
 	groupListPost: function (data) {
-		
-		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
 
 		postData.postRequest('/createGroup', data,  function (response) {
 			
@@ -1599,8 +2158,8 @@ var postData = {
 			groupid: data.group._id
 		};
 		postData.postRequest('/role/leave',send, function (res) {
+			console.log('saved before leaving');
 			
-			data = res;
 		})
 	},
 
@@ -1614,8 +2173,13 @@ var postData = {
 		xhr.onreadystatechange = function() {//Call a function when the state changes.
 		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
 		        // Request finished. Do processing here.
+		        console.log(xhr.response);
+		        // if(xhr.response) {
+		        // 	cb(JSON.parse(xhr.response))	
+		        // } else {
+		        // 	cb()
+		        // }
 		        
-		        cb(JSON.parse(xhr.response))
 		    }
 		}
 		xhr.send(query); 
@@ -1718,6 +2282,9 @@ var tips = {
 	}
 }
 var tools = {
+	events: function (selector, type,  callback) {
+
+	},
 	autoSubmit: function () {
 		var form = document.querySelector('.fn-post-radio');
 
@@ -1728,6 +2295,28 @@ var tools = {
 			
 		}
 
+	},
+	setGroup: function () {
+		var allgroups = false;
+		if(allgroups) {
+
+		} else {
+			return 0;
+		}
+	},
+	increaseOrMax: function (value) {
+		value.increasable++;
+		
+		if(value.increasable == value.max) {
+			value.increasable = value.min;
+		}
+
+		return value.increasable;
+	},
+	addClasses: function (element, classes) {
+		for(var i in classes) {
+			element.classList.add(classes[i])
+		}
 	},
 	submitForm: function () {
 		var form = document.querySelector('form');
@@ -1764,13 +2353,71 @@ var tools = {
 		return (value*100)/max;
 	},
 	valueInObject: function (obj,param,  value) {
-		var match = null;
+		var match = false;
 		obj.forEach(function(elem) {
 			if(elem[param] == value) {
 				match = elem
 			}
 		});
 		return match;
+	},
+	groupOrGroups: function () {
+
+	},
+	contains(thing, has) {
+		if(thing.indexOf(has) !== -1) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+	
+	eachDataFromGroup: function (parameter, callback) {
+		if(tools.contains(window.locaiton.pathname, 'rol')) {
+			console.log('contains');
+		} else {
+			console.log('not');
+		}
+		// if(group == 'all') {
+		// 	for(var i in data.group) {
+		// 		for (var y in data.group[i][parameter]) {
+		// 			callback(data.group[i][parameter](i), i)
+		// 		}	
+		// 	}
+		// } else {
+		// 	for(var i in data.group[group][parameter]) {
+		// 		 callback(data.group[group][parameter][i], i)
+		// 	}
+		// }
+	},
+	dataFromGroup: function ( groupId, callback ) {
+		for(var i in data.group) {
+
+			if(data.group[i]._id == groupId) {
+				callback(data.group[i])
+			}
+		}
+		// if(group == 'all') {
+		// 	for(var i in data.group) {
+		// 		callback(data.group[i][parameter])
+		// 	}
+		// } else {
+		// 	callback(data.group[group][parameter])
+		// }
+	},
+	pathObj: function (obj, path) {
+		
+
+		if(typeof path === 'string') path = path.split('.');
+
+		  if(path.length === 0) return obj;
+		  return tools.pathObj(obj[path[0]], path.slice(1));
+	},
+	currentGroupId: function () {
+		// return tools.pathObj(data, 'group.0._id');
+		
+		var path = window.location.pathname.split('/');
+		return path[path.length - 1];
 	},
 	get: function (name) {
 		name = name + '=';
@@ -1818,9 +2465,9 @@ var cameraTracker = {
       
   },  
   checkSupport: function (callback) {
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    navigator.getUserMedia = false;
-    data.supportMedia = navigator.getUserMedia ? true : false;
+    var support = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    
+    data.supportMedia = support ? true : false;
     
     return data.supportMedia;
   },

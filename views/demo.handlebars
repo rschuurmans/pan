@@ -1,46 +1,9 @@
-<video id="gum-local" autoplay></video>
-
-    <div id="errorMsg"></div>
+<h2>dit is een demo</h2>
 
 <script>
-	
-'use strict';
 
-var errorElement = document.querySelector('#errorMsg');
-var video = document.querySelector('video');
 
-// Put variables in global scope to make them available to the browser console.
-var constraints = window.constraints = {
-  audio: false,
-  video: true
-};
 
-function handleSuccess(stream) {
-  var videoTracks = stream.getVideoTracks();
- 
-  window.stream = stream; // make variable available to browser console
-  video.srcObject = stream;
-}
 
-function handleError(error) {
-  if (error.name === 'ConstraintNotSatisfiedError') {
-    errorMsg('The resolution ' + constraints.video.width.exact + 'x' +
-        constraints.video.width.exact + ' px is not supported by your device.');
-  } else if (error.name === 'PermissionDeniedError') {
-    errorMsg('Permissions have not been granted to use your camera and ' +
-      'microphone, you need to allow the page access to your devices in ' +
-      'order for the demo to work.');
-  }
-  errorMsg('getUserMedia error: ' + error.name, error);
-}
 
-function errorMsg(msg, error) {
-  errorElement.innerHTML += '<p>' + msg + '</p>';
-  if (typeof error !== 'undefined') {
-    console.error(error);
-  }
-}
-
-navigator.mediaDevices.getUserMedia(constraints).
-    then(handleSuccess).catch(handleError);
 </script>

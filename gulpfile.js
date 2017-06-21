@@ -33,6 +33,7 @@ gulp.task('build', function() {
     gulp.start(
         'build-lib',
         'build-js',
+        'build-music',
         'build-css',
         'build-images'
     );
@@ -76,6 +77,12 @@ gulp.task('build-lib', function () {
 	return gulp.src('src/javascript/lib/*.js')
 		.pipe(concat('lib.js'))
 		.on('error', errorHandle)
+		.pipe(gulp.dest('public'))	
+		 
+		
+})
+gulp.task('build-music', function () {
+	return gulp.src('src/*.mp3')
 		.pipe(gulp.dest('public'))	
 		 
 		

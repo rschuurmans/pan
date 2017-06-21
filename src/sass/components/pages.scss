@@ -52,6 +52,9 @@ body {
 		
 	}
 	&[recording='true'] {
+		.block-sequence-top {
+			max-height:0;
+		}
 		background:$color-white;
 		li[target-page='adsr'], li[target-page='pp'] {
 			// @extend .unclickable
@@ -68,6 +71,7 @@ body {
 			.btn-label-abs {
 				transform:rotateY(180deg);
 			}
+			
 			
 		}
 		.btn-grid-item {

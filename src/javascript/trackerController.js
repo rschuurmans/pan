@@ -25,9 +25,9 @@ var cameraTracker = {
       
   },  
   checkSupport: function (callback) {
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-    navigator.getUserMedia = false;
-    data.supportMedia = navigator.getUserMedia ? true : false;
+    var support = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    
+    data.supportMedia = support ? true : false;
     
     return data.supportMedia;
   },

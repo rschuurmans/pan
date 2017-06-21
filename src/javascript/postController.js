@@ -23,8 +23,6 @@ var postData = {
 		});
 	},
 	groupListPost: function (data) {
-		
-		var query = "username=" + data.username + "&newGroup=" + data.newGroup + "&id=" + data.id;
 
 		postData.postRequest('/createGroup', data,  function (response) {
 			
@@ -59,8 +57,8 @@ var postData = {
 			groupid: data.group._id
 		};
 		postData.postRequest('/role/leave',send, function (res) {
+			console.log('saved before leaving');
 			
-			data = res;
 		})
 	},
 
@@ -74,8 +72,13 @@ var postData = {
 		xhr.onreadystatechange = function() {//Call a function when the state changes.
 		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
 		        // Request finished. Do processing here.
+		        console.log(xhr.response);
+		        // if(xhr.response) {
+		        // 	cb(JSON.parse(xhr.response))	
+		        // } else {
+		        // 	cb()
+		        // }
 		        
-		        cb(JSON.parse(xhr.response))
 		    }
 		}
 		xhr.send(query); 

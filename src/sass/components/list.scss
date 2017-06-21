@@ -1,3 +1,7 @@
+@keyframes active-user {
+	0%{opacity:0; transform: translateY(20px)}
+	100%{opacity:1; transform: translateY(0px)}
+}
 
 .list {
 	&-clear {
@@ -7,6 +11,34 @@
 	}
 	&-margin-bottom {
 		margin-bottom:$padding-page-lg*2;
+	}
+	&-live-users {
+		width:15em;
+		text-align:right;
+		text-transform:uppercase;
+		h3 {
+			padding:$button-padding;
+		}
+		li {
+			padding:$button-padding;
+			background-color:red;
+			margin-bottom:$gutter*2;
+			background-color:rgba(225,225,225,.05);
+			animation: .3s active-user;
+			animation-fill-mode:forwards;
+			position:relative;
+			padding-right:30px;
+			
+			.color {
+				width:.5em;
+				position:absolute;
+				right:0;
+				top:0;
+				height:100%;
+
+			}
+
+		}
 	}
 	
 	&-adsr {

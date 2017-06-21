@@ -52,10 +52,15 @@ var deviceRotation = {
 		newValue    : null,
 		type        :null,
 		currentItem : null,
+		support     : false,
 		startPerc   : null,
 		start: function (item) {
-			window.addEventListener('deviceorientation', deviceRotation.event);
-			
+			if(window.DeviceOrientationEvent) {
+				console.log('support');
+				window.addEventListener('deviceorientation', deviceRotation.event);
+			} else {
+				console.log('no support');
+			}
 		},
 		stop:function (callback) {
 			window.removeEventListener('deviceorientation', deviceRotation.event);
@@ -68,13 +73,41 @@ var deviceRotation = {
 			
 		},
 		listen:function (item, type, perc) {
+			
 			deviceRotation.currentItem = item;
-			deviceRotation.type = type;
-			deviceRotation.startPerc = perc;
+			deviceRotation.startPerc   = perc;
+			deviceRotation.type        = type;
+			if(!window.DeviceOrientationEvent) {
+				deviceRotation.fallback(item, type, perc);
+			} 
+			
 		},
+		fallback: function (item, type, perc) {
+			
+			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
+				
+				slider.parentNode.classList.toggle('active', parseInt(slider.id) == parseInt(item.getAttribute('sequence-index')))
+				slider.value == perc;
+				slider.addEventListener('input', function (e) {
+					sequencer.receiveNewValue(e.currentTarget.value, deviceRotation.currentItem);
+				})
+			})
+		},	
+		stopFallback: function (item) {
+			console.log(item);
+			tools.eachDomElement('.fn-fallback-steps input', function (slider) {
+				
+				slider.parentNode.classList.remove('active');
+				
+			})
+		},	
 		stopListen:function (callback) {
+			console.log('stop');
+			
+			if(!window.DeviceOrientationEvent) {
+				deviceRotation.stopFallback(deviceRotation.currentItem);
+			}
 			callback(deviceRotation.newValue, deviceRotation.currentItem)
-
 			deviceRotation.startCompass = null;
 			deviceRotation.lastCompass  = null;
 			deviceRotation.currentItem  = null;
@@ -82,7 +115,8 @@ var deviceRotation = {
 			deviceRotation.type         = null;
 			deviceRotation.newValue     = null;
 			deviceRotation.currentItem  = null;
-			deviceRotation.startPerc    = null;;
+			deviceRotation.startPerc    = null;
+
 			
 		},
 		calibrated: function (timestamp) {

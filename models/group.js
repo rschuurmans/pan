@@ -17,7 +17,8 @@ var groupSchema = new Schema({
 	wavetypes: Array,
 	synth:String,
 	scale: Array,
-	sustain: Boolean
+	sustain: Boolean,
+	color: String
 
 })
 

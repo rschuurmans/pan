@@ -1,4 +1,7 @@
 var tools = {
+	events: function (selector, type,  callback) {
+
+	},
 	autoSubmit: function () {
 		var form = document.querySelector('.fn-post-radio');
 
@@ -9,6 +12,28 @@ var tools = {
 			
 		}
 
+	},
+	setGroup: function () {
+		var allgroups = false;
+		if(allgroups) {
+
+		} else {
+			return 0;
+		}
+	},
+	increaseOrMax: function (value) {
+		value.increasable++;
+		
+		if(value.increasable == value.max) {
+			value.increasable = value.min;
+		}
+
+		return value.increasable;
+	},
+	addClasses: function (element, classes) {
+		for(var i in classes) {
+			element.classList.add(classes[i])
+		}
 	},
 	submitForm: function () {
 		var form = document.querySelector('form');
@@ -45,13 +70,71 @@ var tools = {
 		return (value*100)/max;
 	},
 	valueInObject: function (obj,param,  value) {
-		var match = null;
+		var match = false;
 		obj.forEach(function(elem) {
 			if(elem[param] == value) {
 				match = elem
 			}
 		});
 		return match;
+	},
+	groupOrGroups: function () {
+
+	},
+	contains(thing, has) {
+		if(thing.indexOf(has) !== -1) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+	
+	eachDataFromGroup: function (parameter, callback) {
+		if(tools.contains(window.locaiton.pathname, 'rol')) {
+			console.log('contains');
+		} else {
+			console.log('not');
+		}
+		// if(group == 'all') {
+		// 	for(var i in data.group) {
+		// 		for (var y in data.group[i][parameter]) {
+		// 			callback(data.group[i][parameter](i), i)
+		// 		}	
+		// 	}
+		// } else {
+		// 	for(var i in data.group[group][parameter]) {
+		// 		 callback(data.group[group][parameter][i], i)
+		// 	}
+		// }
+	},
+	dataFromGroup: function ( groupId, callback ) {
+		for(var i in data.group) {
+
+			if(data.group[i]._id == groupId) {
+				callback(data.group[i])
+			}
+		}
+		// if(group == 'all') {
+		// 	for(var i in data.group) {
+		// 		callback(data.group[i][parameter])
+		// 	}
+		// } else {
+		// 	callback(data.group[group][parameter])
+		// }
+	},
+	pathObj: function (obj, path) {
+		
+
+		if(typeof path === 'string') path = path.split('.');
+
+		  if(path.length === 0) return obj;
+		  return tools.pathObj(obj[path[0]], path.slice(1));
+	},
+	currentGroupId: function () {
+		// return tools.pathObj(data, 'group.0._id');
+		
+		var path = window.location.pathname.split('/');
+		return path[path.length - 1];
 	},
 	get: function (name) {
 		name = name + '=';

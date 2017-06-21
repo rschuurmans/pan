@@ -4,15 +4,16 @@ var audioSetup = {
 		scale:[261.63,293.66, 329.63,349.23,392.00,440.00,493.88,523.25,587.33,659.25,698.46,783.99,880.00,987.77,1046.50,1174.66],
 		generate: function (number) {
 			
-			var type = ['slow', 'slow', 'slow', 'mid', 'fast'][Math.floor(Math.random()*3)];
-			if(number == 0 || parseInt(number) == 0) {
-				type = 'fast'
+			var type = null;
+
+			if((parseInt(number) % 2 )== 0) {
+				type = 'slow'
+			} else {
+				type = 'fast';
+				audioSetup.scale = [28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20,28.20, 20]
 			}
-			if(type == 'fast') {
-				audioSetup.scale = [28.20, 30.87,32.70,34.65,36.71,261.63,293.66, 329.63, 28.20, 30.87,32.70,34.65,36.71,261.63,293.66, 329.63]
-				 
-			} 
-			console.log('number is ', number);
+			
+
 			
 			var newSynth = {
 				synth    : audioSetup.getSynth(type),
@@ -77,15 +78,15 @@ var audioSetup = {
 			var adsr = {
 				decay: {
 					value: (Math.random() * time[type][1]) + time[type][0],
-					max:4 },
+					max:2 },
 				release: {
 					value: ((Math.random() * time[type][1]) + time[type][0])*2,
-					max:4
+					max:2
 				},
 				
 				attack: {
 					value: (Math.random() * time[type][1]) + time[type][0],
-					max: 4}
+					max: 2}
 			}
 			return adsr;
 		},
@@ -103,7 +104,8 @@ var audioSetup = {
 		},
 		getWavetype: function (type) {
 			var wavetypes = ['sine', 'square', 'sawtooth', 'triangle'];
-			return wavetypes[Math.floor(Math.random()*wavetypes.length)];
+			// var newWaveType = type = 'fast' ? 'noise' : ;
+			return wavetypes[Math.floor(Math.random()*wavetypes.length)]
 		},
 		getAllWavetypes: function () {
 			var wavetypes = ['sine', 'square', 'sawtooth', 'triangle', 'noise'];
@@ -119,14 +121,17 @@ var audioSetup = {
 			
 			var steps = stepsChoices[type][Math.floor(Math.random()*stepsChoices[type].length)];
 			// var steps = 8;
-			
+			var max = 1200;
+			if(type == 'fast') {
+				max = 500;
+			}
 			var data = [];
 			for(var i = 0; i < steps; i++) {
 				data.push({
 					frequency: audioSetup.scale[Math.floor(Math.random()*audioSetup.scale.length)],
 					active: Math.random() >= 0.5,
 					min:0,
-					max:1200,
+					max:max,
 				})
 			};
 

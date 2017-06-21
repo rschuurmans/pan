@@ -14,7 +14,7 @@ var cookieParser = require('cookie-parser');
 var mongoose     = require('mongoose');
 var session      = require('express-session');
 var db           = require('./helpers/db');
-
+var socketLoop = require('./helpers/socketLoop');
 
 
 
@@ -38,13 +38,10 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, 'public')))
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://admin:Roos1995!@ds137191.mlab.com:37191/pan3');
+mongoose.connect('mongodb://admin:Roos1995!@ds025772.mlab.com:25772/pan-live');
 
-var serverDelay = 4000;
-var interval = setInterval(function () {
-  // this is the start of 16 steps
-  io.sockets.emit('startSequence', serverDelay)
-}, serverDelay)
+
+
 
 
 io.on('connection', function (socket) {
@@ -52,6 +49,10 @@ io.on('connection', function (socket) {
   socket.on('joinRoom', function (room) {
     console.log('about to join this room: ', room);
     socket.join(room);
+  });
+  socket.on('liveUpdate', function (data) {
+    
+    io.sockets.to(data.room).emit('liveUpdate', data);
   });
 
 
@@ -68,6 +69,10 @@ io.on('connection', function (socket) {
 
     io.sockets.to(data.room).emit('updateSingleStep', data);
   })
+  socket.on('audioBlob', function (data) {
+
+    io.sockets.to(data.room).emit('audioBlob', data);
+  })
   socket.on('updateSustain', function (data) {
     console.log('update sustain', data);
     io.sockets.to(data.room).emit('updateSustain', data);
@@ -81,42 +86,10 @@ io.on('connection', function (socket) {
   socket.on('updateFilter', function (data) {
     io.sockets.to(data.room).emit('updateFilter', data);
   })
+  socket.on('demo', function (data) {
+    io.sockets.emit('demo', data);
+  })
 
-  // socket.on('message', function (data) {
-  // })
-  // socket.on('testmessage', function (data) {
-  //   console.log('received test messagE: ', data);
-  //   io.sockets.to(data.room).emit('testmessage', data)
-  // })
-  // socket.on('update', function (data) {
-  //   io.sockets.emit('update', data);
-  // })
-  // socket.on('sequenceStep', function (data) {
-  //   io.sockets.emit('sequenceStep', data);
-  // })
-  // // socket.on('startSequence', function (data) {
-  // //   console.log('received a serverstep', data);
-  // //   io.sockets.emit('startSequence', data);
-  // // })
-  
-  // socket.on('updateSteps', function(data) {
-
-  //   io.sockets.to(data.room).emit('updateSteps', data);
-  // })
-  // socket.on('holdStep', function(data) {
-
-  //   io.sockets.to(data.room).emit('holdStep', data);
-  // })
-  // socket.on('updateSources', function (data) {
-  //   console.log('update sources', data);
-  //   io.sockets.to(data.room).emit('updateSources', data.data);
-  // })
-  // socket.on('updateSound', function (data) {
-  //   io.sockets.to(data.room).emit('updateSound', data);
-  // })
-  // socket.on('sequenceStepMod', function (data) {
-  //   io.sockets.emit('sequenceStepMod', data);
-  // })
 
 })
 

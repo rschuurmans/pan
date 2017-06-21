@@ -28,6 +28,7 @@ var recording = {
 		})
 	},
 	event: function (e) {
+		
 		var index = parseInt(e.currentTarget.getAttribute('sequence-index'));
 		
 		recording.melody.push(data.group.scale[index]);
@@ -88,18 +89,23 @@ var recording = {
 
 var events = {
 	showStep: function (index) {
+		
 		var steps   = document.querySelectorAll('.fn-sequencer-item');
+		for(var i = 0; i < steps.length; i++) {
+			steps[i].classList.toggle('highlight', i == index)
+		
+		};
 
-		if(steps.length && !recording.isRecording) {
-			steps.forEach(function(step) {
-				step.classList.remove('highlight');
-			});
-			steps[index].classList.add('highlight')
-		} else {
-			steps.forEach(function(step) {
-				step.classList.remove('highlight')
-			});
-		}
+		// if(steps.length && !recording.isRecording) {
+		// 	steps.forEach(function(step) {
+		// 		step.classList.remove('highlight');
+		// 	});
+		// 	steps[index].classList.add('highlight')
+		// } else {
+		// 	steps.forEach(function(step) {
+		// 		step.classList.remove('highlight')
+		// 	});
+		// }
 	},
 	showRotate: function (item) {
 		body.setAttribute('rotate-active', true);
@@ -134,8 +140,11 @@ var events = {
 		// to be implemented, dot as in filter
 	},
 	unload: function () {
+		console.log('unload');
 		window.addEventListener('unload', function() {
 			sendSocket.send('groupUpdate', data.group._id, {text: data.user.username + ' heeft de groep verlaten'})
+			sendSocket.send('liveUpdate', 'live',  {text: data.user.username + ' heeft de groep verlaten'})
+
 			postData.leaveGroup();
 
 		})
@@ -213,7 +222,6 @@ var modulator = {
 	
 		},
 		volume: function (element, index) {
-			console.log(element, index);
 			data.group.sources[index].volume = element.value;
 			
 			
@@ -281,6 +289,7 @@ var sequencer = {
 	},	
 	
 	receiveNewValue: function (newValue, item) {
+
 		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
 		loop.holdTone(true, frequency)
 	},
@@ -307,7 +316,6 @@ var sequencer = {
 			e.preventDefault();
 			item = e.target;
 			var percentage = sequencer.calculatePercentage(item);
-			
 			deviceRotation.listen(item, 'frequency', percentage);
 			
 			events.showRotate(item);
@@ -330,7 +338,7 @@ var sequencer = {
 				data.group.steps[parseInt(index)].active = !data.group.steps[parseInt(index)].active;
 				
 				e.target.classList.toggle('active');
-				console.log(data.group.steps[index]);
+				
 				sendSocket.send('updateSingleStep',data.group._id, 
 					{step: data.group.steps[index], index: index})
 				
@@ -367,6 +375,19 @@ var sequencer = {
 	
 }
 var adsr = {
+
+	getEnvelope: function (groupId) {
+	  	
+	  		return   {
+	            attack: tools.pathObj(data.group, 'adsr.attack.value'),
+	            decay: tools.pathObj(data.group, 'adsr.decay.value'),
+	            sustain: .5,
+	            release: tools.pathObj(data.group, 'adsr.release.value'),
+	        }
+
+	  	
+        
+	},
 	update: function (type, value) {
 		data.group.adsr[type] = value;
 		var string = '[envelope][' + type + ']';
@@ -464,11 +485,17 @@ var adsr = {
 	},
 	changeEvent: function () {
 		var sustainButton = document.querySelector('.fn-sustain');
+		
 		sustainButton.addEventListener('change', function (e) {
-			data.group.sustain = e.currentTarget.checked;
-			sendSocket.send('updateSustain',data.group._id, {sustain: e.currentTarget.checked})
+			adsr.setSustain(e.currentTarget.checked, tools.setGroup());
+			sendSocket.send('updateSustain',tools.setGroup(), {sustain: e.currentTarget.checked})
+
 		})
 	},
+	setSustain : function (value , groupId ) {
+		
+		data.group.sustain = value;
+	}
 	
 	
 }
@@ -516,14 +543,15 @@ var pp = {
 	},
 	touchValues: function (touches) {
 		var position = pp.touchPosition(touches);
+		var max = data.group.steps[0].max;
 		
-		var data = {
-			freq : (position.ypercentage * 1200)/100,
+		var positionData = {
+			freq : (position.ypercentage * max)/100,
 			volume : (position.xpercentage)/20,
 		}
-		data.volume = 5 - data.volume;
+		data.positionData = 5 - positionData.volume;
 
-		return data
+		return positionData
 	},
 	
 	createShadow: function (touches) {

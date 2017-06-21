@@ -1,31 +1,48 @@
-<h2>Group created: {{{prettyDate timestamp}}}</h2>
+<div class='container container-fixed container-padding-lg'>
+	<header class='left'>
+		{{> logo 'PAN'}}
+	</header>
 
-<h2>users</h2>
-{{#if users}}
-
-	<ul>
-		{{#each users}}
-			<li>{{username}}</li>
-			<p>attatched with:</p>
-		{{/each}}
+	<ul class='list list-clear fn-livelist-users right list-live-users'>
+		<h3 class='head h4 text-yellow text-condensed'>Actieve gebruikers :</h3>
+		
 	</ul>
-{{else}}
-<p>none yet...</p>
-
-{{/if}}
-
-<h2>Overall connections made in pan: </h2>
-
-<h2>current connections:<h4>{{arrayLength activeSounds}}</h4> </h2>
-
-<ul>
-	{{#each activeSounds}}
-		<li>
-			
-		</li>
-	{{/each}}
-</ul>
+</div>
 
 
 
+<div class='block-audiovis fn-audiovis'>
+	<div id="wrap">
+ 
+  <div id="viz">
+    
+  </div>
+  </div>
+  <div id="source">
+    <video width="280" height="120" id="src-vid" crossorigin="anonymous" loop  controls>
+      <source src="https://dl.dropbox.com/s/k9gzvn1bdfz0ui7/Holy%20Other%20-%20%20Inpouring.mp4?dl=0" type="video/mp4">
+      You need an MP4-supporting browser.
+    </video>
+  </div>
+</div>
 
+
+
+<h2>dit is live</h2>
+
+<input type="checkbox" id='serverInterval' class='fn-startAllSequence-cb' {{#if intervalActive}}checked {{/if}}>
+<label for="serverInterval" class='fn-startAllSequence-label'>
+	{{#if intervalActive}}
+	Stop
+	{{else}}
+	Start
+	{{/if}}
+</label>
+
+
+
+
+<script>
+	var data = {{{json this}}}
+	console.log(data);
+</script>

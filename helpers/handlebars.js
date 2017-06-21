@@ -22,7 +22,7 @@ function hbsHelpers(hbs) {
 			    }
 			},
 			ifExcists: function (thing, options) {
-				// console.log(thing.length);
+				
 				if(thing) {
 					return options.fn(this);
 				} else {
@@ -32,6 +32,9 @@ function hbsHelpers(hbs) {
 			},
 			rotatePercentage: function (value, min, max) {
 				return (value * 360) / max;
+			},
+			percentage: function (value, max) {
+				return (value * 100) / max;
 			},
 			withIndex: function (object, index, options) {
 				

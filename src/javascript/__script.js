@@ -6,9 +6,9 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
-		cameraTracker.checkSupport();
-		changePage.onboarding()
 		
+		changePage.onboarding()
+		listen.role()
 		tips.init();
 		events.unload();
 
@@ -20,6 +20,7 @@ var init = function () {
 		} else {
 			
 			modulator.init();
+			cameraTracker.checkSupport();
 			// changePage.sequencerNavigation();
 			// modulateSocket();
 			// changePage.selector();
@@ -27,6 +28,10 @@ var init = function () {
 			// modulate.events();
 		}
 	} else  if(path.indexOf('/demo') !== -1) { 
+	} else  if(path.indexOf('/live') !== -1) { 
+		
+		masterSequence.init();
+		listen.master();
 	} else {
 		animate.loginBackground();
 		animate.loginTransition();

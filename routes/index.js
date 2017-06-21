@@ -1,15 +1,18 @@
-var express = require('express');  
-var router  = express.Router();
-var db      = require('./../helpers/db');
-var app = express();
+var express    = require('express');  
+var router     = express.Router();
+var db         = require('./../helpers/db');
+var app        = express();
 
-var io      = require('../socket.js');
-var partial = require('express-partial');
+var io         = require('../socket.js');
+var partial    = require('express-partial');
+var socketLoop = require('../helpers/socketLoop');
+
 app.use(partial());
 
 
 router.get('/', function(req, res, next) { 
 	db.getAllGroups( function (groups) {
+		
 		res.render('index/home', {
 			title:'Pan',
 			role:false,
@@ -24,9 +27,12 @@ router.get('/', function(req, res, next) {
 router.get('/demo', function(req, res, next) { 
 	res.render('demo');
 });
+router.get('/demosec', function(req, res, next) { 
+	res.render('demosec');
+});
 
 router.post('/createGroup', function (req, res, next) {
-	console.log(req.body);
+	
 	if(req.body.newGroup == 'true') {
 		db.createNewGroup(req.body.username, res, function (user, group) {
 			
@@ -43,9 +49,25 @@ router.post('/createGroup', function (req, res, next) {
 
 
 router.get('/live', function (req, res, next) {
-	db.getDemoGroup(function (group) {
-		res.render('index/live', group)
-	})
+	console.log('start');
+	// db.getAllGroups(function (groups) {
+	// 	console.log('gotu it');
+	// 	res.render('index/live', {
+	// 		group:groups[0],
+	// 		intervalActive : socketLoop.active
+	// 	})
+	// })
+	res.render('index/live', {
+			group:[],
+			intervalActive : true
+		})
+})
+router.post('/live', function (req, res, next) {
+	console.log('receive post');
+	socketLoop.toggle();
+	res.send({
+		redirect: '/live'
+	});
 })
 
 module.exports = router;  

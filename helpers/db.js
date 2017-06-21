@@ -16,6 +16,7 @@ var db = {
 			})
 		})
 	},
+	
 	joinGroup: function (username, groupId, cb) {
 		Group.findById(groupId, function (err, group) {
 			if(err) throw err;
@@ -64,11 +65,19 @@ var db = {
 		})
 	},
 	leaveGroup: function (groupId, roleLeaving, newGroup, cb) {
+		console.log('leaveGroup in db.js');
 		Group.findById(groupId, function (err, group) {
 			if(err) throw err;
-			group = newGroup;
+			
+			
+			group.adsr         = newGroup.adsr;
+			group.modulate     = newGroup.modulate;
+			group.modulator    = newGroup.modulator;
+			group.sequencer    = newGroup.sequencer;
+			group.sustain      = newGroup.sustain;
 			group[roleLeaving] = null;
-			console.log(group);
+
+			
 			group.save(function (group) {
 				cb(group)
 			})
@@ -81,13 +90,17 @@ var db = {
 			active:true,
 			startDate: new Date(),
 			role: 'none',
-			groupId: group._id
+			groupId: group._id,
+			color: group.color
 		})
 		user.save( function () {
 			cb(user)
 		});
 	},
-	
+	getColor: function () {
+		return Math.floor(Math.random() * 5) + 1 ; 
+
+	},
 	createGroup: function (cb) {
 		db.countGroups(function (count) {
 			var audioData = audioSetup.generate(count);
@@ -101,13 +114,15 @@ var db = {
 				modulator   : null,
 				groupCounter: count,
 				vca         : false,
-				scale: audioSetup.scale,
+				scale       : audioSetup.scale,
 				effects     : false,
 				adsr        : audioData.adsr,
-				sustain        : audioData.sustain,
+				sustain     : audioData.sustain,
 				wavetypes   : audioData.wavetypes,
-				synth       : audioData.synth
+				synth       : audioData.synth,
+				color       : db.getColor(),
 			})
+			console.log(group.color);
 			group.save(function (err, group) {
 				if(err) throw err;
 				console.log('saved a group');
@@ -137,7 +152,8 @@ var db = {
 	getData: function (groupId, userId, cb) {
 		Group.findById(groupId, function (err, group) {
 			User.findById(userId, function (err, user) {
-				cb({group:group, user:user})
+
+				cb(group, user)
 			})
 		})
 	},

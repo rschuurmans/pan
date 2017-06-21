@@ -5,6 +5,7 @@ var router  = express.Router();
 var io      = require('../socket.js').listen(server);
 var fs      = require('fs');
 var db      = require('./../helpers/db');
+var pageData      = require('./../helpers/pageData');
 
 router.get('/', function (req, res, next) {
 
@@ -14,98 +15,43 @@ router.get('/sequencer/:userid/:groupid', function(req, res, next) {
 	
 
 
-	db.getData(req.params.groupid, req.params.userid, function (data) {
-		
-		// data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
-		data.alert = {
-			text: 'Als sequencer ben je verantwoordelijk voor de melodie. Je kunt hem vervormen en een nieuwe melodie beginnen met de step sequencer',
-			action: 'start',
-			head: 'Sequencer'
+	db.getData(req.params.groupid, req.params.userid, function (group, user) {
+		if(!group) {
+			res.redirect('/')
 		}
-		data.navigation = [{
-			current: 'pp',
-			links: [
-				'sequencerLeft', 'null', 'null'
-			]
-		}, {
-			current : 'adsr',
-			links: ['null', 'null', 'sequencer']
-		},
-		{
-			current:'sequencer',
-			links: ['adsr', 'rec', 'pp' ]
-		}
-		]
-		
-		
-
-	data.tips = [{
-			text: 'Tik op de steps van de sequencer om een step aan of uit te zetten',
-			cond: 'clickActive'
-		}, {
-			text: 'houd de step ingedrukt en draai je telefoon om de toonhoogte te veranderen',
-			cond : 'changeFreq'
-		},
-		{
-			text: 'Je kunt de complete melodie veranderen door een nieuwe op te nemen',
-			cond : 'rec'
-		},
-		{
-			text: 'Nice! Nog een laatste tip. Probeer met de ADSR de toonlengte te veranderen',
-			cond : 'adsr'
-		}
-		]
-
 			
-		res.render('rol/sequencer', data)
+		res.render('rol/sequencer', {
+			group: group,
+			user: user,
+			navigation: pageData.navigation('sequencer'),
+			alert: pageData.alert('sequencer'),
+			tips: pageData.tips('sequencer'),
+		})
 	})
-
+	
 
 })
 router.get('/modulator/:userid/:groupid', function(req, res, next) {
 	
-
-	db.getData(req.params.groupid, req.params.userid, function (data) {
-		// data.group.adsr = [{type:'sustain', value:true, max:null},{type:'attack', value:0.2, max:1}, {type:'decay', value:0.5, max:1}, {type:'release', value:0.5, max:1}]
-		data.alert = {
-			text: 'Als modulator vervorm je het geluid. Gebruik filters e.d. om wat vets te maken. Begin als eerste met het calibreren van je camera',
-			action: 'calibrate',
-			head: 'Modulator'
+	console.log('if the user is not part of this group, move back to /');
+	db.getData(req.params.groupid, req.params.userid, function (group, user) {
+		if(!group) {
+			res.redirect('/')
 		}
-		data.tips = [{
-			text: 'Houd een filter ingedrukt en gebruik een geel oppervlak om de filter aan te passen',
-			cond: 'filter'
-		}, {
-			text: 'Activeer een extra source om het geluid breder te maken',
-			cond : 'active'
-		},
-		{
-			text: 'Verander de detune om de sources van elkaar te laten verschillen',
-			cond : 'detune'
-		},
 		
-		]
-		data.navigation = [{
-			current: 'filters',
-			links: [
-				'null', 'null', 'osc'
-			]
-		}, {
-			current : 'osc',
-			links: ['filters', 'null', 'null']
-		}
-		]
-		
-		
-
-		
-		res.render('rol/modulator', data)
+		res.render('rol/modulator', {
+			group: group,
+			user: user,
+			navigation: pageData.navigation('modulator'),
+			alert: pageData.alert('modulator'),
+			tips: pageData.tips('modulator'),
+		})
 	})
 
 
 })
 router.post('/save', function (req, res, next) {
-	console.log(req.body);
+	
 	
 	db.updateGroup(req.body.groupid,req.body.group, function (group) {
 		res.end();
@@ -113,7 +59,7 @@ router.post('/save', function (req, res, next) {
 	// db.updateGroup
 })
 router.post('/leave', function (req, res, next) {
-	
+	console.log('posting to leave, ' , req.body);
 	
 	db.leaveGroup(req.body.groupid, req.body.role, req.body.group, function (group) {
 

@@ -1,4 +1,23 @@
 
+
+
+.viz-seg {
+  position: absolute;
+  top: 50%;
+  margin-top:-12%;
+  
+  height: 30%;
+  background-color:$color-turq;
+  opacity:.3;
+  // border-radius: 50%;
+  will-change: transform;
+  
+
+  // border:1px solid white;
+}
+
+
+
 .block {
 	margin:$gutter 0;
 	// &:first-of-type {
@@ -7,6 +26,13 @@
 	// &:last-of-type {
 	// 	margin-bottom:$gutter-lg;
 	// }
+	&-audiovis {
+		
+		width:100%;
+		
+		height:100%;
+		
+	}
 	&-filter-swipe {
 		
 		height:20em;
@@ -19,7 +45,14 @@
 		}
 		
 	}
-	&-notification {
+	&-sequence-top {
+		position:relative;
+		height:3em;
+		max-height:999px;
+		margin-top:-3em;
+		transition:.2s ease-in-out;
+	}
+	&-notification-group {
 		background-color:rgba(15,187,165,.5);
 		color:white;
 		border-radius:3px;

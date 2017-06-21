@@ -1,29 +1,17 @@
+<div class='block-sequence-top'>
+	{{#each steps}}
+	<div class="input-range-wrapper block-filter fn-fallback-steps" type={{type}}>
+	  <input type="range" class='input-range'  min="0" max="100" step="1" id='{{@index}}' value="{{{percentage frequency max}}}" />
+	  
+	</div>
+	{{/each}}
+</div>
+
 <ul class='list list-grid list-clear fn-start-animation animate-stagger animate-stagger-in-fast stagger-kids-{{arrayLength scale}}' style='overflow:scroll'>
 			
 	{{#each scale}}
 		{{#withIndex ../steps @index}}
-			
-		{{!-- 
-			
-			<li class='list-grid-item list-grid-item-25 btn-rectangle  btn-rotate-trans'>
-				<span  class='btn btn-round btn-grid-item btn-sequencer 
-					{{#if active}}active{{/if}} fn-sequencer-item' 
-					sequence-index="{{@index}} "
-					frequency="{{frequency}} "
-					max="{{max}} "
-					scale-freq="{{../this}} "
-					step-freq={{#ifExcists frequency}}"true"{{/ifExcists}}
-					
-					>
-					<span class="rotate-extra-circle unclickable"></span>
-						<span class="ic-value  unclickable" 
-							style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
-						<span class='btn-label-abs'>{{@index}}</span>
-						
-					</li>
-				</span>
-			</li>
- --}}
+	
 			{{#ifExcists frequency}}
 				<li class='list-grid-item list-grid-item-25 btn-rectangle  btn-rotate-trans'>
 				<span  class='btn btn-round btn-grid-item btn-sequencer fn-step-item
@@ -38,7 +26,7 @@
 					<span class="rotate-extra-circle unclickable"></span>
 						<span class="ic-value  unclickable" 
 							style="transform:rotate({{{rotatePercentage frequency 0 max}}}deg)"></span>
-						<span class='btn-label-abs'>{{@index}}</span>
+						<span class='btn-label-abs unclickable'>{{@index}}</span>
 						
 					</li>
 				</span>
