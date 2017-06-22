@@ -1,7 +1,6 @@
 // checken met als de sustain lang is 
 var recording = {
 	isRecording: false,
-	recordingUser: false,
 
 	setup: function () {
 		this.startButton = document.querySelector('.fn-seq-rec');
@@ -9,20 +8,10 @@ var recording = {
 		this.length      = data.group.steps.length;
 		this.clickArea = document.querySelector('.fn-rec-step');
 		this.startButton.addEventListener('click', this.startEvent.bind(this))
-		this.checkRecordingUser();
+		
 
 	},
-	checkRecordingUser: function () {
-		var self = this;
-		if(data.user.role == 'sequencer' && data.group.modulator)  {
-			console.log('im not the recording artist');
-			self.recordingUser = false;
-		} else {
-			console.log('im recording artist');
-			self.recordingUser = true;
-		}
-		
-	},
+	
 	startEvent: function (e) {
 		this.isRecording = !this.isRecording;
 		this.melody      = [];

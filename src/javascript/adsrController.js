@@ -105,7 +105,7 @@ var adsr = {
 		sustainButton.addEventListener('change', function (e) {
 			var sustainValue = e.currentTarget.checked;
 			self.setSustain(sustainValue);
-			sendSocket.send('updateSustain',tools.setGroup(), {sustain: sustainValue})
+			sendSocket.send('updateSustain',data.group._id, {sustain: sustainValue})
 
 		})
 	},

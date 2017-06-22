@@ -14,7 +14,7 @@ var cookieParser = require('cookie-parser');
 var mongoose     = require('mongoose');
 var session      = require('express-session');
 var db           = require('./helpers/db');
-var socketLoop = require('./helpers/socketLoop');
+// var socketLoop = require('./helpers/socketLoop');
 
 
 
@@ -41,24 +41,27 @@ mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://admin:Roos1995!@ds025772.mlab.com:25772/pan-live');
 
 
-
+var serverDelay = 4000;
+var interval = setInterval(function () {
+  io.sockets.emit('startSequence', serverDelay)
+}, serverDelay)
 
 
 io.on('connection', function (socket) {
   
   socket.on('joinRoom', function (data) {
-    console.log('about to join this room: ', data);
+    
 
     socket.join(data.room);
   });
   socket.on('joinDuo', function (data) {
-    console.log('about to join this room: ', data);
+    
 
     socket.username = data.username;
     socket.role = data.role;
     socket.duo = data.room;
-    socket.userid = data.userid;
-    console.log(socket.username);
+    socket.userid = data.userId;
+    
     socket.join(data.room);
   });
   socket.on('liveUpdate', function (data) {
@@ -78,7 +81,7 @@ io.on('connection', function (socket) {
     io.sockets.to(data.room).emit('updateSources', data);
   })
   socket.on('updateSingleStep', function (data) {
-
+   
     io.sockets.to(data.room).emit('updateSingleStep', data);
   })
   socket.on('audioBlob', function (data) {
@@ -86,8 +89,16 @@ io.on('connection', function (socket) {
     io.sockets.to(data.room).emit('audioBlob', data);
   })
   socket.on('updateSustain', function (data) {
-    console.log('update sustain', data);
+    
     io.sockets.to(data.room).emit('updateSustain', data);
+  })
+  socket.on('listenPP', function (data) {
+    
+    io.sockets.to(data.room).emit('listenPP', data);
+  })
+   socket.on('stopPP', function (data) {
+    
+    io.sockets.to(data.room).emit('stopPP', data);
   })
   socket.on('updateADSR', function (data) {
     io.sockets.to(data.room).emit('updateADSR', data);
@@ -102,14 +113,19 @@ io.on('connection', function (socket) {
     io.sockets.emit('demo', data);
   })
   socket.on('disconnect', function(){
-    console.log('user disconnected');
-
+    
+     socket.broadcast.emit('liveUpdate', {
+      user: {
+        id: socket.userid,
+        active: false
+      }
+    })
     socket.to(socket.duo).emit('user left', {
       username: socket.username,
       role: socket.role,
       userid: socket.userid
     })
-
+   
   });
 
 

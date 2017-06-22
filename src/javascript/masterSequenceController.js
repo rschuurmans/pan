@@ -6,15 +6,15 @@ var masterSequence = {
 	parts: [],
 	analyzers : [],
 	init: function () {
-		var startAllButton = document.querySelector('.fn-startAllSequence-cb');
+		// var startAllButton = document.querySelector('.fn-startAllSequence-cb');
 		
-		startAllButton.addEventListener('change', function(e) {
+		// startAllButton.addEventListener('change', function(e) {
 			
-			postData.postRequest('/live', {start: e.currentTarget.checked}, function (response) {
+		// 	postData.postRequest('/live', {start: e.currentTarget.checked}, function (response) {
 			
-				location.reload();
-			})
-		});
+		// 		location.reload();
+		// 	})
+		// });
 		 
 		
 	},
@@ -112,8 +112,9 @@ var liveRoom = {
 		
 	},
 	removeUserListitem: function (id) {
-		this.userList.querySelector('li').forEach(function(listItem, index) {
-			
+		this.userList.querySelectorAll('li').forEach(function(listItem, index) {
+			console.log(id, listItem);
+			console.log(listItem.getAttribute('user-id')  == id );
 			if(listItem.getAttribute('user-id')  == id ) {
 				listItem.parentNode.removeChild(listItem);
 				liveRoom.users.splice(index, 1);
@@ -132,12 +133,13 @@ var liveRoom = {
 		return found;
 	},
 	checkUser: function (user) {
+		console.log(user);
 		if(user.active && !this.findUser(user.userId)) {
 			this.addUserListitem(user);
 			this.users.push(user);
 
 		} else if (!user.active) {	
-			this.removeUserListitem(user.userId);
+			this.removeUserListitem(user.id);
 
 		}
 	}

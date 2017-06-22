@@ -72,14 +72,16 @@ var listen = {
 
 			socket.on('audioBlob', function (received) {
 				
-				
+				console.log('received audio blob');
+				console.log(received);
 				 masterSequence.parseBlobAudio(received.data);
 				 received.data.blob = null;
 				 liveRoom.checkUser(received.data);
 				
 			})
 			socket.on('liveUpdate', function (received) {
-				liveRoom.updateActiveUsers(received);
+				console.log(received);
+				liveRoom.checkUser(received.user);
 				
 			})
 
@@ -94,7 +96,8 @@ var listen = {
 		socket.emit('joinDuo', {
 			room: groupId,
 			username: data.user.username,
-			role: data.user.role
+			role: data.user.role,
+			userId: data.user._id
 
 		});
 		socket.emit('joinRoom', {
@@ -140,7 +143,7 @@ var listen = {
 				data.group[received.data.role] = null;
 			}
 			tips.notification(received.data.text, received.data.user);
-			recording.checkRecordingUser();
+			
 			
 		})
 		// console.log(socket);
@@ -155,7 +158,7 @@ var listen = {
 
 		socket.on('updateSustain', function (received) {
 			console.log('received an updateSustain', received);
-			data.group.sustain = received.data.sustain;
+			data.group.sustain = adsr.sustain = received.data.sustain;
 
 			console.log('received an updateSustain', received);
 		})
@@ -164,6 +167,12 @@ var listen = {
 		// adsr.update(received.type, received.value)
 		adsr.update(received.data.type, received.data.value);
 			console.log('received an updateADSR', received);
+		})
+		socket.on('listenPP', function (received) {
+			pp.listenPP(received.data)
+		})
+		socket.on('stopPP', function (received) {
+			pp.stopListenPP(received.data)
 		})
 		socket.on('ppValues', function (received) {
 		audio.ppFreq = received.data.freq;
@@ -178,7 +187,7 @@ var listen = {
 		socket.on('user left', function (received) {
 			console.log('a user left', received);
 			data.group[received.role] = null;
-			recording.checkRecordingUser();
+			
 
 			postData.leaveGroup();
 
@@ -194,7 +203,7 @@ var listen = {
 		socket.on('updateSteps', function (received) {
 			console.log('received a socket', received);
 			data.steps[received.index] = received.step;
-			recording.checkRecordingUser();
+		
 		})
 	}
 }
@@ -216,7 +225,7 @@ socket.on('disconnect', function() {
   });
 var listenStartSocket = function () {
 	socket.on('startSequence', function (fulldelay) {
-		console.log('got it');
+		
 		if(loop.stopped) {
 			console.log('start loop from sokt');
 			loop.start(fulldelay);
@@ -341,7 +350,7 @@ var adsr = {
 		sustainButton.addEventListener('change', function (e) {
 			var sustainValue = e.currentTarget.checked;
 			self.setSustain(sustainValue);
-			sendSocket.send('updateSustain',tools.setGroup(), {sustain: sustainValue})
+			sendSocket.send('updateSustain',data.group._id, {sustain: sustainValue})
 
 		})
 	},
@@ -523,6 +532,7 @@ var audio = {
 
 
 var exportAudio = {
+    recordingUser: true,
     rec: new Recorder(Tone.Master),
      createDownloadLink : function () {
         this.rec && this.rec.exportWAV(function(blob) {
@@ -530,7 +540,7 @@ var exportAudio = {
           var file = blob;
           file.lastModifiedDate = new Date();
           file.name = 'ehname.wav';
-          
+          console.log('sending an audioblob');
           sendSocket.send('audioBlob', 'master', {
             blob : file,
             userId: data.user._id,
@@ -548,17 +558,34 @@ var exportAudio = {
         this.rec.clear();
     },
     stopRecording: function () {
+        console.log('stop recording');
         this.createDownloadLink();
         this.rec.clear();
     },
-    recordLoop: function (index) {
-        
-        if(index == 0) {
-        
-            this.startRecording();
-        } else if(index == 15) {
-            this.stopRecording();
+    checkRecordingUser: function () {
+        var self = this;
+        // console.log(data.user.role == 'sequencer' && data.group.modulator);
+        if(data.user.role == 'sequencer' && data.group.modulator)  {
+            // self.recordingUser = false;
+            
+            return false;
+        } else {
+            // self.recordingUser = true;
+            
+            return true;
         }
+        
+    },
+    recordLoop: function (index) {
+        var self = this;
+       if(this.checkRecordingUser()) {
+         if(index == 0) {
+        
+                self.startRecording();
+            } else if(index == 15) {
+                self.stopRecording();
+            }
+       }
     }
 }
 
@@ -1160,15 +1187,15 @@ var masterSequence = {
 	parts: [],
 	analyzers : [],
 	init: function () {
-		var startAllButton = document.querySelector('.fn-startAllSequence-cb');
+		// var startAllButton = document.querySelector('.fn-startAllSequence-cb');
 		
-		startAllButton.addEventListener('change', function(e) {
+		// startAllButton.addEventListener('change', function(e) {
 			
-			postData.postRequest('/live', {start: e.currentTarget.checked}, function (response) {
+		// 	postData.postRequest('/live', {start: e.currentTarget.checked}, function (response) {
 			
-				location.reload();
-			})
-		});
+		// 		location.reload();
+		// 	})
+		// });
 		 
 		
 	},
@@ -1266,8 +1293,9 @@ var liveRoom = {
 		
 	},
 	removeUserListitem: function (id) {
-		this.userList.querySelector('li').forEach(function(listItem, index) {
-			
+		this.userList.querySelectorAll('li').forEach(function(listItem, index) {
+			console.log(id, listItem);
+			console.log(listItem.getAttribute('user-id')  == id );
 			if(listItem.getAttribute('user-id')  == id ) {
 				listItem.parentNode.removeChild(listItem);
 				liveRoom.users.splice(index, 1);
@@ -1286,12 +1314,13 @@ var liveRoom = {
 		return found;
 	},
 	checkUser: function (user) {
+		console.log(user);
 		if(user.active && !this.findUser(user.userId)) {
 			this.addUserListitem(user);
 			this.users.push(user);
 
 		} else if (!user.active) {	
-			this.removeUserListitem(user.userId);
+			this.removeUserListitem(user.id);
 
 		}
 	}
@@ -1419,7 +1448,7 @@ var postData = {
 			role:data.user.role,
 			groupid: data.group._id
 		};
-		console.log(send);
+		
 		postData.postRequest('/role/leave',send, function (res) {
 			
 			
@@ -1506,12 +1535,28 @@ var pp = {
 			audio.setFrequencies(motionData.pitch)
 			audio.oscVolume(motionData.gain)
 			rotation.rotateBackground(motionData);
+			audio.overrideFreq = motionData.pitch;
+			sendSocket.send('listenPP', data.group._id, {
+				pitch: self.pitch,
+				gain: motionData.gain
+			})
 		})
 	},
 	stopMotion: function (e) {
 		e.target.classList.remove('active');
 		this.displayValue('');
 		rotation.stopListen();
+		sendSocket.send('stopPP', data.group._id, {
+			data: ''
+		})
+	},
+	listenPP: function (received) {
+		audio.setFrequencies(received.pitch)
+		audio.oscVolume(received.gain)
+		audio.overrideFreq = received.pitch;
+	},
+	stopListenPP: function () {
+		audio.overrideFreq = false;
 	},
 	handleEvent: function (event) {
 		if(event.type == 'touchmove' || event.type == 'touchstart') {
@@ -1622,7 +1667,6 @@ var pp = {
 // checken met als de sustain lang is 
 var recording = {
 	isRecording: false,
-	recordingUser: false,
 
 	setup: function () {
 		this.startButton = document.querySelector('.fn-seq-rec');
@@ -1630,20 +1674,10 @@ var recording = {
 		this.length      = data.group.steps.length;
 		this.clickArea = document.querySelector('.fn-rec-step');
 		this.startButton.addEventListener('click', this.startEvent.bind(this))
-		this.checkRecordingUser();
+		
 
 	},
-	checkRecordingUser: function () {
-		var self = this;
-		if(data.user.role == 'sequencer' && data.group.modulator)  {
-			console.log('im not the recording artist');
-			self.recordingUser = false;
-		} else {
-			console.log('im recording artist');
-			self.recordingUser = true;
-		}
-		
-	},
+	
 	startEvent: function (e) {
 		this.isRecording = !this.isRecording;
 		this.melody      = [];
@@ -1788,6 +1822,10 @@ var modulator = {
 		rotation.listen(function (motionData) {
 			var value = motionData.perBeta/2;
 			filters.update(filterType, value);
+			sendSocket.send('updateFilter', data.group._id, {
+				type: filterType,
+				value: value
+			})
 			self.displayValue(value);
 			rotation.scaleBackground(value*2);
 		})

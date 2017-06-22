@@ -23,14 +23,16 @@ var listen = {
 
 			socket.on('audioBlob', function (received) {
 				
-				
+				console.log('received audio blob');
+				console.log(received);
 				 masterSequence.parseBlobAudio(received.data);
 				 received.data.blob = null;
 				 liveRoom.checkUser(received.data);
 				
 			})
 			socket.on('liveUpdate', function (received) {
-				liveRoom.updateActiveUsers(received);
+				console.log(received);
+				liveRoom.checkUser(received.user);
 				
 			})
 
@@ -45,7 +47,8 @@ var listen = {
 		socket.emit('joinDuo', {
 			room: groupId,
 			username: data.user.username,
-			role: data.user.role
+			role: data.user.role,
+			userId: data.user._id
 
 		});
 		socket.emit('joinRoom', {
@@ -91,7 +94,7 @@ var listen = {
 				data.group[received.data.role] = null;
 			}
 			tips.notification(received.data.text, received.data.user);
-			recording.checkRecordingUser();
+			
 			
 		})
 		// console.log(socket);
@@ -106,7 +109,7 @@ var listen = {
 
 		socket.on('updateSustain', function (received) {
 			console.log('received an updateSustain', received);
-			data.group.sustain = received.data.sustain;
+			data.group.sustain = adsr.sustain = received.data.sustain;
 
 			console.log('received an updateSustain', received);
 		})
@@ -115,6 +118,12 @@ var listen = {
 		// adsr.update(received.type, received.value)
 		adsr.update(received.data.type, received.data.value);
 			console.log('received an updateADSR', received);
+		})
+		socket.on('listenPP', function (received) {
+			pp.listenPP(received.data)
+		})
+		socket.on('stopPP', function (received) {
+			pp.stopListenPP(received.data)
 		})
 		socket.on('ppValues', function (received) {
 		audio.ppFreq = received.data.freq;
@@ -129,7 +138,7 @@ var listen = {
 		socket.on('user left', function (received) {
 			console.log('a user left', received);
 			data.group[received.role] = null;
-			recording.checkRecordingUser();
+			
 
 			postData.leaveGroup();
 
@@ -145,7 +154,7 @@ var listen = {
 		socket.on('updateSteps', function (received) {
 			console.log('received a socket', received);
 			data.steps[received.index] = received.step;
-			recording.checkRecordingUser();
+		
 		})
 	}
 }
@@ -167,7 +176,7 @@ socket.on('disconnect', function() {
   });
 var listenStartSocket = function () {
 	socket.on('startSequence', function (fulldelay) {
-		console.log('got it');
+		
 		if(loop.stopped) {
 			console.log('start loop from sokt');
 			loop.start(fulldelay);

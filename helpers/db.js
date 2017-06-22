@@ -17,10 +17,10 @@ var db = {
 		})
 	},
 	deleteEmptyGroups: function (callback) {
-		console.log('delete?');
+		
 		Group.remove({modulator: null, sequencer: null},function (err, groups) {
 			if(err) throw err;
-			console.log('i deleted some', groups);
+			
 			callback();
 		})
 

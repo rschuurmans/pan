@@ -56,7 +56,7 @@ var postData = {
 			role:data.user.role,
 			groupid: data.group._id
 		};
-		console.log(send);
+		
 		postData.postRequest('/role/leave',send, function (res) {
 			
 			

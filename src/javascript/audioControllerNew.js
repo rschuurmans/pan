@@ -82,6 +82,7 @@ var audio = {
 
 
 var exportAudio = {
+    recordingUser: true,
     rec: new Recorder(Tone.Master),
      createDownloadLink : function () {
         this.rec && this.rec.exportWAV(function(blob) {
@@ -89,7 +90,7 @@ var exportAudio = {
           var file = blob;
           file.lastModifiedDate = new Date();
           file.name = 'ehname.wav';
-          
+          console.log('sending an audioblob');
           sendSocket.send('audioBlob', 'master', {
             blob : file,
             userId: data.user._id,
@@ -107,17 +108,34 @@ var exportAudio = {
         this.rec.clear();
     },
     stopRecording: function () {
+        console.log('stop recording');
         this.createDownloadLink();
         this.rec.clear();
     },
-    recordLoop: function (index) {
-        
-        if(index == 0) {
-        
-            this.startRecording();
-        } else if(index == 15) {
-            this.stopRecording();
+    checkRecordingUser: function () {
+        var self = this;
+        // console.log(data.user.role == 'sequencer' && data.group.modulator);
+        if(data.user.role == 'sequencer' && data.group.modulator)  {
+            // self.recordingUser = false;
+            
+            return false;
+        } else {
+            // self.recordingUser = true;
+            
+            return true;
         }
+        
+    },
+    recordLoop: function (index) {
+        var self = this;
+       if(this.checkRecordingUser()) {
+         if(index == 0) {
+        
+                self.startRecording();
+            } else if(index == 15) {
+                self.stopRecording();
+            }
+       }
     }
 }
 

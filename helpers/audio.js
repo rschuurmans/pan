@@ -72,7 +72,7 @@ var audioSetup = {
 		},
 		getADSR: function (type) {
 			var time = {
-				fast: [0, .3],
+				fast: [0.001, .3],
 				mid: [.3, 1],
 				slow: [.3,1]
 			}
@@ -134,6 +134,7 @@ var audioSetup = {
 					active: Math.random() >= 0.5,
 					min:0,
 					max:max,
+					id: i
 				})
 			};
 

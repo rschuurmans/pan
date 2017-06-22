@@ -37,12 +37,28 @@ var pp = {
 			audio.setFrequencies(motionData.pitch)
 			audio.oscVolume(motionData.gain)
 			rotation.rotateBackground(motionData);
+			audio.overrideFreq = motionData.pitch;
+			sendSocket.send('listenPP', data.group._id, {
+				pitch: self.pitch,
+				gain: motionData.gain
+			})
 		})
 	},
 	stopMotion: function (e) {
 		e.target.classList.remove('active');
 		this.displayValue('');
 		rotation.stopListen();
+		sendSocket.send('stopPP', data.group._id, {
+			data: ''
+		})
+	},
+	listenPP: function (received) {
+		audio.setFrequencies(received.pitch)
+		audio.oscVolume(received.gain)
+		audio.overrideFreq = received.pitch;
+	},
+	stopListenPP: function () {
+		audio.overrideFreq = false;
 	},
 	handleEvent: function (event) {
 		if(event.type == 'touchmove' || event.type == 'touchstart') {

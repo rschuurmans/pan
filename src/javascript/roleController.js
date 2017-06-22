@@ -33,6 +33,10 @@ var modulator = {
 		rotation.listen(function (motionData) {
 			var value = motionData.perBeta/2;
 			filters.update(filterType, value);
+			sendSocket.send('updateFilter', data.group._id, {
+				type: filterType,
+				value: value
+			})
 			self.displayValue(value);
 			rotation.scaleBackground(value*2);
 		})

@@ -26,9 +26,16 @@
 	// &:last-of-type {
 	// 	margin-bottom:$gutter-lg;
 	// }
+	&-join {
+		position:fixed;
+		bottom:0;
+		left:0;
+		padding:$gutter-lg;
+	}
 	&-audiovis {
 		
-		width:100%;
+		width:90%;
+		left:5%;
 		
 		height:100%;
 		

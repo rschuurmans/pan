@@ -23,7 +23,7 @@
 			{{#each adsr}}
 				
 				<div class="input-range-vert-wrapper">
-				  <input type="range" class='input-rage-vert fn-adsr-range-item'  min="0" max="{{max}}" step="0.1" id='adsr-{{@index}}' value={{value}} modulate-type={{@key}} />
+				  <input type="range" class='input-rage-vert fn-adsr-range-item'  min="0.01" max="{{max}}" step="0.01" id='adsr-{{@index}}' value={{value}} modulate-type={{@key}} />
 				  <label for="adsr-{{@index}}" class='text-label btn-label text-white fn-label-adsr'>{{@key}}</label>
 				</div>
 			{{/each}}
