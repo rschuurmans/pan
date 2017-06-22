@@ -131,13 +131,13 @@
 		}
 		&:after {
 			background:$color-turq;
-			height:20%;
+			height:25%;
 			transition:.2s ease-in-out;
 
 		}
 		@for $i from 0 through 4 {
 			&[active-radio='wavetype-#{$i}']:after {
-				top:20%*$i;
+				top:25%*$i;
 			}
 		}
 	

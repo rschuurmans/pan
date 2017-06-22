@@ -7,9 +7,9 @@ var	sass         = require('gulp-sass');
 var concat       = require('gulp-concat');
 var autoprefixer = require('gulp-autoprefixer');
 var imagemin     = require('gulp-imagemin');
-var cleanDest = require('gulp-clean-dest');
-var del = require('del');
-
+var cleanDest    = require('gulp-clean-dest');
+var del          = require('del');
+var webstandards = require('gulp-webstandards');
 
 
 
@@ -50,7 +50,13 @@ gulp.task('browser-sync', ['nodemon'], function() {
         }
 	});
 });
-    
+
+ 
+gulp.task('webstandards', function () {
+    return gulp.src('public/**/*')
+        .pipe(webstandards());
+});
+
      
 gulp.task('clean', function() {
   // You can use multiple globbing patterns as you would with `gulp.src`

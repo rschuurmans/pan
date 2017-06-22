@@ -2,27 +2,68 @@
 
 var pp = {
 	touchBlok: document.querySelector('.fn-pp'),
+	rotationButton: document.querySelector('.fn-control-motion'),
 
 	setup:function () {
 
 		var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 		var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 		
-		console.log(handInteraction.support);
-		if(!handInteraction.support) {
-			this.touchBlok.addEventListener('touchmove', this, true)
-			this.touchBlok.addEventListener('touchstart', this, true)
-			this.touchBlok.addEventListener('touchend', this, true)
-			this.touchBlok.addEventListener('touchcancel', this, true)
-		}
+		var self = this;
 
+		if(!rotation.support) {
+			self.touchBlok.addEventListener('touchmove', self, true)
+			self.touchBlok.addEventListener('touchstart', self, true)
+			self.touchBlok.addEventListener('touchend', self, true)
+			self.touchBlok.addEventListener('touchcancel', self, true)
+		} else {
+			self.rotationButton.addEventListener('touchstart', self, true);
+			self.rotationButton.addEventListener('touchend', self, true)
+			self.rotationButton.addEventListener('touchcancel', self, true)
+		}
+		
+
+	},
+	displayValue: function (content) {
+		var textbox = document.querySelector('.fn-motion-display');
+		textbox.innerHTML = content;
+	},
+	startMotion: function (e) {
+		var self = this;
+		// e.target.classList.add('active');
+		rotation.listen(function (motionData) {
+			self.pitch = motionData.pitch;
+			self.displayValue(Math.floor(motionData.rawBeta) + ' , ' + Math.floor(motionData.rawGamma));
+			audio.setFrequencies(motionData.pitch)
+			audio.oscVolume(motionData.gain)
+			rotation.rotateBackground(motionData);
+		})
+	},
+	stopMotion: function (e) {
+		e.target.classList.remove('active');
+		this.displayValue('');
+		rotation.stopListen();
 	},
 	handleEvent: function (event) {
 		if(event.type == 'touchmove' || event.type == 'touchstart') {
-			this.touchMove(event);
+			if(rotation.support) {
+				this.startMotion(event);
+			} else {
+				this.touchMove(event);
+			}
 		} else if (event.type =='touchend' || event.type == 'touchcancel') {
-			this.touchEnd(event)
+			
+			if(rotation.support) {
+				this.stopMotion(event);
+			} else {
+				this.touchEnd(event);
+			}
 		}
+	},
+	rotationStart: function () {
+		rotation.listen(function (text) {
+			console.log('dit is een clb', text);
+		})
 	},
 	touchPosition: function (touches) {
 		var touch = touches[0] || toches[0];

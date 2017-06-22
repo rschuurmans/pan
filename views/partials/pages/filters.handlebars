@@ -1,21 +1,13 @@
-	
-	<div class="block-filter-wrapper">
-		{{#each group.modulate}}
-	<div class="input-range-wrapper block-filter fn-fallback-filter" type={{type}}>
-	  <input type="range" class='input-range'  min="0" max="100" step="1" id='{{@index}}' value={{value}} modulate-type={{type}} />
-	  
-	</div>
-	{{/each}}
-	</div>
+<h2 class='text text-white fn-motion-display'></h2>
 
 		<ul class='list list-clear list-grid '>
 
 		{{#each group.modulate}}
 			<li class='list-grid-item list-grid-item-50 btn btn-round btn-filter btn-rectangle fn-modulate-btn' modulate-type='{{type}}' filter-index={{@key}} modulate-value={{value}}>
-				<span class='ic-value' style='transform:rotate({{{rotatePercentage 50 min max}}}deg)'></span>
-				<span class='text-white btn-label-abs'>{{type}}</span>
+				
+				<span class='text-black btn-label-abs'>{{type}}</span>
 			</li>
 
 			{{/each}}
 		</ul>
-	
+	<div class="fn-background-motion block-bg-motion"></div>

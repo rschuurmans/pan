@@ -11,6 +11,12 @@
 	&-fixed {
 		@extend %fixed-full;
 	}
+	&-fixed-top {
+		width:100%;
+		left:0;
+		top:0;
+		position:fixed;
+	}
 	&-center {
 		@extend %position-center;
 		&-content {
@@ -18,6 +24,10 @@
 			display:flex;
 			justify-content: center;
 			align-items: center;
+		}
+		&-fix {
+			@extend %position-center;
+			margin-top:-50%;
 		}
 	}
 	&-scroll {

@@ -45,10 +45,21 @@ mongoose.connect('mongodb://admin:Roos1995!@ds025772.mlab.com:25772/pan-live');
 
 
 io.on('connection', function (socket) {
-  console.log('connect');
-  socket.on('joinRoom', function (room) {
-    console.log('about to join this room: ', room);
-    socket.join(room);
+  
+  socket.on('joinRoom', function (data) {
+    console.log('about to join this room: ', data);
+
+    socket.join(data.room);
+  });
+  socket.on('joinDuo', function (data) {
+    console.log('about to join this room: ', data);
+
+    socket.username = data.username;
+    socket.role = data.role;
+    socket.duo = data.room;
+    socket.userid = data.userid;
+    console.log(socket.username);
+    socket.join(data.room);
   });
   socket.on('liveUpdate', function (data) {
     
@@ -60,6 +71,7 @@ io.on('connection', function (socket) {
     io.sockets.to(data.room).emit('updateAllSteps', data);
   })
   socket.on('groupUpdate', function (data) {
+    
     io.sockets.to(data.room).emit('groupUpdate', data);
   })
   socket.on('updateSources', function (data) {
@@ -89,6 +101,16 @@ io.on('connection', function (socket) {
   socket.on('demo', function (data) {
     io.sockets.emit('demo', data);
   })
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+
+    socket.to(socket.duo).emit('user left', {
+      username: socket.username,
+      role: socket.role,
+      userid: socket.userid
+    })
+
+  });
 
 
 })

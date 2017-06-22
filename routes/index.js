@@ -19,13 +19,23 @@ router.get('/', function(req, res, next) {
 			groupId: false,
 			userId:false,
 			username: false,
-			groups:groups
+			groups:groups.reverse()
 		});
 	})
 });
 
 router.get('/demo', function(req, res, next) { 
-	res.render('demo');
+	db.getAllGroups( function (groups) {
+		
+		res.render('index/home', {
+			title:'Pan',
+			role:false,
+			groupId: false,
+			userId:false,
+			username: false,
+			groups:groups
+		});
+	})
 });
 router.get('/demosec', function(req, res, next) { 
 	res.render('demosec');

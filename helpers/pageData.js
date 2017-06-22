@@ -9,8 +9,8 @@ module.exports = {
 			}
 		} else {
 			return {
-				text: 'Als modulator vervorm je het geluid. Gebruik filters e.d. om wat vets te maken. Begin als eerste met het calibreren van je camera',
-				action: 'calibrate',
+				text: 'Als modulator vervorm je het geluid. Gebruik filters e.d. om wat vets te maken. Door je telefoon te bewegen pas je de filters aan',
+				action: 'Modulator',
 				head: 'Modulator'
 			}
 		}
@@ -32,10 +32,10 @@ module.exports = {
 			]
 		} else {
 			return [{
-				text: 'Houd een filter ingedrukt en gebruik een geel oppervlak om de filter aan te passen',
+				text: 'Houd een filter ingedrukt en draai je device hoog om de waarde aan te passen.',
 				cond: 'filter'
 			}, {
-				text: 'Activeer een extra source om het geluid breder te maken',
+				text: 'Activeer een extra source om het geluid voller te maken',
 				cond : 'active'
 			},
 			{

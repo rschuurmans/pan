@@ -11,6 +11,18 @@ var tips = {
 		tips.allTips = data.tips;
 		tips.questions();
 
+	}, 
+	notification (text, user) {
+		console.log(user, text);
+		if(user.username !== data.user.username) {
+			var message = document.querySelector('.fn-notification');
+			message.innerHTML = text;
+			message.style.opacity = 1;
+			setTimeout(function () {
+				message.style.opacity = 0;
+			}, 3000)
+			
+		}
 	},
 	questions: function () {
 		var buttons = document.querySelectorAll('.fn-question');
@@ -54,7 +66,7 @@ var tips = {
 		
 		if(tips.currentTip == data.tips.length) {
 			
-			tips.textDOM.innerHTML = tips.tipMemory = ' ';
+			tips.parentNode.removeChild(tips);
 			
 		} else {
 			tips.textDOM.classList.add('tip-animation')

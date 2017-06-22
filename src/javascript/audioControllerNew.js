@@ -1,23 +1,21 @@
 // to check
-//  - recordin met sustain aan
+// 
 // - adsr tekenen is nog geen super mooie js
 // - pp code is nog niet heel netjes
-// - pp als device input
-// hand als input record
 // fix drum geluid
-// sources modulator
-// filters modulator
-// check adsr tipset
-// fina tip text opacity naar 0
+// check socket met elkaar en met /live
+// send audio to /live
+// required username
+
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 
 var audio = {
     sources: [],
     gainNode:[],
+    volumes: [],
     filters: [],
     ppFreq: false,
-    envelope: null,
     gain: null,
     defTime: "8n",
     isLive: false,
@@ -36,41 +34,50 @@ var audio = {
         listenStartSocket();
     },
     setFrequencies: function (freq) {
-        console.log('setting the freq to ', freq);
         var self = this;
         for(var i in self.sources) {
-            // self.sources[i].frequency.value = freq;
-            self.sources[i].frequency.rampTo(freq, 0.1);
-        }
-    },
-    slideFrequency: function (freq) {
-        var self = this;
-        for(var i in self.sources) {
+            if(self.sources[i].active) {
+                self.sources[i].frequency.value = freq;
+            }
             
+            // self.sources[i].frequency.rampTo(freq, 0.1);
         }
     },
+    
     oscVolume: function (value) {
         var self = this;
         for(var i in self.sources) {
-            // self.sources[i].volume.value = value;
+            if(self.sources[i].active) {
+                self.sources[i].volume.input.value = value;
+            }
+        }
+    },
+    oscSingleVolume : function (id, value) {
+        var self = this;
+        for(var i in self.sources) {
+            if(self.sources[i].id == id) {
+                self.sources[i].volume.input.value = value;
+            }
         }
     },
     triggerEnvAttack: function(freq, time) {
-
-        this.setFrequencies(this.overrideFreq ? this.overrideFreq : freq)
+        var self = this;
+        if(audio.sources.length) {
+            self.setFrequencies(self.overrideFreq ? self.overrideFreq : freq)
     
             
-        if(adsr.sustain) {
-            audio.gainNode.triggerAttack();
-        } else {
-            audio.gainNode.triggerAttackRelease(time)
+            if(adsr.sustain) {
+                audio.gainNode.triggerAttack();
+            } else {
+                audio.gainNode.triggerAttackRelease(time)
+            }
         }
     },
 
     triggerRelease: function(audioData) {
         
-        // audio.gainNode.triggerRelease();
-    },
+        audio.gainNode.triggerRelease();
+    }
 }
 
 
@@ -135,7 +142,13 @@ var loop = {
 
         }
     },
-
+    showStep: function (index) {
+        var steps   = document.querySelectorAll('.fn-sequencer-item');
+        for(var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle('highlight', i == index)
+        
+        };
+    },
     playStep: function(currentStep, time, index) {
         
         var release     = adsr.getEnvelope().release + 1;
@@ -145,7 +158,7 @@ var loop = {
             audio.triggerEnvAttack(currentStep.frequency, releaseTone);
         }
         
-        events.showStep(index);
+        this.showStep(index);
     },
     increaseIndex: function() {
         var self = this;
@@ -200,21 +213,16 @@ var sources = {
     setup: function() {
         this.createSources();
         filters.setup();
-        sources.setDetune();
-
     },
     createSources: function() {
         var self = this;
 
         data.group.sources.forEach(function(source, index) {
+            audio.volumes.push(source.volume);
 
-            if (source.type == 'noise') {
-                self.createNoise(data.group._id, index);
-            } else {
-                self.createSource(source.type, data.group._id, index);
-            }
+            self.createSource(source.type, data.group._id, index, source.active);
         });
-        sources.connectEnvelope(data.group._id);
+        this.connectEnvelope(data.group._id);
     },
     createNoise: function (groupId, index) {
         var noise     = new Tone.Noise("pink").start();
@@ -223,13 +231,16 @@ var sources = {
         audio.sources.push(noise);
 
     },
-    createSource: function (type, groupId, index) {
-        var oscillator  = new Tone.Oscillator();
-        oscillator.type = type;
-        oscillator.id   = index;
-        audio.sources   = !audio.sources ? [] : audio.sources;
-        audio.sources.push(oscillator);
+    createSource: function (type, groupId, index, active) {
 
+        var oscillator    = new Tone.Oscillator();
+        oscillator.type   = type;
+        oscillator.id     = index;
+        oscillator.active = active;
+        audio.sources.push(oscillator);
+        if(!active) {
+            audio.oscSingleVolume(index, 0);
+        }
     },
     connectEnvelope: function (groupId) {
         audio.gainNode = new Tone.AmplitudeEnvelope(adsr.getEnvelope());
@@ -240,222 +251,168 @@ var sources = {
         }
         audio.gainNode.toMaster();    
     },
-   
-    update: {
-        // nog niet
-        wavetype: function(received) {
-
-            if (received.value == 'noise') {
-                if (data.group.sources[received.id].active) {
-                    sources.remove(received.id);
-                    sources.create.noise(received.id);
-                    filters.connectSingleSource(received.id);
-                } else {
-                    data.group.sources[received.id].type = 'noise'
-                }
-
-            } else {
-                for (var i in audio.sources) {
-
-                    if (audio.sources[i].id == received.id) {
-
-                        if (audio.sources[i].noise) {
-                            sources.remove(received.id);
-                            sources.create[data.group.synth](received.id);
-                            filters.connectSingleSource(received.id);
-                        } else {
-                            audio.sources[i].oscillator.type = received.value;
-                        }
-                    }
-                }
-            }
-        },
-        phase: function(received) {
-            for (var i in audio.sources) {
-                if (audio.sources[i].id == received.id) {
-                    audio.sources[i].oscillator.phase = received.value;
-                }
-            }
-        },
-        active: function(received) {
-            if (received.value) {
-                if (data.group.sources[received.id].type == 'noise') {
-                    sources.create['noise'](received.id);
-                } else {
-                    sources.create[data.group.synth](received.id);
-                }
-                filters.connectSingleSource(received.id);
-            } else {
-                sources.remove(received.id);
-            }
-        },
-        detune: function(received) {
-            for (var i in audio.sources) {
-                if (audio.sources[i].id == received.id) {
-                    if (audio.sources[i].detune) {
-                        audio.sources[i].detune.input.value = received.value;
-                    } else {
-                        audio.sources[i].oscillator.detune.input.value = received.value;
-                    }
-                }
-            }
-
-        },
-        volume: function(received) {
-            for (var i in audio.sources) {
-                if (audio.sources[i].id == received.id) {
-                    audio.sources[i].volume.input.value = received.value;
-                }
-            }
-        },
-    },
-    changewavetype: function(id, value) {
-        for (var i in audio.sources) {
-            if (audio.sources[i].id == id) {
-                audio.sources[i].oscillator.type = value;
+    connectSingleEnvelope: function (id) {
+        console.log('connecting a single envelope');
+        for(var i in audio.sources) {
+            if(audio.sources[i].id == id) {
+                audio.sources[i].connect(audio.gainNode);
+                audio.sources[i].start();
             }
         }
     },
-    remove: function(id) {
-        audio.triggerRelease(id)
-        for (var i in audio.sources) {
-            if (audio.sources[i].id == id) {
-                audio.sources.splice(i, 1);
+    setwavetype: function (received) {
+        var id = parseInt(received.id);
+        audio.sources[id].type = received.value;
+    },
+    setactive: function (received) {
+         var id = parseInt(received.id);
+            audio.sources[id].active = received.value;
+            if(received.value) {
+                audio.oscSingleVolume(id, audio.volumes[id])
+            } else {
+                audio.oscSingleVolume(id, 0)
             }
+    },
+    setdetune: function (received) {
+        console.log('updating detune');
+        var id = parseInt(received.id);
+
+        if(audio.sources[id].detune) {
+            audio.sources[id].detune.input.value = parseInt(received.value);
+        } else {
+            audio.sources[id]._oscillator.detune.value = parseInt(received.value);
         }
     },
-    setDetune: function() {
-        console.log('moet nog');
-        // use the data.group.set method as used in sequencer.holdtone
-        // for(var i in audio.sources) {
-        // 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
-        // };
+    setvolume : function (received) {
+          var id            = parseInt(received.id);
+            var value         = parseFloat(received.value);
+            audio.volumes[id] = value;
 
+            if(audio.sources[id].active) {
+                audio.oscSingleVolume(id, value)
+            } 
+    },
+    update: function (received) {
+        console.log(received);
+        this['set' + received.type](received);
     }
 }
 
 // moet nog
 var filters = {
     setup: function() {
-        // data.group.forEach(function(group) {
-
-        // 	group.modulate.forEach(function (modulate) {
-        // 		filters.create[modulate.type](modulate)
-        // 	})
-        // });
+        for(var i  in data.group.modulate) {
+            
+            filters['create_' + data.group.modulate[i].type](data.group.modulate[i]);
+           
+        }
 
         filters.connect();
     },
+    
     connect: function() {
 
-        // audio.gain = Tone.context.createGain()
-
-        // for(var y in audio.filters) {
-        // 	audio.gain.connect(audio.filters[y])
-        // }
-        // if(audio.filters.length == 0) {
-        // 	audio.gain.connect(Tone.Master);
-        // }
-        // for (var i in audio.sources) {
-        	
-        //     for(var y in audio.sources[i]) {
-
-        //     	audio.sources[i][y].toMaster()
-        //     }
-
-        // }
-    },
-    connectSingleSource: function(id) {
-        for (var i in audio.sources) {
-            if (audio.sources[i].id == id) {
-
-                audio.sources[i].connect(audio.gain)
-            }
+        audio.filterGain = Tone.context.createGain();
+        for(var i in audio.filters) {
+            audio.gainNode.connect(audio.filters[i]);
+            audio.filters[i].toMaster();
         }
     },
-    create: {
-        pingpong: function(data) {
-            var filter = new Tone.PingPongDelay(2, 2).toMaster();;
+    create_pingpong: function(data) {
+        // check
+        var filter = new Tone.PingPongDelay(2, 2);
 
-            filter.wet.value = 0;
+        filter.wet.value = 0;
+        audio.filters.pingpong = filter;
 
-            if (!audio.filters[0]) {
-                audio.filters[0] = [];
+    },
+    create_tremelo: function(data) {
+        // check niet zo bijzonder
+        var autoFilter = new Tone.AutoFilter({
+            frequency: data.values.frequency,
+            depth: data.values.depth,
+        })
+        autoFilter.wet.value = 0;
+        audio.filters.tremelo = autoFilter;
+    },
+    create_chorus: function(data) {
+        // check
+        var chorus = new Tone.Chorus()
 
-            }
-            audio.filters[0].pingpong = filter;
+        chorus.wet.value = 0;
+        audio.filters.chorus = chorus
+    },
+    create_wahwah: function(data) {
+        var autoWah = new Tone.AutoWah({
+            baseFrequency: data.values.baseFrequency,
+            octaves: 3,
+            sensitivity: 0,
+            Q: data.values.q,
+            gain: data.values.gain,
 
-        },
-        tremelo: function(data) {
-            var autoFilter = new Tone.AutoFilter({
-                frequency: data.values.frequency,
-                depth: data.values.depth,
-            }).toMaster().start();
-            autoFilter.wet.value = 0;
-            audio.filters.tremelo = autoFilter;
-        },
-        chorus: function(data) {
-            var chorus = new Tone.Chorus().toMaster();
+        })
+        autoWah.wet.value = 0;
 
-            chorus.wet.value = 0;
-            audio.filters.chorus = chorus
-        },
-        wahwah: function(data) {
-            var autoWah = new Tone.AutoWah({
-                baseFrequency: data.values.baseFrequency,
-                octaves: 3,
-                sensitivity: 0,
-                Q: data.values.q,
-                gain: data.values.gain,
+        audio.filters.wahwah = autoWah;
 
-            }).toMaster();
-            autoWah.wet.value = 0;
+    },
+    create_lowpass: function(data) {
+        // check
+        var biquadFilter = Tone.context.createBiquadFilter();
+        biquadFilter.type = "lowshelf";
+        biquadFilter.frequency.value = 2000;
+        biquadFilter.gain.value = 0;
+        audio.filters.lowpass = biquadFilter;
 
-            audio.filters.wahwah = autoWah;
+    },
+    create_highpass: function(data) {
+        // check
+        var biquadFilter = Tone.context.createBiquadFilter();
+        biquadFilter.type = "highshelf";
+        biquadFilter.frequency.value = 200;
+        biquadFilter.gain.value = 0;
+        audio.filters.highpass = biquadFilter;
 
-        },
-        lowpass: function(data) {
-            var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-            biquadFilter.type = "lowshelf";
-            biquadFilter.frequency.value = 2000;
-            biquadFilter.gain.value = 0;
-            audio.filters.lowpass = biquadFilter;
+    },
 
-        },
-        highpass: function(data) {
-            var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-            biquadFilter.type = "highshelf";
-            biquadFilter.frequency.value = 200;
-            biquadFilter.gain.value = 0;
-            audio.filters.highpass = biquadFilter;
-
-        },
-
-        delay: function(data) {
-            var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
-            feedbackDelay.wet.value = 0;
-            audio.filters.delay = feedbackDelay;
-        },
-        distortion: function(data) {
-            var dist = new Tone.Distortion({
-                distortion: data.values.distortion,
-                oversample: data.values.oversample
-            }).toMaster();
-            dist.wet.value = 0;
-            audio.filters.distortion = dist;
-
-        }
-
+    create_delay: function(data) {
+        var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5);
+        feedbackDelay.wet.value = 0;
+        audio.filters.delay = feedbackDelay;
+    },
+    create_distortion: function(data) {
+        // check
+        var dist = new Tone.Distortion({
+            distortion: data.values.distortion,
+            oversample: data.values.oversample
+        });
+        dist.wet.value = 0;
+        audio.filters.distortion = dist;
 
     },
     update: function(type, value) {
-
+        console.log('i need to send a socket');
         if (type == 'highpass' || type == 'lowpass') {
             audio.filters[type].gain.value = value * 2;
         } else {
             audio.filters[type].wet.value = value;
         }
 
+    },
+    startListening: function (e) {
+
+    },
+    stopListening: function (e) {
+
+    },
+
+    handleEvent: function (event) {
+        var self = this;
+        if(event.type == 'touchmove' || event.type == 'touchstart') {
+            self.startListening(event);
+        } else if (event.type =='touchend' || event.type == 'touchcancel') {
+             self.stopListening(event);
+        }
     },
 
 }

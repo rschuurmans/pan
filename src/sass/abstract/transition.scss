@@ -3,25 +3,39 @@
 		
 	}
 	&-slide {
+		
+		-webkit-transition:.2s ease-in;
+		-moz-transition:.2s ease-in;
+		-o-transition:.2s ease-in;
 		transition:.2s ease-in;
+
 	}
 
 	&[active='false'] {
 		&[origin='null'] {
+			-ms-transform:translate(100%,0);
 			transform:translate(100%,0);
+
 		}
 
 		&[origin='left'] {
+			-ms-transform:translate(-100%,0);
 			transform:translate(-100%,0);
+
 		}
 		&[origin='right'] {
+			-ms-transform:translate(100%,0);
 			transform:translate(100%,0);
+
 		}
 		&[origin='up'] {
+			-ms-transform:translate(0,-100%);
 			transform:translate(0,-100%);
+
 		}
 	}
 	&[active='true'] {
+		-ms-transform:translate(0,0);
 		transform:translate(0,0);
 
 		&[full='true'] {
@@ -47,6 +61,7 @@
 		padding:$padding-page-sm;
 		&[active='true'] {
 			opacity:1;
+			-ms-transform:translateY(0);
 			transform:translateY(0);
 			max-height:1000px;
 		}
@@ -55,12 +70,21 @@
 
 .splashtransition {
 	.media_logo {
-		transform:scale(1);
+		-webkit-transform:scale(1);
+		-ms-transform    :scale(1);
+		-o-transform     :scale(1);
+		transform        :scale(1);
+		-webkit-transform-origin: 0% 0%;
+		-ms-transform-origin: 0% 0%;
+		-o-transform-origin: 0% 0%;
 		transform-origin: 0% 0%;
 		transition:.5s ease-in-out;
 	}
 	* {
 		opacity:1;
+		-webkit-transition:1s ease-in-out;
+		-ms-transition:1s ease-in-out;
+		-o-transition:1s ease-in-out;
 		transition:1s ease-in-out;
 	}
 	.form > * {
@@ -74,6 +98,9 @@
 
 	&-active {
 		.media_logo {
+			-webkit-transform:scale(1.8);
+			-ms-transform:scale(1.8);
+			-o-transform:scale(1.8);
 			transform:scale(1.8);
 		}
 		.form > *:not(.media_logo) {
@@ -120,6 +147,9 @@ body[splash='finished'] {
 		display:flex;
 		width: 400%;
 		&.is-animating {
+		  	-webkit-transition: transform .4s ease-in;
+		  	-moz-transition: transform .4s ease-in;
+		  	-o-transition: transform .4s ease-in;
 		  	transition: transform .4s ease-in;
 	  	}
 	}
@@ -142,6 +172,9 @@ body[splash='finished'] {
 		}
 		&:after {
 			left:$padding-page-sm;
+			-webkit-transform:rotate(180deg);
+			-moz-transform:rotate(180deg);
+			-o-transform:rotate(180deg);
 			transform:rotate(180deg);
 		}
 		&:before {

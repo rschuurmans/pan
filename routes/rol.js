@@ -52,7 +52,7 @@ router.get('/modulator/:userid/:groupid', function(req, res, next) {
 })
 router.post('/save', function (req, res, next) {
 	
-	
+	console.log('hey');
 	db.updateGroup(req.body.groupid,req.body.group, function (group) {
 		res.end();
 	})
@@ -62,8 +62,7 @@ router.post('/leave', function (req, res, next) {
 	console.log('posting to leave, ' , req.body);
 	
 	db.leaveGroup(req.body.groupid, req.body.role, req.body.group, function (group) {
-
-		res.send(group);
+		res.send({'huh': 'wat'})
 		res.end();
 	})
 	// db.updateGroup

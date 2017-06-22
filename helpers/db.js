@@ -16,6 +16,16 @@ var db = {
 			})
 		})
 	},
+	deleteEmptyGroups: function (callback) {
+		console.log('delete?');
+		Group.remove({modulator: null, sequencer: null},function (err, groups) {
+			if(err) throw err;
+			console.log('i deleted some', groups);
+			callback();
+		})
+
+
+	},
 	
 	joinGroup: function (username, groupId, cb) {
 		Group.findById(groupId, function (err, group) {
@@ -30,9 +40,13 @@ var db = {
 		})
 	},
 	getAllGroups: function (cb) {
+		db.deleteEmptyGroups(function () {
+
 		Group.find(function(err, groups) {
 			if(err) throw err;
+
 			cb(groups)
+		})
 		})
 	},
 	countGroups: function (cb) {
@@ -70,10 +84,7 @@ var db = {
 			if(err) throw err;
 			
 			
-			group.adsr         = newGroup.adsr;
-			group.modulate     = newGroup.modulate;
-			group.modulator    = newGroup.modulator;
-			group.sequencer    = newGroup.sequencer;
+			
 			group.sustain      = newGroup.sustain;
 			group[roleLeaving] = null;
 
@@ -150,12 +161,14 @@ var db = {
 		})
 	},
 	getData: function (groupId, userId, cb) {
-		Group.findById(groupId, function (err, group) {
-			User.findById(userId, function (err, user) {
+		
+			Group.findById(groupId, function (err, group) {
+				User.findById(userId, function (err, user) {
 
-				cb(group, user)
+					cb(group, user)
+				})
 			})
-		})
+		
 	},
 }
 

@@ -25,6 +25,7 @@ var audioSetup = {
 				scale    : audioSetup.scale,
 				sustain  : audioSetup.getSustain(type)
 			}
+			console.log(newSynth.adsr);
 			
 			newSynth.sources = audioSetup.getSources(type, newSynth.synth, audioSetup.getWavetype(type));
 			
@@ -109,7 +110,7 @@ var audioSetup = {
 			return wavetypes[Math.floor(Math.random()*wavetypes.length)]
 		},
 		getAllWavetypes: function () {
-			var wavetypes = ['sine', 'square', 'sawtooth', 'triangle', 'noise'];
+			var wavetypes = ['sine', 'square', 'sawtooth', 'triangle'];
 			return wavetypes
 		},
 		getSteps: function (type) {

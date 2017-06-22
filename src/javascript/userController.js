@@ -1,4 +1,5 @@
 var user = {
-	username: null
+	username: null,
+	
+
 }
-console.log(user);

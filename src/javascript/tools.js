@@ -69,6 +69,9 @@ var tools = {
 	getPercentage: function (value, max) {
 		return (value*100)/max;
 	},
+	percentageToValue: function (perc, max) {
+		return (perc * max) / 100
+	},
 	valueInObject: function (obj,param,  value) {
 		var match = false;
 		obj.forEach(function(elem) {

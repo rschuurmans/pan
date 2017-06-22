@@ -59,17 +59,11 @@ var changePage = {
 				changePage.showPage('sequencer');
 			})
 		}
-		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
-		if(buttonCalibrate) {
-			buttonCalibrate.addEventListener('click', function () {
-				if(data.supportMedia) {
-					changePage.showPage('calibrate');
-					cameraTracker.init();
-				} else {
-					audio.setup();
-					changePage.showPage('filters');
-					
-				}
+		var buttonMod = document.querySelector('.fn-start-modulator');
+		if(buttonMod) {
+			buttonMod.addEventListener('click', function () {
+				audio.setup();
+				changePage.showPage('filters');
 			})
 			
 		}

@@ -6,21 +6,21 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
-		handInteraction.init();
+		rotation.init();
 		changePage.onboarding()
 		listen.role()
 		tips.init();
-		events.unload();
+		// user.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
 			
 			sequencer.init();
-			pp.setup();
+			
 			
 		} else {
 			
 			modulator.init();
-			cameraTracker.checkSupport();
+			// cameraTracker.checkSupport();
 			// changePage.sequencerNavigation();
 			// modulateSocket();
 			// changePage.selector();
@@ -44,9 +44,10 @@ var init = function () {
 window.onload = function () {
 	console.log('load');
 	init();
+	
 
 }
-
+var users = [];
 var socket = io();
 // var binary = new BinaryClient('ws://localhost:3000');
 
@@ -61,8 +62,12 @@ var listen = {
 	master: function () {
 		
 			
-			socket.emit('joinRoom', 'master');
-			socket.emit('joinRoom', 'live');
+			socket.emit('joinRoom', {
+				room: 'master',
+			});
+			socket.emit('joinRoom', {
+				room: 'live',
+			});
 
 
 			socket.on('audioBlob', function (received) {
@@ -85,17 +90,31 @@ var listen = {
 		
 			
 		var groupId = tools.currentGroupId();
+		console.log('sending this', data.user.username);
+		socket.emit('joinDuo', {
+			room: groupId,
+			username: data.user.username,
+			role: data.user.role
 
-		socket.emit('joinRoom', groupId);
-		socket.emit('joinRoom', 'live');
+		});
+		socket.emit('joinRoom', {
+			room: 'live',
+			
+		});
 
 
 
-		sendSocket.send('groupUpdate', groupId, {text: data.user.username + ' heeft zich aangesloten'})
+		sendSocket.send('groupUpdate', groupId, {
+				text  : data.user.username + ' heeft zich aangesloten',
+				user  : data.user,
+				role  : data.user.role,
+				userid  : data.user._id,
+				active: true
+		})
 		
 		socket.on('demo', function (received) {
-			
-			demosec(received);
+			console.log(received);
+			// demosec(received);
 		})
 		
 	
@@ -108,16 +127,25 @@ var listen = {
 		
 
 		socket.on('groupUpdate', function (received) {
-			var message = document.querySelector('.fn-notification');
-			message.innerHTML = received.data.text;
-			message.style.opacity = 1;
-			setTimeout(function () {
-				message.style.opacity = 0;
-			}, 3000)
-			console.log('received an groupUpdate', received);
+			console.log(received);
+			
+			
+			if(received.data.active) {
+				data.group[received.data.role] = received.data.user;
+				// socket.username = received.data.user.username;
+				// socket.set('username', received.data.username, function () {
+				// 	users[user] = user
+				// })
+			} else {
+				data.group[received.data.role] = null;
+			}
+			tips.notification(received.data.text, received.data.user);
+			recording.checkRecordingUser();
+			
 		})
+		// console.log(socket);
 		socket.on('updateSources', function (received) {
-			sources.update[received.data.type]({id: received.data.id, value:received.data.value})
+			sources.update(received.data);
 			console.log('received an updateSources', received);
 		})
 		socket.on('updateSingleStep', function (received) {
@@ -147,7 +175,14 @@ var listen = {
 		socket.on('updateFilter', function (received) {
 			filters.update(received.data.type, received.data.value);
 		})
-		
+		socket.on('user left', function (received) {
+			console.log('a user left', received);
+			data.group[received.role] = null;
+			recording.checkRecordingUser();
+
+			postData.leaveGroup();
+
+		})
 		
 
 		
@@ -159,20 +194,35 @@ var listen = {
 		socket.on('updateSteps', function (received) {
 			console.log('received a socket', received);
 			data.steps[received.index] = received.step;
+			recording.checkRecordingUser();
 		})
 	}
 }
 
+
+socket.on('disconnect', function() {
+	socket.emit('demo', {
+		username: socket.username
+	})
+
+    // socket.get('username', function(err, user) {
+    //   delete users[user];
+    //   console.log('disconnect', user);
+    //   io.sockets.emit('demo', {
+    //   	users: users,
+    //   	user: user
+    //   });
+    // });
+  });
 var listenStartSocket = function () {
 	socket.on('startSequence', function (fulldelay) {
+		console.log('got it');
 		if(loop.stopped) {
 			console.log('start loop from sokt');
 			loop.start(fulldelay);
 		} 
 	})
 }
-
-
 
 
 var sendSocket = {
@@ -390,25 +440,23 @@ var animate = {
 }
 
 // to check
-//  - recordin met sustain aan
+// 
 // - adsr tekenen is nog geen super mooie js
 // - pp code is nog niet heel netjes
-// - pp als device input
-// hand als input record
 // fix drum geluid
-// sources modulator
-// filters modulator
-// check adsr tipset
-// fina tip text opacity naar 0
+// check socket met elkaar en met /live
+// send audio to /live
+// required username
+
 
 var audioContext = StartAudioContext(Tone.context, ".fn-start-sequece");
 
 var audio = {
     sources: [],
     gainNode:[],
+    volumes: [],
     filters: [],
     ppFreq: false,
-    envelope: null,
     gain: null,
     defTime: "8n",
     isLive: false,
@@ -427,41 +475,50 @@ var audio = {
         listenStartSocket();
     },
     setFrequencies: function (freq) {
-        console.log('setting the freq to ', freq);
         var self = this;
         for(var i in self.sources) {
-            // self.sources[i].frequency.value = freq;
-            self.sources[i].frequency.rampTo(freq, 0.1);
-        }
-    },
-    slideFrequency: function (freq) {
-        var self = this;
-        for(var i in self.sources) {
+            if(self.sources[i].active) {
+                self.sources[i].frequency.value = freq;
+            }
             
+            // self.sources[i].frequency.rampTo(freq, 0.1);
         }
     },
+    
     oscVolume: function (value) {
         var self = this;
         for(var i in self.sources) {
-            // self.sources[i].volume.value = value;
+            if(self.sources[i].active) {
+                self.sources[i].volume.input.value = value;
+            }
+        }
+    },
+    oscSingleVolume : function (id, value) {
+        var self = this;
+        for(var i in self.sources) {
+            if(self.sources[i].id == id) {
+                self.sources[i].volume.input.value = value;
+            }
         }
     },
     triggerEnvAttack: function(freq, time) {
-
-        this.setFrequencies(this.overrideFreq ? this.overrideFreq : freq)
+        var self = this;
+        if(audio.sources.length) {
+            self.setFrequencies(self.overrideFreq ? self.overrideFreq : freq)
     
             
-        if(adsr.sustain) {
-            audio.gainNode.triggerAttack();
-        } else {
-            audio.gainNode.triggerAttackRelease(time)
+            if(adsr.sustain) {
+                audio.gainNode.triggerAttack();
+            } else {
+                audio.gainNode.triggerAttackRelease(time)
+            }
         }
     },
 
     triggerRelease: function(audioData) {
         
-        // audio.gainNode.triggerRelease();
-    },
+        audio.gainNode.triggerRelease();
+    }
 }
 
 
@@ -526,7 +583,13 @@ var loop = {
 
         }
     },
-
+    showStep: function (index) {
+        var steps   = document.querySelectorAll('.fn-sequencer-item');
+        for(var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle('highlight', i == index)
+        
+        };
+    },
     playStep: function(currentStep, time, index) {
         
         var release     = adsr.getEnvelope().release + 1;
@@ -536,7 +599,7 @@ var loop = {
             audio.triggerEnvAttack(currentStep.frequency, releaseTone);
         }
         
-        events.showStep(index);
+        this.showStep(index);
     },
     increaseIndex: function() {
         var self = this;
@@ -591,21 +654,16 @@ var sources = {
     setup: function() {
         this.createSources();
         filters.setup();
-        sources.setDetune();
-
     },
     createSources: function() {
         var self = this;
 
         data.group.sources.forEach(function(source, index) {
+            audio.volumes.push(source.volume);
 
-            if (source.type == 'noise') {
-                self.createNoise(data.group._id, index);
-            } else {
-                self.createSource(source.type, data.group._id, index);
-            }
+            self.createSource(source.type, data.group._id, index, source.active);
         });
-        sources.connectEnvelope(data.group._id);
+        this.connectEnvelope(data.group._id);
     },
     createNoise: function (groupId, index) {
         var noise     = new Tone.Noise("pink").start();
@@ -614,13 +672,16 @@ var sources = {
         audio.sources.push(noise);
 
     },
-    createSource: function (type, groupId, index) {
-        var oscillator  = new Tone.Oscillator();
-        oscillator.type = type;
-        oscillator.id   = index;
-        audio.sources   = !audio.sources ? [] : audio.sources;
-        audio.sources.push(oscillator);
+    createSource: function (type, groupId, index, active) {
 
+        var oscillator    = new Tone.Oscillator();
+        oscillator.type   = type;
+        oscillator.id     = index;
+        oscillator.active = active;
+        audio.sources.push(oscillator);
+        if(!active) {
+            audio.oscSingleVolume(index, 0);
+        }
     },
     connectEnvelope: function (groupId) {
         audio.gainNode = new Tone.AmplitudeEnvelope(adsr.getEnvelope());
@@ -631,216 +692,147 @@ var sources = {
         }
         audio.gainNode.toMaster();    
     },
-   
-    update: {
-        // nog niet
-        wavetype: function(received) {
-
-            if (received.value == 'noise') {
-                if (data.group.sources[received.id].active) {
-                    sources.remove(received.id);
-                    sources.create.noise(received.id);
-                    filters.connectSingleSource(received.id);
-                } else {
-                    data.group.sources[received.id].type = 'noise'
-                }
-
-            } else {
-                for (var i in audio.sources) {
-
-                    if (audio.sources[i].id == received.id) {
-
-                        if (audio.sources[i].noise) {
-                            sources.remove(received.id);
-                            sources.create[data.group.synth](received.id);
-                            filters.connectSingleSource(received.id);
-                        } else {
-                            audio.sources[i].oscillator.type = received.value;
-                        }
-                    }
-                }
-            }
-        },
-        phase: function(received) {
-            for (var i in audio.sources) {
-                if (audio.sources[i].id == received.id) {
-                    audio.sources[i].oscillator.phase = received.value;
-                }
-            }
-        },
-        active: function(received) {
-            if (received.value) {
-                if (data.group.sources[received.id].type == 'noise') {
-                    sources.create['noise'](received.id);
-                } else {
-                    sources.create[data.group.synth](received.id);
-                }
-                filters.connectSingleSource(received.id);
-            } else {
-                sources.remove(received.id);
-            }
-        },
-        detune: function(received) {
-            for (var i in audio.sources) {
-                if (audio.sources[i].id == received.id) {
-                    if (audio.sources[i].detune) {
-                        audio.sources[i].detune.input.value = received.value;
-                    } else {
-                        audio.sources[i].oscillator.detune.input.value = received.value;
-                    }
-                }
-            }
-
-        },
-        volume: function(received) {
-            for (var i in audio.sources) {
-                if (audio.sources[i].id == received.id) {
-                    audio.sources[i].volume.input.value = received.value;
-                }
-            }
-        },
-    },
-    changewavetype: function(id, value) {
-        for (var i in audio.sources) {
-            if (audio.sources[i].id == id) {
-                audio.sources[i].oscillator.type = value;
+    connectSingleEnvelope: function (id) {
+        console.log('connecting a single envelope');
+        for(var i in audio.sources) {
+            if(audio.sources[i].id == id) {
+                audio.sources[i].connect(audio.gainNode);
+                audio.sources[i].start();
             }
         }
     },
-    remove: function(id) {
-        audio.triggerRelease(id)
-        for (var i in audio.sources) {
-            if (audio.sources[i].id == id) {
-                audio.sources.splice(i, 1);
+    setwavetype: function (received) {
+        var id = parseInt(received.id);
+        audio.sources[id].type = received.value;
+    },
+    setactive: function (received) {
+         var id = parseInt(received.id);
+            audio.sources[id].active = received.value;
+            if(received.value) {
+                audio.oscSingleVolume(id, audio.volumes[id])
+            } else {
+                audio.oscSingleVolume(id, 0)
             }
+    },
+    setdetune: function (received) {
+        console.log('updating detune');
+        var id = parseInt(received.id);
+
+        if(audio.sources[id].detune) {
+            audio.sources[id].detune.input.value = parseInt(received.value);
+        } else {
+            audio.sources[id]._oscillator.detune.value = parseInt(received.value);
         }
     },
-    setDetune: function() {
-        console.log('moet nog');
-        // use the data.group.set method as used in sequencer.holdtone
-        // for(var i in audio.sources) {
-        // 	audio.sources[i].detune.input.value = data.sources[parseInt(audio.sources[i].id)].detune;
-        // };
+    setvolume : function (received) {
+          var id            = parseInt(received.id);
+            var value         = parseFloat(received.value);
+            audio.volumes[id] = value;
 
+            if(audio.sources[id].active) {
+                audio.oscSingleVolume(id, value)
+            } 
+    },
+    update: function (received) {
+        console.log(received);
+        this['set' + received.type](received);
     }
 }
 
 // moet nog
 var filters = {
     setup: function() {
-        // data.group.forEach(function(group) {
-
-        // 	group.modulate.forEach(function (modulate) {
-        // 		filters.create[modulate.type](modulate)
-        // 	})
-        // });
+        for(var i  in data.group.modulate) {
+            
+            filters['create_' + data.group.modulate[i].type](data.group.modulate[i]);
+           
+        }
 
         filters.connect();
     },
+    
     connect: function() {
 
-        // audio.gain = Tone.context.createGain()
-
-        // for(var y in audio.filters) {
-        // 	audio.gain.connect(audio.filters[y])
-        // }
-        // if(audio.filters.length == 0) {
-        // 	audio.gain.connect(Tone.Master);
-        // }
-        // for (var i in audio.sources) {
-        	
-        //     for(var y in audio.sources[i]) {
-
-        //     	audio.sources[i][y].toMaster()
-        //     }
-
-        // }
-    },
-    connectSingleSource: function(id) {
-        for (var i in audio.sources) {
-            if (audio.sources[i].id == id) {
-
-                audio.sources[i].connect(audio.gain)
-            }
+        audio.filterGain = Tone.context.createGain();
+        for(var i in audio.filters) {
+            audio.gainNode.connect(audio.filters[i]);
+            audio.filters[i].toMaster();
         }
     },
-    create: {
-        pingpong: function(data) {
-            var filter = new Tone.PingPongDelay(2, 2).toMaster();;
+    create_pingpong: function(data) {
+        // check
+        var filter = new Tone.PingPongDelay(2, 2);
 
-            filter.wet.value = 0;
+        filter.wet.value = 0;
+        audio.filters.pingpong = filter;
 
-            if (!audio.filters[0]) {
-                audio.filters[0] = [];
+    },
+    create_tremelo: function(data) {
+        // check niet zo bijzonder
+        var autoFilter = new Tone.AutoFilter({
+            frequency: data.values.frequency,
+            depth: data.values.depth,
+        })
+        autoFilter.wet.value = 0;
+        audio.filters.tremelo = autoFilter;
+    },
+    create_chorus: function(data) {
+        // check
+        var chorus = new Tone.Chorus()
 
-            }
-            audio.filters[0].pingpong = filter;
+        chorus.wet.value = 0;
+        audio.filters.chorus = chorus
+    },
+    create_wahwah: function(data) {
+        var autoWah = new Tone.AutoWah({
+            baseFrequency: data.values.baseFrequency,
+            octaves: 3,
+            sensitivity: 0,
+            Q: data.values.q,
+            gain: data.values.gain,
 
-        },
-        tremelo: function(data) {
-            var autoFilter = new Tone.AutoFilter({
-                frequency: data.values.frequency,
-                depth: data.values.depth,
-            }).toMaster().start();
-            autoFilter.wet.value = 0;
-            audio.filters.tremelo = autoFilter;
-        },
-        chorus: function(data) {
-            var chorus = new Tone.Chorus().toMaster();
+        })
+        autoWah.wet.value = 0;
 
-            chorus.wet.value = 0;
-            audio.filters.chorus = chorus
-        },
-        wahwah: function(data) {
-            var autoWah = new Tone.AutoWah({
-                baseFrequency: data.values.baseFrequency,
-                octaves: 3,
-                sensitivity: 0,
-                Q: data.values.q,
-                gain: data.values.gain,
+        audio.filters.wahwah = autoWah;
 
-            }).toMaster();
-            autoWah.wet.value = 0;
+    },
+    create_lowpass: function(data) {
+        // check
+        var biquadFilter = Tone.context.createBiquadFilter();
+        biquadFilter.type = "lowshelf";
+        biquadFilter.frequency.value = 2000;
+        biquadFilter.gain.value = 0;
+        audio.filters.lowpass = biquadFilter;
 
-            audio.filters.wahwah = autoWah;
+    },
+    create_highpass: function(data) {
+        // check
+        var biquadFilter = Tone.context.createBiquadFilter();
+        biquadFilter.type = "highshelf";
+        biquadFilter.frequency.value = 200;
+        biquadFilter.gain.value = 0;
+        audio.filters.highpass = biquadFilter;
 
-        },
-        lowpass: function(data) {
-            var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-            biquadFilter.type = "lowshelf";
-            biquadFilter.frequency.value = 2000;
-            biquadFilter.gain.value = 0;
-            audio.filters.lowpass = biquadFilter;
+    },
 
-        },
-        highpass: function(data) {
-            var biquadFilter = Tone.context.createBiquadFilter().toMaster();
-            biquadFilter.type = "highshelf";
-            biquadFilter.frequency.value = 200;
-            biquadFilter.gain.value = 0;
-            audio.filters.highpass = biquadFilter;
-
-        },
-
-        delay: function(data) {
-            var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5).toMaster();
-            feedbackDelay.wet.value = 0;
-            audio.filters.delay = feedbackDelay;
-        },
-        distortion: function(data) {
-            var dist = new Tone.Distortion({
-                distortion: data.values.distortion,
-                oversample: data.values.oversample
-            }).toMaster();
-            dist.wet.value = 0;
-            audio.filters.distortion = dist;
-
-        }
-
+    create_delay: function(data) {
+        var feedbackDelay = new Tone.FeedbackDelay(data.values.delayTime, 0.5);
+        feedbackDelay.wet.value = 0;
+        audio.filters.delay = feedbackDelay;
+    },
+    create_distortion: function(data) {
+        // check
+        var dist = new Tone.Distortion({
+            distortion: data.values.distortion,
+            oversample: data.values.oversample
+        });
+        dist.wet.value = 0;
+        audio.filters.distortion = dist;
 
     },
     update: function(type, value) {
-
+        console.log('i need to send a socket');
         if (type == 'highpass' || type == 'lowpass') {
             audio.filters[type].gain.value = value * 2;
         } else {
@@ -848,333 +840,23 @@ var filters = {
         }
 
     },
+    startListening: function (e) {
+
+    },
+    stopListening: function (e) {
+
+    },
+
+    handleEvent: function (event) {
+        var self = this;
+        if(event.type == 'touchmove' || event.type == 'touchstart') {
+            self.startListening(event);
+        } else if (event.type =='touchend' || event.type == 'touchcancel') {
+             self.stopListening(event);
+        }
+    },
 
 }
-
-
-
-
-
-var events = {
-	showStep: function (index) {
-		
-		var steps   = document.querySelectorAll('.fn-sequencer-item');
-		for(var i = 0; i < steps.length; i++) {
-			steps[i].classList.toggle('highlight', i == index)
-		
-		};
-
-		// if(steps.length && !recording.isRecording) {
-		// 	steps.forEach(function(step) {
-		// 		step.classList.remove('highlight');
-		// 	});
-		// 	steps[index].classList.add('highlight')
-		// } else {
-		// 	steps.forEach(function(step) {
-		// 		step.classList.remove('highlight')
-		// 	});
-		// }
-	},
-	showRotate: function (item) {
-		body.setAttribute('rotate-active', true);
-		item.parentNode.classList.add('rotate-active');
-		events.sizeRotate(sequencer.getItemStep(item).frequency);
-	},
-	sizeRotate: function (value, item) {
-		if(item) {
-			var percentage  = (tools.getPercentage(value, 1200) * 70) / 100;
-			var circleSize  = percentage / 10;
-
-			var extraCircle = item.querySelector('.rotate-extra-circle');
-			 extraCircle.style.transform='scale( '+ circleSize*2 +')';
-			 extraCircle.style.borderWidth = percentage/2 + 'px';
-		} else {
-			var circles = document.querySelectorAll('.rotate-extra-circle');
-			for(var i = 0;i < circles.length;i++) {
-				circles[i].style.transform = 'scale(0)';
-				circles[i].style.borderWidth = '0px';
-
-			}
-
-		}
-	},
-	hideRotate: function (item) {
-		
-		body.removeAttribute('rotate-active');
-		item.parentNode.classList.remove('rotate-active');
-		item.querySelector('.rotate-extra-circle').style.borderWidth = item.querySelector('.rotate-extra-circle').style.transform = null;
-	},
-	updateStepLocation: function () {
-		// to be implemented, dot as in filter
-	},
-	unload: function () {
-		console.log('unload');
-		window.addEventListener('unload', function() {
-			sendSocket.send('groupUpdate', data.group._id, {text: data.user.username + ' heeft de groep verlaten'})
-			sendSocket.send('liveUpdate', 'live',  {text: data.user.username + ' heeft de groep verlaten'})
-
-			postData.leaveGroup();
-
-		})
-	}
-	
-	
-}
-
-
-
-var modulator = {
-	init: function () {
-	      changePage.selector();
-	      modulator.events.init();
-	      
-	},
-	events:  {
-		init: function () {
-			var form          = document.querySelector('.fn-form-modulate');
-			var filterButtons = document.querySelectorAll('.fn-modulate-btn');
-			var filterSlide   = document.querySelectorAll('.fn-fallback-filter');
-
-			form.addEventListener('input', function (e) {
-				var index = body.getAttribute('current-element');
-				modulator.events[e.target.getAttribute('name')](e.target, index)
-			})
-			form.addEventListener('change', function (e) {
-				var index = body.getAttribute('current-element');
-				modulator.events[e.target.getAttribute('name')](e.target, index)
-			})
-			filterButtons.forEach(function(button) {
-		        button.addEventListener('click', function(e) {
-		        	tips.increaseTip('filter');
-		          cameraTracker.trackElement(e.currentTarget);
-		        });
-		      });
-		      filterSlide.forEach(function(slider) {
-		      	slider.addEventListener('input', function(e) {
-		      		
-		      		filters.update(e.currentTarget.getAttribute('type'), e.target.value);
-		      		sendSocket.send('updateFilter',data.group._id, {
-		      			type:e.currentTarget.getAttribute('type'),
-		      			value: e.target.value
-		      		})
-		      		
-		      	});
-		      });
-
-		},
-		active: function (element, index) {
-			data.group.sources[index].active = element.checked;
-			tips.increaseTip('active');
-			sendSocket.send('updateSources',data.group._id, {
-				value: element.checked,
-				type: 'active', 
-				id: index});
-
-		},
-		wavetype: function (element, index) {
-			data.group.sources[index].type = element.getAttribute('wavetype');
-			sendSocket.send('updateSources', data.group._id, {
-				value: element.getAttribute('wavetype'),
-				type: 'wavetype', 
-				id: index});
-
-		},
-		detune: function (element, index) {
-			tips.increaseTip('detune');
-			data.group.sources[index].detune = element.value;
-
-			sendSocket.send('updateSources', data.group._id, {
-				value: element.value,
-				type: 'detune', 
-				id: index})
-	
-		},
-		volume: function (element, index) {
-			data.group.sources[index].volume = element.value;
-			
-			
-			sendSocket.send('updateSources', data.group._id, {
-				value: element.value,
-				type: 'volume', 
-				id: index})
-		},
-		
-		visualTrackerStep: function (value) {
-			
-		}
-	},
-	fillData: function (index) {
-		inputEvent.slider();
-
-		var elementData  = data.group.sources[parseInt(index)]
-		var form         = document.querySelector('.fn-form-modulate');
-		var wavetypes    = form.querySelectorAll('.fn-wavetype .fn-input'); 
-		var radioWrapper = document.querySelector('.fn-radio-slider');
-
-		form.setAttribute('active-index', index);
-		form.querySelector('.fn-slider-detune').value             = elementData.detune;
-		form.querySelector('.fn-slider-volume').value             = elementData.volume;
-		form.querySelector('.fn-active').checked           = elementData.active;
-		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
-
-		wavetypes.forEach(function(wavetype) {
-			
-			if(wavetype.getAttribute('wavetype') == elementData.type) {
-				wavetype.checked = true;
-			} else {
-				wavetype.checked = false;
-			}
-		});
-
-		inputEvent.setSliderBg('detune', elementData.detune);
-		inputEvent.setSliderBg('volume', elementData.volume);
-		inputEvent.radioSlider();
-
-		
-	},
-	updateData: function (index) {
-		
-		
-	},
-}
-var sequencer = {
-	isRecording: false,
-	newMelody: [],
-	init: function() {
-		tools.eachDomElement('.fn-sequencer-item', function (item) {
-			
-			events.updateStepLocation(item)
-			var hammertime = new Hammer(item, {})
-			
-			sequencer.toggleActive(hammertime)
-		})
-		recording.setup();
-		adsr.init();
-	},
-	getItemStep : function (item) {
-		var step = data.group.steps[parseInt(item.getAttribute('sequence-index'))];
-		return step;
-	},	
-	
-	receiveNewValue: function (newValue, item) {
-
-		var frequency = sequencer.calculateFrequency(newValue, parseInt(item.getAttribute('max')));
-		loop.holdTone(true, frequency)
-	},
-	calculateFrequency: function (perc, max) {
-		var value = (perc * max) / 100;
-		return value;
-	},
-	calculatePercentage: function (item) {
-		var step = sequencer.getItemStep(item);
-		var perc = (step.frequency * 100) / step.max;
-		return perc;
-	},
-	
-	// changeFrequency: function (hammertime) {
-	// 	var item = null;
-	// 	var closeFreq = function () {
-	// 		deviceRotation.stopListen(function (value) {
-	// 			sequencer.updateFrequency(item, value)
-	// 		});
-
-	// 		events.hideRotate(item);
-	// 	}
-	// 	var openFreq = function (e) {
-	// 		e.preventDefault();
-	// 		item = e.target;
-	// 		var percentage = sequencer.calculatePercentage(item);
-	// 		deviceRotation.listen(item, 'frequency', percentage);
-			
-	// 		events.showRotate(item);
-	// 		loop.holdTone(true, sequencer.getItemStep(e.target).frequency);
-
-	// 		e.target.addEventListener('mouseup', closeFreq)
-	// 		e.target.addEventListener('touchend', closeFreq)
-	// 		e.target.addEventListener('touchcancel', closeFreq)
-	// 	}
-	// 	hammertime.on('press', function (e) {
-	// 		openFreq(e);
-	// 	})
-	// },
-	toggleActive: function (hammertime) {
-		hammertime.on('tap', function (e) {
-			if(!recording.isRecording) {
-				var index = parseInt(e.target.getAttribute('sequence-index'));
-				tips.increaseTip('clickActive');
-				
-				data.group.steps[parseInt(index)].active = !data.group.steps[parseInt(index)].active;
-				
-				e.target.classList.toggle('active');
-				
-				sendSocket.send('updateSingleStep',data.group._id, 
-					{step: data.group.steps[index], index: index})
-				
-			}
-		
-		});
-	},
-	updateActive: function () {
-		var steps = document.querySelectorAll('.fn-step-item');
-		for(var i = 0; i < steps.length;i++) {
-			if(data.group.steps[i].active) {
-				steps[i].classList.add('active')
-			} else {
-				steps[i].classList.remove('active')
-			}
-		}
-	},
-	updateFrequency: function(item, newValue) {
-		var frequency = sequencer.calculateFrequency(newValue, sequencer.getItemStep(item).max);
-		events.updateStepLocation(item);
-
-		var step = sequencer.getItemStep(item);
-		step.frequency = frequency;
-
-		
-		sendSocket.send('updateSingleStep',data.group._id, 
-					{step: step, index: parseInt(item.getAttribute('sequence-index'))})
-		
-		item.setAttribute('frequency', frequency)
-		loop.holdTone(false);
-
-		// 
-	},
-	
-}
-
-
-// var modulate = {
-	
-// 	sendSocket: function (newdata) {
-		
-// 		socket.emit('updateSources', {
-// 			room: data.group._id,
-// 			data: newdata
-// 		});
-
-// 	},
-// 	changewavetype: function (newtype) {
-// 		var currentData = modulate.getCurrentData();
-// 		currentData.type = newtype;
-// 		modulate.sendSocket({value: currentData.type, type: 'wavetype', id: currentData.id});
-
-// 	},
-// 	changeDetune: function (newvalue) {
-		
-// 	},
-// 	getCurrentData : function () {
-// 		var form = document.querySelector('.fn-form-modulate');
-// 		var thisdata = data.group.sources[parseInt(form.getAttribute('active-index'))];
-// 		return thisdata
-// 	},
-// 	wavetype: function () {
-// 		var form = document.querySelector('.fn-wavetype');
-// 		form.querySelector('.fn-input');
-// 	}
-// }
-
-
 var changePage = {
 	showPage : function (page) {
 		var allPages = document.querySelectorAll('.fn-changepage-page');
@@ -1236,17 +918,11 @@ var changePage = {
 				changePage.showPage('sequencer');
 			})
 		}
-		var buttonCalibrate = document.querySelector('.fn-start-calibrate');
-		if(buttonCalibrate) {
-			buttonCalibrate.addEventListener('click', function () {
-				if(data.supportMedia) {
-					changePage.showPage('calibrate');
-					cameraTracker.init();
-				} else {
-					audio.setup();
-					changePage.showPage('filters');
-					
-				}
+		var buttonMod = document.querySelector('.fn-start-modulator');
+		if(buttonMod) {
+			buttonMod.addEventListener('click', function () {
+				audio.setup();
+				changePage.showPage('filters');
 			})
 			
 		}
@@ -1284,251 +960,7 @@ var changePage = {
 	
 }
 
-var demo = {
-	init:function () {
-		console.log('demo?');
-		// created by Benimation
-//		
-		var r = 0;
-		var rdir = true;
 
-		var screen = document.querySelector('.screen');
-	
-
-
-		window.addEventListener("deviceorientation", handleOrientation, true);
-		
-		function handleOrientation(event) {
-			var absolute = event.absolute;
-			if (event.alpha > 180 && event.alpha < 360) {
-				var alpha = Math.round(Math.abs(event.alpha/360*255));
-				
-			} else {
-				var alpha = Math.round(Math.abs((360-event.alpha)/360*255));
-				
-			}
-			if (Math.abs(event.beta) > 90 && Math.abs(event.beta) < 180) {
-				var beta = Math.round((Math.abs(event.beta/90*255)-225));
-				
-			} else {
-				var beta = Math.round(((180-Math.abs(event.beta))/90*255)-225);
-				
-			}
-			if (Math.abs(event.gamma) > 90 && Math.abs(event.gamma) < 180) {
-				var gamma = Math.round(Math.abs(event.gamma/90*255));
-				
-			} else {
-				var gamma = Math.round(((180-Math.abs(event.gamma))/90*255)-255);
-				
-			}
-			
-			newColor = "rgba(" + beta + "," + alpha + "," + gamma + ",1.00)";
-			
-			console.log(alpha, beta, gamma);
-			
-			// $(".screen").css("background-color", newColor);
-			
-
-			screen.style.backgroundColor = newColor;
-			
-			if (event.alpha > 160 && event.alpha < 180) {
-				console.log("north");
-				// $(".screen").trigger("click");
-				screen.click()
-				
-			}
-			
-		}
-
-
-// To the extent possible under law, the person who associated CC0 with this work has waived all copyright and related or neighboring rights to this work.
-
-// $(document).ready(function(e) {
-// 	var r = 0;
-// 	var rdir = true;
-// 	$(".screen").mousemove(function(event) {
-		
-		
-// 		if (r < 256) {
-// 			if (rdir == true) {
-// 				r++
-// 			} else {
-// 				r--
-// 			}
-			
-// 		} else {
-// 			rdir = false;
-// 			r--;
-			
-// 		}
-		
-// 		if (r < 1) {
-// 			rdir =  true;
-			
-// 		}
-		
-// 		rcolor = r;
-		
-// 		newColor = "rgba(" + rcolor + "," + gcolor + "," + bcolor + ",1.00)";
-		
-// 		$(".screen").css("background-color", newColor);
-		
-// 	});
-	
-	
-	
-// 	window.addEventListener("deviceorientation", handleOrientation, true);
-	
-// 	function handleOrientation(event) {
-// 		var absolute = event.absolute;
-// 		if (event.alpha > 180 && event.alpha < 360) {
-// 			var alpha = Math.round(Math.abs(event.alpha/360*255));
-			
-// 		} else {
-// 			var alpha = Math.round(Math.abs((360-event.alpha)/360*255));
-			
-// 		}
-// 		if (Math.abs(event.beta) > 90 && Math.abs(event.beta) < 180) {
-// 			var beta = Math.round((Math.abs(event.beta/90*255)-225));
-			
-// 		} else {
-// 			var beta = Math.round(((180-Math.abs(event.beta))/90*255)-225);
-			
-// 		}
-// 		if (Math.abs(event.gamma) > 90 && Math.abs(event.gamma) < 180) {
-// 			var gamma = Math.round(Math.abs(event.gamma/90*255));
-			
-// 		} else {
-// 			var gamma = Math.round(((180-Math.abs(event.gamma))/90*255)-255);
-			
-// 		}
-		
-// 		newColor = "rgba(" + beta + "," + alpha + "," + gamma + ",1.00)";
-		
-// 		console.log(event.alpha);
-		
-// 		$(".screen").css("background-color", newColor);
-		
-// 		if (event.alpha > 160 && event.alpha < 180) {
-// 			console.log("north");
-// 			$(".screen").trigger("click");
-			
-// 		}
-		
-// 	}
-	
-// 	// $(".screen").vibrate("short");
-    
-// });
-
-	}
-}
-demo.init();
-
-
-var handInteraction = {
-	top:400,
-	bottom:0,
-	activateButtons: document.querySelectorAll('.fn-control-hand'),
-	init: function () {
-		
-		this.support();
-
-		
-		var self = this;
-
-		for(var i = 0; i < this.activateButtons.length;i++) {
-			this.activateButtons[i].addEventListener('touchstart', this, true);
-
-		}
-
-
-		
-		
-	},
-	
-	getButtons: function () {
-
-	},
-	calibrate: function () {
-
-	},
-
-	listen: function (e){
-		console.log('heeeeee');
-		console.log(e);
-		e.currentTarget.classList.add('active');
-		e.target.addEventListener('mouseup', this, true);
-		e.target.addEventListener('touchend', this, true);
-		e.target.addEventListener('touchcancel', this, true);
-		window.addEventListener('devicelight', this, true);
-		 // function (e) {
-			
-			// this.parseLight.
-			// var value = tools.getPercentage(e.value, handInteraction.top);
-			// console.log('perc ',value);
-			// var freq = (value * audio.highest) / 100;
-			// console.log(freq, audio.highest);
-			// if(freq > audio.highest) {
-				// freq = audio.highest;
-			// }audio.setFrequencies(this.frequency)
-			// audio.setFrequencies(freq);
-			// audio.overrideFreq;
-		// })
-
-	},
-	setHighest : function (lux) {
-		if(lux > this.top) {
-			this.top = lux;
-		}
-	},
-	parseLight: function (lux) {
-		console.log('im receiveing a value ', lux);
-		this.setHighest(lux);
-		this.displayValue('LUX: '+ lux )
-
-		var luxPercentage = tools.getPercentage(lux, handInteraction.top);
-		var frequency = (luxPercentage * audio.highest) / 100;
-		if(frequency > audio.highest) {
-			frequency = audio.highest
-		};
-		audio.overrideFreq = frequency;
-		audio.slideFrequency(frequency)
-
-	},
-	support: function () {
-		var self = this;
-		if ('ondevicelight' in window) {
-			this.support = true;
-			} else {
-				this.support = false;
-			}
-	},
-	stopListen: function (e) {
-		console.log('stop listeingin');
-		audio.overrideFreq = false;
-		e.currentTarget.classList.remove('active');
-		window.removeEventListener('devicelight', this);
-	},
-	displayValue: function (content) {
-		var textbox = document.querySelector('.fn-lux-display');
-		textbox.innerHTML = content;
-	},
-	event: function () {
-
-	},
-	handleEvent: function (event) {
-		if(event.type == 'touchend' || event.type == 'touchcancel' || event.type == 'mouseup') {
-			this.stopListen(event);
-		} 
-		if(event.type == 'touchstart') {
-			this.listen(event);
-		} 
-		if(event.type == 'devicelight') {
-			this.parseLight(event.value);
-		} 
-	},
-}
 
 
 var inputEvent = {
@@ -1542,14 +974,17 @@ var inputEvent = {
 	},
 
 	setSliderBg: function (name, value) {
+		console.log(name, value);
 		var sliderBg = document.querySelectorAll('.fn-slider-bg');
 		if(name == 'volume') {
 			value = (value/2)*100;
 		}
-		
 		for(var i = 0; i < sliderBg.length;i++) {
 			if(sliderBg[i].getAttribute('name') == name) {
-				sliderBg[i].style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
+				var clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
+				sliderBg[i].style.clipPath = clipPath;
+				sliderBg[i].style.webkitClipPath = clipPath;
+				console.log('updating it');
 			}
 		}
 	},
@@ -1984,8 +1419,9 @@ var postData = {
 			role:data.user.role,
 			groupid: data.group._id
 		};
+		console.log(send);
 		postData.postRequest('/role/leave',send, function (res) {
-			console.log('saved before leaving');
+			
 			
 		})
 	},
@@ -2000,7 +1436,7 @@ var postData = {
 		xhr.onreadystatechange = function() {//Call a function when the state changes.
 		    if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
 		        // Request finished. Do processing here.
-		        console.log(xhr.response);
+		        // console.log(xhr.response);
 		        // if(xhr.response) {
 		        // 	cb(JSON.parse(xhr.response))	
 		        // } else {
@@ -2035,27 +1471,68 @@ var postData = {
 
 var pp = {
 	touchBlok: document.querySelector('.fn-pp'),
+	rotationButton: document.querySelector('.fn-control-motion'),
 
 	setup:function () {
 
 		var w = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 		var h = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 		
-		console.log(handInteraction.support);
-		if(!handInteraction.support) {
-			this.touchBlok.addEventListener('touchmove', this, true)
-			this.touchBlok.addEventListener('touchstart', this, true)
-			this.touchBlok.addEventListener('touchend', this, true)
-			this.touchBlok.addEventListener('touchcancel', this, true)
-		}
+		var self = this;
 
+		if(!rotation.support) {
+			self.touchBlok.addEventListener('touchmove', self, true)
+			self.touchBlok.addEventListener('touchstart', self, true)
+			self.touchBlok.addEventListener('touchend', self, true)
+			self.touchBlok.addEventListener('touchcancel', self, true)
+		} else {
+			self.rotationButton.addEventListener('touchstart', self, true);
+			self.rotationButton.addEventListener('touchend', self, true)
+			self.rotationButton.addEventListener('touchcancel', self, true)
+		}
+		
+
+	},
+	displayValue: function (content) {
+		var textbox = document.querySelector('.fn-motion-display');
+		textbox.innerHTML = content;
+	},
+	startMotion: function (e) {
+		var self = this;
+		// e.target.classList.add('active');
+		rotation.listen(function (motionData) {
+			self.pitch = motionData.pitch;
+			self.displayValue(Math.floor(motionData.rawBeta) + ' , ' + Math.floor(motionData.rawGamma));
+			audio.setFrequencies(motionData.pitch)
+			audio.oscVolume(motionData.gain)
+			rotation.rotateBackground(motionData);
+		})
+	},
+	stopMotion: function (e) {
+		e.target.classList.remove('active');
+		this.displayValue('');
+		rotation.stopListen();
 	},
 	handleEvent: function (event) {
 		if(event.type == 'touchmove' || event.type == 'touchstart') {
-			this.touchMove(event);
+			if(rotation.support) {
+				this.startMotion(event);
+			} else {
+				this.touchMove(event);
+			}
 		} else if (event.type =='touchend' || event.type == 'touchcancel') {
-			this.touchEnd(event)
+			
+			if(rotation.support) {
+				this.stopMotion(event);
+			} else {
+				this.touchEnd(event);
+			}
 		}
+	},
+	rotationStart: function () {
+		rotation.listen(function (text) {
+			console.log('dit is een clb', text);
+		})
 	},
 	touchPosition: function (touches) {
 		var touch = touches[0] || toches[0];
@@ -2145,19 +1622,32 @@ var pp = {
 // checken met als de sustain lang is 
 var recording = {
 	isRecording: false,
-	
+	recordingUser: false,
 
 	setup: function () {
 		this.startButton = document.querySelector('.fn-seq-rec');
-		this.buttons     = document.querySelectorAll('.fn-rec-item');
+		
 		this.length      = data.group.steps.length;
-
+		this.clickArea = document.querySelector('.fn-rec-step');
 		this.startButton.addEventListener('click', this.startEvent.bind(this))
+		this.checkRecordingUser();
 
+	},
+	checkRecordingUser: function () {
+		var self = this;
+		if(data.user.role == 'sequencer' && data.group.modulator)  {
+			console.log('im not the recording artist');
+			self.recordingUser = false;
+		} else {
+			console.log('im recording artist');
+			self.recordingUser = true;
+		}
+		
 	},
 	startEvent: function (e) {
 		this.isRecording = !this.isRecording;
 		this.melody      = [];
+
 		var self = this;
 		
 		if(this.isRecording) {
@@ -2165,29 +1655,43 @@ var recording = {
 			self.startButton.parentNode.setAttribute('target-page', 'recording');
 			body.setAttribute('recording', 'true');
 			self.setHeader('RECORDED: 0/' + self.length);
-			audio.gainNode.triggerRelease();
-
-			self.buttons.forEach(function(button) {
-				button.addEventListener('click', self.addStep)
+			audio.gainNode.triggerAttack();
+			adsr.sustain     = true;
+			self.clickArea.addEventListener('click', self, true);
+			rotation.listen(function (motionData) {
+				self.pitch = motionData.pitch;
+				self.displayValue(motionData.rawBeta);
+				audio.setFrequencies(self.pitch)
 			});
+			
 		} else {
 			console.log('finishin up');
 			self.finish(e);
 		}
 		
 	},
+	
+ 	displayValue: function (content) {
+		var textbox = document.querySelector('.fn-rec-value');
+		textbox.innerHTML = content;
+	},
+	displaySteps: function (content) {
+		var textbox = document.querySelector('.fn-rec-score');
+		textbox.innerHTML = content;
+	},
 	setHeader: function (content) {
 		var textbox = document.querySelector('.fn-rec-score');
 		textbox.innerHTML = content;
 	},
 	addStep: function (e) {
-		var index = parseInt(e.currentTarget.getAttribute('rec-index'));
-		recording.melody.push(data.group.scale[index]);
-		audio.triggerEnvAttack(data.group.scale[index], '8n');
 
-		recording.setHeader('RECORDED: ' + recording.melody.length + '/' + recording.length);
+		// var index = parseInt(e.currentTarget.getAttribute('rec-index'));
+		this.melody.push(this.pitch);
+		console.log(this.melody);
 
-		if(recording.melody.length == recording.length) {
+		this.setHeader('RECORDED: ' + this.melody.length + '/' + this.length);
+
+		if(this.melody.length == this.length) {
 			recording.finish();
 		}
 	},
@@ -2197,25 +1701,27 @@ var recording = {
 		this.startButton.parentNode.setAttribute('target-page', 'sequencer');
 		body.removeAttribute('recording', 'true');
 		changePage.showPage('sequencer');
-
+		this.clickArea.removeEventListener('click', self, true);
 		this.isRecording = false;
 		this.setHeader(' ');
-
+		rotation.stopListen();
+		adsr.sustain     = data.group.sustain;
+		
 		var self = this;
 		if(this.melody.length !== 0) {
 			self.updateMelody();
 		}
 		
-		this.buttons.forEach(function(button) {
-			button.removeEventListener('click', self.addStep)
-		});
+		
+	this.clickArea.removeEventListener('click', self)
+		
 		
 		
 	},
 	updateMelody: function () {
 		tips.increaseTip('rec');
 		var newMelody = this.fillMelody();
-
+		console.log(newMelody);
 		for(var i in newMelody) {
 			data.group.steps[i].active = true;
 			data.group.steps[i].frequency = newMelody[i];
@@ -2238,9 +1744,268 @@ var recording = {
 			}
 		}
 		return actualMeldoy
-	}
+	},
+	handleEvent: function (event) {
+		if(event.type == 'click') {
+			this.addStep();
+		}
+		
+	},
 
 }
+var modulator = {
+	init: function () {
+		changePage.selector();
+		this.filterButtons = document.querySelectorAll('.fn-modulate-btn');
+		this.form          = document.querySelector('.fn-form-modulate');
+
+		var self = this;
+		for(var i = 0; i < this.filterButtons.length;i++) {
+			self.filterButtons[i].addEventListener('touchstart', self, true);
+			self.filterButtons[i].addEventListener('touchend', self, true)
+			self.filterButtons[i].addEventListener('touchcancel', self, true)
+		}
+		this.form.addEventListener('input', self, true);
+		this.form.addEventListener('change', self, true);
+			
+	      // modulator.events.init();
+	      
+	},
+	displayValue: function (value) {
+		var textbox = document.querySelector('.fn-motion-display');
+		textbox.innerHTML = value;
+	},
+	startFilter: function (e) {
+		tips.increaseTip('filter');
+		console.log(e);
+		var filterType = e.currentTarget.getAttribute('modulate-type');
+		body.setAttribute('filters', 'true');
+		e.currentTarget.classList.add('active');
+
+		var self = this;
+
+
+		rotation.listen(function (motionData) {
+			var value = motionData.perBeta/2;
+			filters.update(filterType, value);
+			self.displayValue(value);
+			rotation.scaleBackground(value*2);
+		})
+	},
+	endFilter: function(e) {
+		body.removeAttribute('filters' );
+		e.target.classList.remove('active');
+		this.displayValue('');
+		rotation.stopListen();
+		rotation.scaleBackground(0);
+
+
+	},
+	updateForm: function (e) {
+		var index = body.getAttribute('current-element');
+		console.log(e.target, this);
+		this.update[e.target.getAttribute('name')](e.target, index)
+	},
+	handleEvent: function (event) {
+		if(event.type == 'touchmove' || event.type == 'touchstart') {
+			this.startFilter(event);
+		} else if (event.type =='touchend' || event.type == 'touchcancel') {
+			this.endFilter(event);
+		} else if (event.type =='input' || event.type == 'change') {
+			this.updateForm(event);
+		}
+	},
+
+	update:  {
+		active: function (element, index) {
+			data.group.sources[index].active = element.checked;
+			tips.increaseTip('active');
+			sendSocket.send('updateSources',data.group._id, {
+				value: element.checked,
+				type: 'active', 
+				id: index
+			});
+
+		},
+		wavetype: function (element, index) {
+			data.group.sources[index].type = element.getAttribute('wavetype');
+			sendSocket.send('updateSources', data.group._id, {
+				value: element.getAttribute('wavetype'),
+				type: 'wavetype', 
+				id: index});
+
+		},
+		detune: function (element, index) {
+			tips.increaseTip('detune');
+			data.group.sources[index].detune = element.value;
+
+			sendSocket.send('updateSources', data.group._id, {
+				value: element.value,
+				type: 'detune', 
+				id: index})
+	
+		},
+		volume: function (element, index) {
+			
+			data.group.sources[index].volume = element.value;
+			sendSocket.send('updateSources', data.group._id, {
+				value: element.value,
+				type: 'volume', 
+				id: index})
+		},
+		
+	},
+	fillData: function (index) {
+		console.log('filling the data');
+		inputEvent.slider();
+
+		var elementData  = data.group.sources[parseInt(index)]
+		var form         = document.querySelector('.fn-form-modulate');
+		var wavetypes    = form.querySelectorAll('.fn-wavetype .fn-input'); 
+		var radioWrapper = document.querySelector('.fn-radio-slider');
+
+		form.setAttribute('active-index', index);
+		form.querySelector('.fn-slider-detune').value      = elementData.detune;
+		form.querySelector('.fn-slider-volume').value      = elementData.volume;
+		form.querySelector('.fn-active').checked           = elementData.active;
+		form.querySelector('.fn-slider-bg').style.clipPath = "polygon(0 0, "+elementData.detune +" % 0, "+elementData.detune+"% 100%, 0% 100%)";
+
+		wavetypes.forEach(function(wavetype) {
+			if(wavetype.getAttribute('wavetype') == elementData.type) {
+				wavetype.checked = true;
+			} else {
+				wavetype.checked = false;
+			}
+		});
+
+		inputEvent.setSliderBg('detune', elementData.detune);
+		inputEvent.setSliderBg('volume', elementData.volume);
+		inputEvent.radioSlider();
+	},
+}
+var sequencer = {
+	isRecording: false,
+	newMelody: [],
+	steps: document.querySelectorAll('.fn-step-item'),
+
+	init: function() {
+		
+		var self = this;
+		
+		tools.eachDomElement('.fn-sequencer-item', function (item) {
+			item.addEventListener('click', self, true);
+		})
+		recording.setup();
+		adsr.init();
+		pp.setup();
+	},
+	
+	toggleActive: function (e) {
+		var index = parseInt(e.target.getAttribute('sequence-index'));
+		tips.increaseTip('clickActive');
+		data.group.steps[index].active = !data.group.steps[index].active;
+		e.target.classList.toggle('active');
+
+		sendSocket.send('updateSingleStep',data.group._id, {
+			step: data.group.steps[index], index: index
+		})
+	},
+	updateActive: function () {
+		var self = this;
+		for(var i = 0; i < this.steps.length;i++) {
+
+			if(data.group.steps[i].active) {
+				self.steps[i].classList.add('active')
+			} else {
+				self.steps[i].classList.remove('active')
+			}
+		}
+	},
+	
+	handleEvent: function (event) {
+		if(event.type == 'click') {
+			this.toggleActive(event);
+		}
+		
+	},
+	
+}
+
+var rotation = {
+
+	init: function () {
+		window.addEventListener('deviceorientation', this, true)
+	},
+	listen: function (callback) {
+		// this.listenType = type
+		this.callback = callback
+	},
+	support: function () {
+		this.support = 'deviceorientation' in window;
+		console.log(this.support);
+	},
+	stopListen: function () {
+		this.callback = false;
+	},
+	orientationEvent: function (event) {
+		// console.log(event.);
+		var self = this;
+
+		if(this.callback) {
+			
+			self.rawBeta  = event.beta;
+			var percBeta  = tools.getPercentage(event.beta + 100, 200);
+			percBeta      = self.cutPercentage(percBeta, 0, 100);
+			
+			var percGamma = tools.getPercentage(event.gamma + 90, 180);
+			
+			percGamma     = self.cutPercentage(percGamma, 0, 100);
+			
+			self.pitch = tools.percentageToValue(percBeta, audio.highest);
+			self.gain = tools.percentageToValue(percGamma, 5);
+			// console.log(self.gain, percGamma);
+			self.callback({
+				rawBeta: event.beta,
+				rawAlpha: event.alpha,
+				rawGamma: event.gamma,
+				pitch: self.pitch, 
+				gain: self.gain,
+				perBeta: percBeta
+
+				
+			})
+		}
+	},
+	scaleBackground: function (perc) {
+		var background = document.querySelector('.fn-background-motion');
+		background.style.transform = 'scaleY(' + perc/100 + ')';
+	},
+	cutPercentage: function (perc, min, max) {
+		if(perc < min) {
+			perc = min
+		} else if (perc > max) {
+			perc = max;
+		} 
+		return perc;
+	},
+	handleEvent: function (event) {
+		if(event.type == 'deviceorientation') {
+			this.orientationEvent(event);
+		}
+		
+	},
+	rotateBackground: function(motionData) {
+		var bg = document.querySelector('.fn-motion-bg');
+		// console.log(motionData);
+		// rawalpha = 0 -> transfomr = 90
+		// var a = tools.getPercentage(motionData.rawAlpha, 90);
+		// var value = 90 - a;
+		// full = 90
+		// not = 0
+		// bg.style.transform = 
+	}
+}
+
 var tips = {
 	textDOM: null,
 	allTips:[],
@@ -2254,6 +2019,18 @@ var tips = {
 		tips.allTips = data.tips;
 		tips.questions();
 
+	}, 
+	notification (text, user) {
+		console.log(user, text);
+		if(user.username !== data.user.username) {
+			var message = document.querySelector('.fn-notification');
+			message.innerHTML = text;
+			message.style.opacity = 1;
+			setTimeout(function () {
+				message.style.opacity = 0;
+			}, 3000)
+			
+		}
 	},
 	questions: function () {
 		var buttons = document.querySelectorAll('.fn-question');
@@ -2297,7 +2074,7 @@ var tips = {
 		
 		if(tips.currentTip == data.tips.length) {
 			
-			tips.textDOM.innerHTML = tips.tipMemory = ' ';
+			tips.parentNode.removeChild(tips);
 			
 		} else {
 			tips.textDOM.classList.add('tip-animation')
@@ -2386,6 +2163,9 @@ var tools = {
 	getPercentage: function (value, max) {
 		return (value*100)/max;
 	},
+	percentageToValue: function (perc, max) {
+		return (perc * max) / 100
+	},
 	valueInObject: function (obj,param,  value) {
 		var match = false;
 		obj.forEach(function(elem) {
@@ -2455,176 +2235,177 @@ var tools = {
 	}
 }
 
-var cameraTracker = {
-  first: true,
-  base: 440,
-  maxValue:880,
-  baseNum: 0,
-  size:0,
-  lowSize:null,
-  highSize:null,
-  calibrated: 0,
-  tracker: null,
-  stop: false,
+// var cameraTracker = {
+//   first: true,
+//   base: 440,
+//   maxValue:880,
+//   baseNum: 0,
+//   size:0,
+//   lowSize:null,
+//   highSize:null,
+//   calibrated: 0,
+//   tracker: null,
+//   stop: false,
   
 
-  init: function () {
+//   init: function () {
     
-     cameraTracker.video   = document.querySelector('.fn-video-calibrate');
-     cameraTracker.canvas  = document.querySelector('.fn-canvas-calibrate');
-     cameraTracker.context = cameraTracker.canvas.getContext('2d');
-      // cameraTracker.calibrate();
-      if(data.supportMedia) {
-        cameraTracker.calibrate();
-        } else {
-        cameraTracker.removeCamera();
-      }
+//      cameraTracker.video   = document.querySelector('.fn-video-calibrate');
+//      cameraTracker.canvas  = document.querySelector('.fn-canvas-calibrate');
+//      cameraTracker.context = cameraTracker.canvas.getContext('2d');
+//       // cameraTracker.calibrate();
+//       if(data.supportMedia) {
+//         cameraTracker.calibrate();
+//         } else {
+//         cameraTracker.removeCamera();
+//       }
       
-  },  
-  checkSupport: function (callback) {
-    var support = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+//   },  
+//   checkSupport: function (callback) {
+//     var support = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     
-    data.supportMedia = support ? true : false;
+//     data.supportMedia = support ? true : false;
     
-    return data.supportMedia;
-  },
-  removeCamera: function () {
+//     return data.supportMedia;
+//   },
+//   removeCamera: function () {
     
-    if(!data.supportMedia) {
-      var elements = document.querySelectorAll('.fn-hide-support');
+//     if(!data.supportMedia) {
+//       var elements = document.querySelectorAll('.fn-hide-support');
 
-      if(elements.length) {
-        for(var i = 0; i < elements.length; i++) {
-          elements[i].parentNode.removeChild(elements[i]);
-        }
-      }
-    }
-  },
-  calibrate: function () {
-    var buttonTop    = document.querySelector('.fn-calibrate-top');
-    var buttonStop   = document.querySelector('.fn-calibrate-top');
-    var startButton = document.querySelector('#test-btn');
-    var buttonBottom = document.querySelector('.fn-calibrate-bottom');
-    var first        = true;
-    var tracker      = new tracking.ColorTracker(['yellow']);
-    var trackThing   = tracking.track(cameraTracker.video, tracker, { camera: true });
+//       if(elements.length) {
+//         for(var i = 0; i < elements.length; i++) {
+//           elements[i].parentNode.removeChild(elements[i]);
+//         }
+//       }
+//     }
+//   },
+//   calibrate: function () {
+//     var buttonTop    = document.querySelector('.fn-calibrate-top');
+//     var buttonStop   = document.querySelector('.fn-calibrate-top');
+//     var startButton = document.querySelector('#test-btn');
+//     var buttonBottom = document.querySelector('.fn-calibrate-bottom');
+//     var first        = true;
+//     var tracker      = new tracking.ColorTracker(['yellow']);
+//     var trackThing   = tracking.track(cameraTracker.video, tracker, { camera: true });
     
   
-    tracker.on('track', function(event) {
+//     tracker.on('track', function(event) {
       
-      if(first) {
-        first = !first;
-        cameraTracker.canvas.height = cameraTracker.video.offsetHeight;
-        cameraTracker.canvas.width  = cameraTracker.video.offsetWidth;
-      }
-      cameraTracker.context.clearRect(0, 0, 1000, 1000);
-      cameraTracker.drawRectangle(event.data, cameraTracker.context, tracker.colors[0])
-    });
+//       if(first) {
+//         first = !first;
+//         cameraTracker.canvas.height = cameraTracker.video.offsetHeight;
+//         cameraTracker.canvas.width  = cameraTracker.video.offsetWidth;
+//       }
+//       cameraTracker.context.clearRect(0, 0, 1000, 1000);
+//       cameraTracker.drawRectangle(event.data, cameraTracker.context, tracker.colors[0])
+//     });
 
-    document.querySelector('.calibrate-done').addEventListener('click', function(e) {
-        trackThing.stop();
-        audio.setup();
-        changePage.showPage('filters')
+//     document.querySelector('.calibrate-done').addEventListener('click', function(e) {
+//         trackThing.stop();
+//         audio.setup();
+//         changePage.showPage('filters')
         
-    });
+//     });
 
-    buttonTop.addEventListener('click', function (e) {
-      cameraTracker.saveCalibrate(e.currentTarget, 'lowSize', cameraTracker.size);      
-    })
+//     buttonTop.addEventListener('click', function (e) {
+//       cameraTracker.saveCalibrate(e.currentTarget, 'lowSize', cameraTracker.size);      
+//     })
     
-    buttonBottom.addEventListener('click', function (e) {
-      cameraTracker.saveCalibrate(e.currentTarget, 'highSize', cameraTracker.size);      
-    })
-  },
+//     buttonBottom.addEventListener('click', function (e) {
+//       cameraTracker.saveCalibrate(e.currentTarget, 'highSize', cameraTracker.size);      
+//     })
+//   },
 
-  startElementTracking: function (callback, element) {
-    var tracker = new tracking.ColorTracker(['yellow']);
-    var trackThing = tracking.track(cameraTracker.video, tracker, { camera: true})
+//   startElementTracking: function (callback, element) {
+//     var tracker = new tracking.ColorTracker(['yellow']);
+//     var trackThing = tracking.track(cameraTracker.video, tracker, { camera: true})
     
 
-    tracker.on('track', function(event, trackThing) {
-        var data = event.data[0];
-        if(data) {
-          var size = data.width * data.height;
-          if(size < cameraTracker.highSize) {
-            body.setAttribute('tracking-status', 'high');
-          } else if (size > cameraTracker.lowSize) {
-            body.setAttribute('tracking-status', 'low');
-          } else {
-            body.setAttribute('tracking-status', 'ok');
-            var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
-            var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
-            callback(percentage)
-          }
+//     tracker.on('track', function(event, trackThing) {
+//         var data = event.data[0];
+//         if(data) {
+//           var size = data.width * data.height;
+//           if(size < cameraTracker.highSize) {
+//             body.setAttribute('tracking-status', 'high');
+//           } else if (size > cameraTracker.lowSize) {
+//             body.setAttribute('tracking-status', 'low');
+//           } else {
+//             body.setAttribute('tracking-status', 'ok');
+//             var calculateableNum = cameraTracker.lowSize - cameraTracker.highSize;
+//             var percentage       = ((size - cameraTracker.highSize) / calculateableNum) * 100;
+//             callback(percentage)
+//           }
            
          
-        }
-    });
-    element.addEventListener('click', function (e) {
-      trackThing.stop();
-      e.target.removeEventListener('click', arguments.callee)
-    })
+//         }
+//     });
+//     element.addEventListener('click', function (e) {
+//       trackThing.stop();
+//       e.target.removeEventListener('click', arguments.callee)
+//     })
 
-  },
+//   },
 
-  saveCalibrate: function (button, type, value) {
-    var buttonTop    = document.querySelector('.fn-calibrate-top');
-    var buttonBottom = document.querySelector('.fn-calibrate-bottom');
+//   saveCalibrate: function (button, type, value) {
+//     var buttonTop    = document.querySelector('.fn-calibrate-top');
+//     var buttonBottom = document.querySelector('.fn-calibrate-bottom');
 
-    if(value !== 0) {
-      button.classList.add('checked')
-      cameraTracker[type] = button.innerHTML = cameraTracker.size;
+//     if(value !== 0) {
+//       button.classList.add('checked')
+//       cameraTracker[type] = button.innerHTML = cameraTracker.size;
 
-      if(buttonTop.classList.contains('checked') && buttonBottom.classList.contains('checked')) {
-      buttonTop.parentNode.classList.add('finished');
-      }
-    }
-  },
+//       if(buttonTop.classList.contains('checked') && buttonBottom.classList.contains('checked')) {
+//       buttonTop.parentNode.classList.add('finished');
+//       }
+//     }
+//   },
   
-  drawRectangle: function (data, context, color) {
-    data.forEach(function(rect) {
-      rect.color         = color;
-      context.fillStyle  = rect.color;
-      cameraTracker.size = rect.width * rect.height;
+//   drawRectangle: function (data, context, color) {
+//     data.forEach(function(rect) {
+//       rect.color         = color;
+//       context.fillStyle  = rect.color;
+//       cameraTracker.size = rect.width * rect.height;
 
-      context.fillRect(rect.x, rect.y, rect.width, rect.height);
-    });
+//       context.fillRect(rect.x, rect.y, rect.width, rect.height);
+//     });
       
-  },
-  trackElement: function(element) {
-    var type = element.getAttribute('modulate-type');
-    var slider = document.querySelector('.fn-fallback-filter[type="'+type+'"]');
+//   },
+//   trackElement: function(element) {
+//     var type = element.getAttribute('modulate-type');
+//     var slider = document.querySelector('.fn-fallback-filter[type="'+type+'"]');
 
 
-      if(!element.classList.contains('active')) {
-      body.setAttribute('tracking', element.getAttribute('filter-index'))
-      element.classList.add('active');
-      if(data.supportMedia) {
-         cameraTracker.startElementTracking(function (value) {
+//       if(!element.classList.contains('active')) {
+//       body.setAttribute('tracking', element.getAttribute('filter-index'))
+//       element.classList.add('active');
+//       if(data.supportMedia) {
+//          cameraTracker.startElementTracking(function (value) {
           
-          filters.update(element.getAttribute('modulate-type'), value);
-          sendSocket.send('updateFilter',data.group._id, {
-                type:element.getAttribute('modulate-type'),
-                value: value
-              })
-        }, element);
-       } else {
-        slider.classList.add('active');
+//           filters.update(element.getAttribute('modulate-type'), value);
+//           sendSocket.send('updateFilter',data.group._id, {
+//                 type:element.getAttribute('modulate-type'),
+//                 value: value
+//               })
+//         }, element);
+//        } else {
+//         slider.classList.add('active');
         
-        // element.getAttribute()
-       }
+//         // element.getAttribute()
+//        }
        
        
-    } else {
-      body.removeAttribute('tracking')
-      element.classList.remove('active');
-      cameraTracker.stop = true;
-      slider.classList.remove('active');
-    }
-  },
-}
-  
+//     } else {
+//       body.removeAttribute('tracking')
+//       element.classList.remove('active');
+//       cameraTracker.stop = true;
+//       slider.classList.remove('active');
+//     }
+//   },
+// }
+//   
 var user = {
-	username: null
+	username: null,
+	
+
 }
-console.log(user);

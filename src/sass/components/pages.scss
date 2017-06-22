@@ -3,9 +3,18 @@
 }
 body {
 	transition:.2s ease-in;
-	&[tracking="0"],&[tracking="1"],&[tracking="2"],&[tracking="3"] {
+	&:not(&[filters="true"]) {
+		.block-bg-motion {
+			transform:scale(0);
+		}
+	}
+	&[filters="true"] {
+		
 		.block-overlay{
 			transform:translateY(0%) rotate(45deg);
+		}
+		.block-info-wrapper {
+			opacity:0;
 		}
 		nav {
 			opacity:0;
@@ -21,7 +30,7 @@ body {
 			z-index:99;
 		}
 		.btn-filter.active {
-			 box-shadow: 0px 0px 0px 10px $color-purple inset;
+			 // box-shadow: 0px 0px 0px 10px $color-purple inset;
 			 .ic-value {
 			 	// background-color:darken($color-purple, 0);
 			 	z-index:-1;

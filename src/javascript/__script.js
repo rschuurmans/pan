@@ -6,21 +6,21 @@ var init = function () {
 	var path = window.location.pathname;
 	
 	if(path.indexOf('/role') !== -1) {
-		handInteraction.init();
+		rotation.init();
 		changePage.onboarding()
 		listen.role()
 		tips.init();
-		events.unload();
+		// user.unload();
 
 		if(path.indexOf('sequencer') !== -1) {
 			
 			sequencer.init();
-			pp.setup();
+			
 			
 		} else {
 			
 			modulator.init();
-			cameraTracker.checkSupport();
+			// cameraTracker.checkSupport();
 			// changePage.sequencerNavigation();
 			// modulateSocket();
 			// changePage.selector();
@@ -44,5 +44,6 @@ var init = function () {
 window.onload = function () {
 	console.log('load');
 	init();
+	
 
 }

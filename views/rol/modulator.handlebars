@@ -5,20 +5,20 @@
 	{{> pages/alert alert}}
 </div>
 
-
+{{!-- 
 <div class="pagetransition splashtransition-active container-fixed fn-changepage-page container-yellow above text-black text-center fn-hide-support" current-page='calibrate' active='true' order="1" origin='null'>
 		{{> pages/calibrate}}
 		
 </div>
+ --}}
 
-
-<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='filters' active='false'  order="2" origin='null'>
+<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='filters' active='false'  order="1" origin='null'>
 		{{> tipBox tips.0.text}}
 		{{> pages/filters this}}
 	
 </div>
 
-<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='osc' active='false'  order="3" origin='null'>
+<div class="pagetransition container container-fixed container-padding-lg fn-changepage-page" current-page='osc' active='false'  order="2" origin='null'>
 	
 		{{> pages/sources this}}
 	

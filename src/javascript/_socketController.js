@@ -1,3 +1,4 @@
+var users = [];
 var socket = io();
 // var binary = new BinaryClient('ws://localhost:3000');
 
@@ -12,8 +13,12 @@ var listen = {
 	master: function () {
 		
 			
-			socket.emit('joinRoom', 'master');
-			socket.emit('joinRoom', 'live');
+			socket.emit('joinRoom', {
+				room: 'master',
+			});
+			socket.emit('joinRoom', {
+				room: 'live',
+			});
 
 
 			socket.on('audioBlob', function (received) {
@@ -36,17 +41,31 @@ var listen = {
 		
 			
 		var groupId = tools.currentGroupId();
+		console.log('sending this', data.user.username);
+		socket.emit('joinDuo', {
+			room: groupId,
+			username: data.user.username,
+			role: data.user.role
 
-		socket.emit('joinRoom', groupId);
-		socket.emit('joinRoom', 'live');
+		});
+		socket.emit('joinRoom', {
+			room: 'live',
+			
+		});
 
 
 
-		sendSocket.send('groupUpdate', groupId, {text: data.user.username + ' heeft zich aangesloten'})
+		sendSocket.send('groupUpdate', groupId, {
+				text  : data.user.username + ' heeft zich aangesloten',
+				user  : data.user,
+				role  : data.user.role,
+				userid  : data.user._id,
+				active: true
+		})
 		
 		socket.on('demo', function (received) {
-			
-			demosec(received);
+			console.log(received);
+			// demosec(received);
 		})
 		
 	
@@ -59,16 +78,25 @@ var listen = {
 		
 
 		socket.on('groupUpdate', function (received) {
-			var message = document.querySelector('.fn-notification');
-			message.innerHTML = received.data.text;
-			message.style.opacity = 1;
-			setTimeout(function () {
-				message.style.opacity = 0;
-			}, 3000)
-			console.log('received an groupUpdate', received);
+			console.log(received);
+			
+			
+			if(received.data.active) {
+				data.group[received.data.role] = received.data.user;
+				// socket.username = received.data.user.username;
+				// socket.set('username', received.data.username, function () {
+				// 	users[user] = user
+				// })
+			} else {
+				data.group[received.data.role] = null;
+			}
+			tips.notification(received.data.text, received.data.user);
+			recording.checkRecordingUser();
+			
 		})
+		// console.log(socket);
 		socket.on('updateSources', function (received) {
-			sources.update[received.data.type]({id: received.data.id, value:received.data.value})
+			sources.update(received.data);
 			console.log('received an updateSources', received);
 		})
 		socket.on('updateSingleStep', function (received) {
@@ -98,7 +126,14 @@ var listen = {
 		socket.on('updateFilter', function (received) {
 			filters.update(received.data.type, received.data.value);
 		})
-		
+		socket.on('user left', function (received) {
+			console.log('a user left', received);
+			data.group[received.role] = null;
+			recording.checkRecordingUser();
+
+			postData.leaveGroup();
+
+		})
 		
 
 		
@@ -110,20 +145,35 @@ var listen = {
 		socket.on('updateSteps', function (received) {
 			console.log('received a socket', received);
 			data.steps[received.index] = received.step;
+			recording.checkRecordingUser();
 		})
 	}
 }
 
+
+socket.on('disconnect', function() {
+	socket.emit('demo', {
+		username: socket.username
+	})
+
+    // socket.get('username', function(err, user) {
+    //   delete users[user];
+    //   console.log('disconnect', user);
+    //   io.sockets.emit('demo', {
+    //   	users: users,
+    //   	user: user
+    //   });
+    // });
+  });
 var listenStartSocket = function () {
 	socket.on('startSequence', function (fulldelay) {
+		console.log('got it');
 		if(loop.stopped) {
 			console.log('start loop from sokt');
 			loop.start(fulldelay);
 		} 
 	})
 }
-
-
 
 
 var sendSocket = {

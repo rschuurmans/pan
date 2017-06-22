@@ -11,14 +11,17 @@ var inputEvent = {
 	},
 
 	setSliderBg: function (name, value) {
+		console.log(name, value);
 		var sliderBg = document.querySelectorAll('.fn-slider-bg');
 		if(name == 'volume') {
 			value = (value/2)*100;
 		}
-		
 		for(var i = 0; i < sliderBg.length;i++) {
 			if(sliderBg[i].getAttribute('name') == name) {
-				sliderBg[i].style.clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
+				var clipPath = 'polygon(0 0, '+value+'% 0, '+value+'% 100%, 0% 100%)';
+				sliderBg[i].style.clipPath = clipPath;
+				sliderBg[i].style.webkitClipPath = clipPath;
+				console.log('updating it');
 			}
 		}
 	},
