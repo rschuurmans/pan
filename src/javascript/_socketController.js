@@ -176,7 +176,7 @@ socket.on('disconnect', function() {
   });
 var listenStartSocket = function () {
 	socket.on('startSequence', function (fulldelay) {
-		
+		console.log('sterver ');
 		if(loop.stopped) {
 			console.log('start loop from sokt');
 			loop.start(fulldelay);
